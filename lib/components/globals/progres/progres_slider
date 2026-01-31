@@ -1,0 +1,79 @@
+// cadangan 
+import 'package:flutter/material.dart';
+import 'package:sporky_maxi/components/globals/colors/colors.dart';
+import 'package:sporky_maxi/components/globals/text/text_style.dart';
+
+class ProgressSlider extends StatelessWidget {
+  final String label;
+  final double percentage;
+  final Color activeColor;
+  final Color inactiveColor;
+  final EdgeInsets padding;
+  final TextStyle? textStyle;
+  final Color textColor;
+
+  const ProgressSlider({
+    super.key,
+    required this.label,
+    required this.percentage,
+    this.activeColor = AppColors.secondary1,
+    this.inactiveColor = AppColors.base3,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
+    this.textStyle,
+    this.textColor = AppColors.secondary1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('*$label',
+              style: textStyle ?? AppTextStyles.list3Regular(textColor)),
+          Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: inactiveColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: percentage.clamp(0.0, 1.0),
+                child: Container(
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: activeColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: (percentage.clamp(0.0, 1.0)) *
+                        MediaQuery.of(context).size.width -
+                    20,
+                child: CircleAvatar(
+                  radius: 8,
+                  backgroundColor: activeColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('0%', style: AppTextStyles.list1Regular(AppColors.base2)),
+              Text('50%', style: AppTextStyles.list1Regular(AppColors.base2)),
+              Text('100%', style: AppTextStyles.list1Regular(AppColors.base2)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

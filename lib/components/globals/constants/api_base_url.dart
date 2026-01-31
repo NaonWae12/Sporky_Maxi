@@ -1,0 +1,5 @@
+class ApiBaseUrl {
+  static const String baseUrl =
+      "https://dev.sporkymaxi.com"; // Ganti sesuai kebutuhan
+  // "http://10.0.2.2:8000"; // Ganti sesuai kebutuhan
+}
