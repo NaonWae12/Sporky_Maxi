@@ -5,6 +5,8 @@ import 'package:sporky_maxi/components/globals/card/globals_card_outlined.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 
+import '../dialog/badge_tooltip.dart';
+
 class ChildProfileSection extends StatelessWidget {
   final String childName;
   final int ageYear;
@@ -15,6 +17,8 @@ class ChildProfileSection extends StatelessWidget {
   final int tb;
   final int bb;
   final double width;
+  final TooltipStep badgeTooltip;
+  final double percent;
 
   const ChildProfileSection({
     super.key,
@@ -26,8 +30,30 @@ class ChildProfileSection extends StatelessWidget {
     // required this.onDashboardTap,
     required this.tb,
     required this.bb,
-    this.width = 372,
+    this.width = 390,
+    this.badgeTooltip = TooltipStep.awal,
+    this.percent = 0.0,
   });
+
+  Color _getStatusColor(String rawStatus) {
+    final s = rawStatus.trim().toLowerCase();
+    if (s.contains('buruk') ||
+        s.contains('kurang') ||
+        s.contains('underweight') ||
+        s.contains('kekurangan')) {
+      return AppColors.warn4;
+    }
+    if (s.contains('normal') || s.contains('baik')) {
+      return AppColors.success2;
+    }
+    if (s.contains('lebih') ||
+        s.contains('obesitas') ||
+        s.contains('overweight') ||
+        s.contains('kelebihan')) {
+      return AppColors.primary1;
+    }
+    return AppColors.primary1;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +80,19 @@ class ChildProfileSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        childName,
-                        style: AppTextStyles.heading1SemiBold(AppColors.base1),
+                      Row(
+                        children: [
+                          Text(
+                            childName,
+                            style:
+                                AppTextStyles.heading1SemiBold(AppColors.base1),
+                          ),
+                          const SizedBox(width: 5),
+                          BadgeTooltip(
+                            stepIconSize: 18,
+                            badgeTooltip,
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       // TB/BB anak
@@ -75,7 +111,7 @@ class ChildProfileSection extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           Container(
@@ -122,16 +158,13 @@ class ChildProfileSection extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.primary1,
+                              color: _getStatusColor(status),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: SizedBox(
-                              width: MediaQuery.sizeOf(context).width / 9.8,
-                              child: Text(
-                                status,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.list1Bold(AppColors.base5),
-                              ),
+                            child: Text(
+                              status,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.list1Bold(AppColors.base5),
                             ),
                           ),
                         ],
@@ -152,7 +185,7 @@ class ChildProfileSection extends StatelessWidget {
                     child: CircularPercentIndicator(
                       radius: 30.0,
                       lineWidth: 6.0,
-                      percent: 0.33,
+                      percent: percent.clamp(0.0, 1.0),
                       progressColor: AppColors.primary1,
                       backgroundColor: AppColors.base3,
                       circularStrokeCap: CircularStrokeCap.round,

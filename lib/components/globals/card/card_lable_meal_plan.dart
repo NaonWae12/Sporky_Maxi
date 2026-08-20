@@ -43,9 +43,9 @@ Color _getBorderColor(String category) {
       return AppColors.warn1;
     case "makan malam":
       return AppColors.secondary1;
-    case "cemilan pagi":
+    case "snack pagi":
       return AppColors.info1;
-    case "cemilan sore":
+    case "snack sore":
       return AppColors.info1;
     default:
       // Pilih 1 dari 4 warna alternatif secara random

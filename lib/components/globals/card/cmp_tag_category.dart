@@ -53,15 +53,15 @@ class CmpTagCategory extends StatelessWidget {
                     width: 24,
                   ),
             SizedBox(width: spacing),
-            SizedBox(
-              width: MediaQuery.of(context).size.width / wrapText,
+            Flexible(
               child: Text(
                 text,
                 style: textStyle ??
                     AppTextStyles.heading3SemiBold(textAndImageColor),
+                maxLines: 1,
                 overflow: overflow,
               ),
-            ),
+            )
           ],
         ),
       ),

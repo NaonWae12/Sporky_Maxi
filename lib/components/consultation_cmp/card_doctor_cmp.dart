@@ -67,12 +67,7 @@ class CardDoctorCmp extends StatelessWidget {
                             child: ClipRRect(
                               borderRadius:
                                   const BorderRadius.all(Radius.circular(8)),
-                              child: Image.asset(
-                                imagePath,
-                                width: 138,
-                                height: 170,
-                                fit: BoxFit.cover,
-                              ),
+                              child: _buildImage(),
                             ),
                           ),
                           // Label atas
@@ -130,8 +125,13 @@ class CardDoctorCmp extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(doctorName,
-                              style: AppTextStyles.lable3SemiBold()),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width / 5,
+                            child: Text(doctorName,
+                                style: AppTextStyles.lable3SemiBold(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                          ),
                           GlobalsCardOutlined(
                             height: 14,
                             borderColor: AppColors.warn1,
@@ -163,9 +163,7 @@ class CardDoctorCmp extends StatelessWidget {
                           color: AppColors.secondary1,
                           height: 22,
                           width: MediaQuery.of(context).size.width / 2,
-                          onPressed: () {
-                            isFullSchedule ? null : buyTicket;
-                          },
+                          onPressed: isFullSchedule ? null : buyTicket,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -225,6 +223,55 @@ class CardDoctorCmp extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImage() {
+    const double width = 138;
+    const double height = 170;
+
+    Widget errorWidget = Container(
+      width: width,
+      height: height,
+      color: AppColors.base3,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.broken_image,
+        color: AppColors.base2,
+        size: 28,
+      ),
+    );
+
+    if (imagePath.startsWith('http')) {
+      return Image.network(
+        imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            width: width,
+            height: height,
+            color: AppColors.base3,
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        },
+        errorBuilder: (_, __, ___) => errorWidget,
+      );
+    } else {
+      return Image.asset(
+        imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => errorWidget,
+      );
+    }
   }
 }
 

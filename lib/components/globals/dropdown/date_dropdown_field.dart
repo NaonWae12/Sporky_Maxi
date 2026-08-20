@@ -29,12 +29,17 @@ class DateDropdownField extends StatefulWidget {
 class _DateDropdownFieldState extends State<DateDropdownField> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
+
   late final TextEditingController controller;
   bool _shouldDisposeController = false;
+
+  // 🔑 STATE TANGGAL AKTIF
+  late DateTime _activeDate;
 
   @override
   void initState() {
     super.initState();
+
     if (widget.controller == null) {
       controller = TextEditingController();
       _shouldDisposeController = true;
@@ -42,9 +47,8 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
       controller = widget.controller!;
     }
 
-    if (widget.selectedDate != null) {
-      controller.text = DateFormat('dd/MM/yyyy').format(widget.selectedDate!);
-    }
+    _activeDate = widget.selectedDate ?? DateTime.now();
+    controller.text = DateFormat('dd/MM/yyyy').format(_activeDate);
   }
 
   void _toggleOverlay() {
@@ -88,13 +92,23 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
                 ),
               ),
               child: CalendarDatePicker(
-                initialDate: widget.selectedDate ?? DateTime.now(),
-                firstDate: DateTime(DateTime.now().year - 50),
-                lastDate: DateTime(DateTime.now().year + 2),
+                initialDate: _activeDate,
+                firstDate: DateTime(1900),
+                lastDate: DateTime(DateTime.now().year + 5),
                 onDateChanged: (date) {
+                  final bool isDaySelected = date.day != _activeDate.day;
+
+                  setState(() {
+                    _activeDate = date;
+                    controller.text = DateFormat('dd/MM/yyyy').format(date);
+                  });
+
                   widget.onDateSelected(date);
-                  controller.text = DateFormat('dd/MM/yyyy').format(date);
-                  _toggleOverlay();
+
+                  // ✅ dropdown nutup HANYA kalau user klik tanggal
+                  if (isDaySelected) {
+                    _toggleOverlay();
+                  }
                 },
               ),
             ),

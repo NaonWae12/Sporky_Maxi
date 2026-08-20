@@ -4,6 +4,8 @@ class SecureStorageService {
   static const _tokenKey = "token";
   static const _userUuidKey = "user_uuid";
   static const _userNameKey = "user_name";
+  static const _userRoleKey = "user_role";
+  static const _selectedChildUuidKey = "selected_child_uuid";
 
   // ================= TOKEN =================
   static Future<void> saveToken(String token) async {
@@ -51,6 +53,38 @@ class SecureStorageService {
   static Future<void> deleteUserName() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userNameKey);
+  }
+
+  // ================= USER ROLE =================
+  static Future<void> saveUserRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userRoleKey, role);
+  }
+
+  static Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userRoleKey);
+  }
+
+  static Future<void> deleteUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userRoleKey);
+  }
+
+  // ================= SELECTED CHILD UUID =================
+  static Future<void> saveSelectedChildUuid(String uuid) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedChildUuidKey, uuid);
+  }
+
+  static Future<String?> getSelectedChildUuid() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_selectedChildUuidKey);
+  }
+
+  static Future<void> deleteSelectedChildUuid() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_selectedChildUuidKey);
   }
 
   // ================= LOGOUT =================

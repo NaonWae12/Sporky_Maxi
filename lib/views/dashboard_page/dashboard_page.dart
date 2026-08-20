@@ -6,9 +6,11 @@ import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import '../../components/globals/card/cmp_tag_attention.dart';
 import '../../components/home_page_cmp/learning_section.dart';
-import '../../components/home_page_cmp/meal_plan_recommendation.dart';
 import '../../components/dashboard_page_cmp/child_profile/child_profile.dart';
+import '../../components/dashboard_page_cmp/meal_plan_by_calorie_recommendation.dart';
 import '../../core/services/child/child_service.dart';
+import '../../core/utils/secure_storage_service.dart';
+import '../../components/dashboard_page_cmp/child_biodata/child_biodata_cmp.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -25,6 +27,16 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _childUuidsFuture = ChildService().getChildUuids();
+    _loadActiveChildUuid();
+  }
+
+  Future<void> _loadActiveChildUuid() async {
+    final uuid = await SecureStorageService.getSelectedChildUuid();
+    if (mounted) {
+      setState(() {
+        activeChildUuid = uuid;
+      });
+    }
   }
 
   @override
@@ -67,19 +79,27 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 }
 
-                // Set default anak pertama jika belum ada
-                if (activeChildUuid == null && childUuids.isNotEmpty) {
-                  activeChildUuid = childUuids.first;
+                // Cek jika activeChildUuid stale atau belum diset
+                if (activeChildUuid == null ||
+                    !childUuids.contains(activeChildUuid)) {
+                  activeChildUuid =
+                      childUuids.isNotEmpty ? childUuids.first : null;
+                  if (activeChildUuid != null) {
+                    SecureStorageService.saveSelectedChildUuid(
+                        activeChildUuid!);
+                  }
                 }
 
                 return Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: ChildProfile(
                     childUuids: childUuids,
+                    selectedChildUuid: activeChildUuid,
                     onChildSelected: (uuid) {
                       setState(() {
                         activeChildUuid = uuid;
                       });
+                      SecureStorageService.saveSelectedChildUuid(uuid);
                     },
                   ),
                 );
@@ -93,6 +113,15 @@ class _DashboardPageState extends State<DashboardPage> {
                   'Asupan anak belum konsisten minggu ini. Ayo lengkapi asupan hariannya dan sempatkan aktivitas seru bersama!',
               imageAsset: 'assets/svg/ic_warn.svg',
             ),
+
+            /// ================= BIODATA KESEHATAN ANAK =================
+            if (activeChildUuid != null)
+              ChildBiodataCmp(
+                key: ValueKey('biodata_$activeChildUuid'),
+                childUuid: activeChildUuid!,
+              )
+            else
+              const SizedBox(),
 
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -120,8 +149,10 @@ class _DashboardPageState extends State<DashboardPage> {
               imageAsset: 'assets/svg/ic_warn.svg',
             ),
 
+            /// ================= Learning sectio =================
             LearningSection(),
 
+            /// ================= Progres History =================
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: CmpTagCategory(
@@ -132,17 +163,16 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
 
-            BarChartCmp(),
+            BarChartCmp(childUuid: activeChildUuid),
 
-            CmpTagAttention(
-              lineColor: AppColors.warn1,
-              imageColor: AppColors.warn1,
-              text:
-                  'Hari ini anak masih mendapatkan 30% kalori. Yuk lengkapi energi anak!',
-              imageAsset: 'assets/svg/ic_warn.svg',
-            ),
-
-            MealPlanRecommendation(),
+            /// ================= MEALPLAN REKOMENDASI BY CALORIES =================
+            if (activeChildUuid != null)
+              MealPlanByCalorieRecommendation(
+                key: ValueKey('meal_calorie_$activeChildUuid'),
+                childUuid: activeChildUuid!,
+              )
+            else
+              const SizedBox(),
           ],
         ),
       ),

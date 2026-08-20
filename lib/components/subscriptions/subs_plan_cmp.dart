@@ -9,7 +9,7 @@ import '../globals/card/globals_card.dart';
 
 class SubsPlanCmp extends StatelessWidget {
   final String price;
-  final String month;
+  final String periodLabel;
   final String desc;
   final String image;
   // final String descTooltip1;
@@ -27,7 +27,7 @@ class SubsPlanCmp extends StatelessWidget {
   const SubsPlanCmp(
       {super.key,
       required this.price,
-      required this.month,
+      required this.periodLabel,
       required this.desc,
       required this.image,
       // required this.descTooltip1,
@@ -109,7 +109,7 @@ class SubsPlanCmp extends StatelessWidget {
                     children: [
                       const SizedBox(height: 5),
                       Text(
-                        '/ $month Bulan',
+                        '/ $periodLabel',
                         style: AppTextStyles.lable3Medium(AppColors.base2),
                       ),
                     ],
@@ -124,7 +124,7 @@ class SubsPlanCmp extends StatelessWidget {
               const SizedBox(height: 8),
               FeatureTile(
                 iconAsset: 'assets/svg/ic_ calendar - schedule.svg',
-                text: '$month bulan',
+                text: periodLabel,
               ),
               ...features,
               const SizedBox(height: 12),

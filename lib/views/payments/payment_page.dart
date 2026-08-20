@@ -27,12 +27,13 @@ class PaymentPage extends StatelessWidget {
           ),
         ),
       ),
-      body: const PaymentCmp(
+      body: PaymentCmp(
         doctorName: 'dr.Palomina',
         specialization: 'Anak',
         price: '50',
         session: '1',
         isExpertGroup: true,
+        onPressedButton: () {},
       ),
     );
   }

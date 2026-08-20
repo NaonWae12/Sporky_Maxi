@@ -1,6 +1,6 @@
 class ChildLatestScreening {
   final Child child;
-  final Screening screening;
+  final Screening? screening;
 
   ChildLatestScreening({
     required this.child,
@@ -8,9 +8,14 @@ class ChildLatestScreening {
   });
 
   factory ChildLatestScreening.fromJson(Map<String, dynamic> json) {
+    final childJson = json['child'] as Map<String, dynamic>? ?? {};
+    final screeningJson = json['screening'];
+
     return ChildLatestScreening(
-      child: Child.fromJson(json['child']),
-      screening: Screening.fromJson(json['screening']),
+      child: Child.fromJson(childJson),
+      screening: screeningJson is Map<String, dynamic>
+          ? Screening.fromJson(screeningJson)
+          : null,
     );
   }
 }
@@ -28,10 +33,11 @@ class Child {
   });
 
   factory Child.fromJson(Map<String, dynamic> json) {
+    final dobRaw = json['dob']?.toString() ?? '';
     return Child(
-      uuid: json['uuid'],
-      name: json['name'],
-      dob: DateTime.parse(json['dob']),
+      uuid: (json['uuid']?.toString() ?? '').trim(),
+      name: (json['name']?.toString() ?? '').trim(),
+      dob: DateTime.tryParse(dobRaw) ?? DateTime(1970, 1, 1),
     );
   }
 }
@@ -62,15 +68,28 @@ class Screening {
 
   factory Screening.fromJson(Map<String, dynamic> json) {
     return Screening(
-      id: json['id'] as int?,
-      activityId: json['activity_id'] as int?,
-      height: json['height'] as int?,
-      weight: (json['weight'] as num?)?.toDouble(),
-      bmi: (json['bmi'] as num?)?.toDouble(),
-      zScore: (json['z_score'] as num?)?.toDouble(),
+      id: _toInt(json['id']),
+      activityId: _toInt(json['activity_id']),
+      height: _toInt(json['height']),
+      weight: _toDouble(json['weight']),
+      bmi: _toDouble(json['bmi']),
+      zScore: _toDouble(json['z_score']),
       nutritionStatus: json['nutrition_status'] as String?,
-      paValue: (json['pa_value'] as num?)?.toDouble(),
-      eer: (json['eer'] as num?)?.toDouble(),
+      paValue: _toDouble(json['pa_value']),
+      eer: _toDouble(json['eer']),
     );
+  }
+
+  static int? _toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 }

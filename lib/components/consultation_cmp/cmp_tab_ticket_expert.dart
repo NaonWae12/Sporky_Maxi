@@ -36,6 +36,7 @@ class CmpTabTicketExpert extends StatelessWidget {
               imageAsset: 'assets/svg/ic_ calendar - schedule.svg',
               imageColor: AppColors.info1),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +83,7 @@ class CmpTabTicketExpert extends StatelessWidget {
                             color: AppColors.secondary1,
                             height: 22,
                             width: MediaQuery.of(context).size.width / 3,
-                            onPressed: () {},
+                            onPressed: buyTicketChat,
                             child: Row(
                               children: [
                                 SvgPicture.asset(

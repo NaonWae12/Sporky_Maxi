@@ -17,6 +17,23 @@ class _MealPlanPageState extends State<MealPlanPage> {
   TextEditingController searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_onSearchChanged);
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
@@ -43,10 +60,10 @@ class _MealPlanPageState extends State<MealPlanPage> {
             Expanded(
               child: FullWidthTabBar(
                 tabs: const ['Semua', 'Menu Utama', 'Cemilan'],
-                tabViews: const [
-                  AllContentPage(),
-                  MainMenuContentPage(),
-                  SnackContentPage(),
+                tabViews: [
+                  AllContentPage(searchQuery: searchController.text),
+                  MainMenuContentPage(searchQuery: searchController.text),
+                  SnackContentPage(searchQuery: searchController.text),
                 ],
               ),
             ),

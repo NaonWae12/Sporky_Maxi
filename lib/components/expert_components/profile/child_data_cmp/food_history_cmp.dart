@@ -42,7 +42,7 @@ class FoodHistoryCmp extends StatelessWidget {
               HistoryListCmp(
                 historyDay: item['historyDay'],
                 mealTime: item['mealTime'],
-                hour: item['hour'] ?? 0.0,
+                hour: item['hour']?.toString() ?? '00:00',
                 carbohydrate: item['carbohydrate'] ?? 0,
                 proteins: item['proteins'] ?? 0,
                 fat: item['fat'] ?? 0,

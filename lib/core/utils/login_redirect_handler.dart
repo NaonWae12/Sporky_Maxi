@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/services/child/child_service.dart';
 import '../../views/bottom_navbar/navbar.dart';
+import '../../views/expert_page/navbar/navbar_expert.dart';
 import '../../views/initial_display/login_page.dart';
 import '../../views/initial_display/profil_si_kecil_flow_test.dart';
 import 'secure_storage_service.dart';
@@ -9,20 +10,49 @@ import 'secure_storage_service.dart';
 class LoginRedirectHandler {
   static Future<void> handle(BuildContext context) async {
     try {
-      final childService = ChildService();
-      final children = await childService.getChildUuids();
+      final role =
+          (await SecureStorageService.getUserRole())?.trim().toLowerCase();
+      debugPrint('[Redirect] role from storage: $role');
 
       if (!context.mounted) return;
 
-      // ✅ AUTH VALID
+      if (role == 'expert') {
+        debugPrint('[Redirect] route -> NavbarExpert');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const NavbarExpert()),
+        );
+        return;
+      }
+
+      if (role != 'user') {
+        debugPrint(
+            '[Redirect] invalid/empty role, clear session and back to login');
+        await SecureStorageService.clearAll();
+
+        if (!context.mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+        return;
+      }
+
+      final childService = ChildService();
+      final children = await childService.getChildUuids();
+      debugPrint('[Redirect] children count for user flow: ${children.length}');
+
+      if (!context.mounted) return;
+
       if (children.isNotEmpty) {
-        // ✅ Sudah punya anak → Dashboard
+        debugPrint('[Redirect] route -> Navbar (user with child)');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const Navbar()),
         );
       } else {
-        // ❌ Belum punya anak → Isi profil anak
+        debugPrint(
+            '[Redirect] route -> ProfilSiKecilFlowTest (user without child)');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -31,14 +61,12 @@ class LoginRedirectHandler {
         );
       }
     } on Exception catch (e) {
-      debugPrint("🚨 LoginRedirectHandler auth error: $e");
+      debugPrint('LoginRedirectHandler auth error: $e');
 
-      // 🔥 SESSION INVALID → CLEAN
       await SecureStorageService.clearAll();
 
       if (!context.mounted) return;
 
-      // ❗ FALLBACK HARUS KE LOGIN
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginPage()),

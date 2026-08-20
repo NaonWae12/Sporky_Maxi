@@ -27,6 +27,26 @@ class ShortBannerProfile extends StatelessWidget {
     this.badgeTooltip = TooltipStep.awal,
   });
 
+  Color _getStatusColor(String rawStatus) {
+    final s = rawStatus.trim().toLowerCase();
+    if (s.contains('buruk') ||
+        s.contains('kurang') ||
+        s.contains('underweight') ||
+        s.contains('kekurangan')) {
+      return AppColors.warn4;
+    }
+    if (s.contains('normal') || s.contains('baik')) {
+      return AppColors.success2;
+    }
+    if (s.contains('lebih') ||
+        s.contains('obesitas') ||
+        s.contains('overweight') ||
+        s.contains('kelebihan')) {
+      return AppColors.primary1;
+    }
+    return AppColors.primary1;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -110,7 +130,7 @@ class ShortBannerProfile extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.primary1,
+                            color: _getStatusColor(status),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(

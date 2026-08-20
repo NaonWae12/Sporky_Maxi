@@ -5,14 +5,36 @@ import 'package:sporky_maxi/components/globals/card/globals_card.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/views/expert_page/home_page/page_agenda_consultations.dart';
+import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
 
 import '../../../components/expert_components/schedule/shedule_cmp.dart';
 import '../../../components/globals/card/card_agenda_cmp.dart';
 import '../../profile/page_setting_profile/page_setting_expert/page_setting_expert_profile.dart';
 // import 'package:sporky_maxi/components/globals/card/globals_card.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _expertName = 'Dokter';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExpertName();
+  }
+
+  Future<void> _loadExpertName() async {
+    final name = await SecureStorageService.getUserName();
+    if (!mounted) return;
+    setState(() {
+      _expertName = (name == null || name.trim().isEmpty) ? 'Dokter' : name;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +49,7 @@ class HomePage extends StatelessWidget {
                     builder: (context) => PageSettingExpertProfile(),
                   ));
             },
-            name: 'dr. Kevin',
+            name: _expertName,
             title: 'Ahli Gizi, Spesialis Rehabilitas Nutrisi'),
       ),
       body: Column(

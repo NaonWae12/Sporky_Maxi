@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sporky_maxi/views/initial_display/login_page.dart';
 
 class OptionalChoice extends StatelessWidget {
   const OptionalChoice({super.key});
@@ -17,7 +18,11 @@ class OptionalChoice extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () {
-                // Handle Buat Akun Baru
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginPage(),
+                    ));
               },
               child: const Text(
                 'Masuk',

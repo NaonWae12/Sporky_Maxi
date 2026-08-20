@@ -7,7 +7,7 @@ class ProfileSection {
   final IconData icon;
   final List<ProfileItem> items;
 
-  ProfileSection({
+  const ProfileSection({
     required this.title,
     required this.icon,
     required this.items,
@@ -20,7 +20,7 @@ class ProfileItem {
   final String place;
   final String position;
 
-  ProfileItem({
+  const ProfileItem({
     required this.year,
     required this.location,
     required this.place,
@@ -29,55 +29,23 @@ class ProfileItem {
 }
 
 class CmpTabProfileExpert extends StatelessWidget {
-  const CmpTabProfileExpert({super.key});
+  final List<ProfileSection> sections;
+
+  const CmpTabProfileExpert({
+    super.key,
+    this.sections = const <ProfileSection>[],
+  });
 
   @override
   Widget build(BuildContext context) {
-    final sections = [
-      ProfileSection(
-        title: 'Pengalaman Profesional',
-        icon: Icons.work,
-        items: [
-          ProfileItem(
-            year: '2022 - Saat Ini',
-            location: 'Klinik Sehat Ceria, Jakarta',
-            place: '',
-            position: 'Dokter Spesialis Anak',
-          ),
-          ProfileItem(
-            year: '2021 - 2022',
-            location: 'RSUD Dr. Sutomo, Surabaya',
-            place: '',
-            position: 'Dokter Internship',
-          ),
-          ProfileItem(
-            year: '2020 - 2021',
-            location: 'Puskesmas Kemang, Jakarta Selatan',
-            place: '',
-            position: 'Asisten Dokter Anak',
-          ),
-        ],
-      ),
-      ProfileSection(
-        title: 'Pendidikan',
-        icon: Icons.school,
-        items: [
-          ProfileItem(
-            year: '2013 - 2020',
-            location: 'Universitas Indonesia, Depok',
-            place: '',
-            position: 'S.Ked & Profesi Dokter',
-          ),
-        ],
-      ),
-    ];
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: sections.map((section) => _buildSection(section)).toList(),
-      ),
+      child: sections.isEmpty
+          ? const Text('Data profil belum tersedia')
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: sections.map((section) => _buildSection(section)).toList(),
+            ),
     );
   }
 

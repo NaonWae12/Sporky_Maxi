@@ -45,12 +45,39 @@ class CmpCardListArticle extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: imageAsset != null
-                      ? Image.asset(
-                          imageAsset!,
-                          height: 88,
-                          width: 68,
-                          fit: BoxFit.cover,
-                        )
+                      ? (imageAsset!.startsWith('http')
+                          ? Image.network(
+                              imageAsset!,
+                              height: 88,
+                              width: 68,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return Container(
+                                  height: 88,
+                                  width: 68,
+                                  color: AppColors.base3,
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                height: 88,
+                                width: 68,
+                                color: AppColors.base3,
+                                child: const Icon(Icons.broken_image,
+                                    size: 28, color: AppColors.base2),
+                              ),
+                            )
+                          : Image.asset(
+                              imageAsset!,
+                              height: 88,
+                              width: 68,
+                              fit: BoxFit.cover,
+                            ))
                       : Container(
                           height: 88,
                           width: 68,
@@ -107,7 +134,7 @@ class CmpCardListArticle extends StatelessWidget {
                         child: Text(
                           description,
                           style: AppTextStyles.list3Regular(AppColors.base2),
-                          maxLines: 4,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

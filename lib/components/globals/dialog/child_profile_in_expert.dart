@@ -10,9 +10,26 @@ import 'badge_tooltip.dart';
 
 class ChildProfileInExpert extends StatelessWidget {
   final VoidCallback? onPressed;
+  final String childName;
+  final int ageMonth;
+  final int ageYear;
+  final String status;
+  final String weight;
+  final String height;
+  final String medicalHistories;
+  final String allergies;
+
   const ChildProfileInExpert({
     super.key,
     this.onPressed,
+    required this.childName,
+    required this.ageMonth,
+    required this.ageYear,
+    required this.status,
+    required this.weight,
+    required this.height,
+    required this.medicalHistories,
+    required this.allergies,
   });
 
   @override
@@ -38,27 +55,27 @@ class ChildProfileInExpert extends StatelessWidget {
           ChildProfileNoBox(
             isAsset: true,
             photoUrl: 'assets/temp_img/kids.png',
-            childName: 'Thalia Amara',
-            ageMonth: 4,
-            ageYear: 1,
-            status: 'Normal',
+            childName: childName,
+            ageMonth: ageMonth,
+            ageYear: ageYear,
+            status: status,
             step: TooltipStep.awal,
           ),
           Row(
             children: [
-              Expanded(child: Card(title: 'Berat Badan (Kg)*', desc: '15,8')),
-              Expanded(child: Card(title: 'Tinggi Badan (cm)*', desc: '115')),
+              Expanded(child: Card(title: 'Berat Badan (Kg)*', desc: weight)),
+              Expanded(child: Card(title: 'Tinggi Badan (cm)*', desc: height)),
             ],
           ),
           Card(
               title: 'Riwayat Penyakit',
-              desc: 'Bronkitis ringan saat usia 2 tahun'),
-          Card(title: 'Alergi', desc: 'Susu Sapi, Debu'),
+              desc: medicalHistories),
+          Card(title: 'Alergi', desc: allergies),
           Card(
-              title: 'Kegiatan Sehari - Hari',
+              title: 'Kegiatan Sehari - Hari [Hardcoded]',
               desc: 'Sekolah disertai kegiatan tambahan di dalam/luar sekolah'),
           Card(
-              title: 'Keluhan',
+              title: 'Keluhan [Hardcoded]',
               desc:
                   'Belakangan sering batuk saat malam hari dan pagi hari, ingin memastikan apakah perlu pemeriksaan lebih lanjut'),
           GlobalsButton(

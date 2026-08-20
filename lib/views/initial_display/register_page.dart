@@ -17,7 +17,11 @@ class RegisterPage extends StatelessWidget {
           padding: EdgeInsets.only(left: 8),
           child: Row(
             children: [
-              Icon(Icons.arrow_back_ios),
+              IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back_ios)),
               Text(
                 "Buat akun orangtua",
                 style: AppTextStyles.heading2SemiBold(),

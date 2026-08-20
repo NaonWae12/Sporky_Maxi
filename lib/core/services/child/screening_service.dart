@@ -9,19 +9,14 @@ import '../../utils/secure_storage_service.dart';
 
 class ScreeningService {
   Future<ChildLatestScreening> getLatestByChildUuid(String childUuid) async {
-    // debugPrint("📌 [ScreeningService] childUuid: $childUuid");
+    // debugPrint('[ScreeningService] childUuid: $childUuid');
 
     final token = await SecureStorageService.getToken();
-    // debugPrint("🔑 Token: $token");
-
-    if (token == null) {
-      // debugPrint("❌ Token NULL");
-      throw Exception("Token tidak ditemukan");
+    if (token == null || token.isEmpty) {
+      throw Exception('Token tidak ditemukan');
     }
 
     final url = ApiEndpoints.screeningLatestChild(childUuid);
-    // debugPrint("🌐 Endpoint: $url");
-
     final response = await http.get(
       Uri.parse(url),
       headers: {
@@ -29,19 +24,23 @@ class ScreeningService {
         'Accept': 'application/json',
       },
     );
-    // debugPrint('token : $token');
 
-    // debugPrint("📥 Status Code: ${response.statusCode}");
-    // debugPrint("📥 Response Body: ${response.body}");
+    debugPrint('[ScreeningService] status: ${response.statusCode}');
+    // debugPrint('[ScreeningService] body: ${response.body}');
 
     if (response.statusCode == 200) {
-      final jsonBody = jsonDecode(response.body);
-      debugPrint("✅ Parsing screening berhasil");
+      final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
+      final parsed = ChildLatestScreening.fromJson(
+        jsonBody['data'] as Map<String, dynamic>? ?? {},
+      );
 
-      return ChildLatestScreening.fromJson(jsonBody['data']);
-    } else {
-      // debugPrint("❌ Gagal ambil screening anak");
-      throw Exception("Gagal mengambil data screening");
+      final screeningState = parsed.screening == null ? 'null' : 'available';
+      debugPrint(
+          '[ScreeningService] parse success (screening: $screeningState)');
+
+      return parsed;
     }
+
+    throw Exception('Gagal mengambil data screening');
   }
 }

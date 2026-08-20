@@ -12,6 +12,8 @@ class PaymentCmp extends StatefulWidget {
   final String price;
   final String session;
   final bool isExpertGroup;
+  final String textButton;
+  final VoidCallback onPressedButton;
 
   const PaymentCmp({
     super.key,
@@ -20,6 +22,8 @@ class PaymentCmp extends StatefulWidget {
     required this.price,
     required this.session,
     this.isExpertGroup = false,
+    this.textButton = "Aktifkan Langganan",
+    required this.onPressedButton,
   });
 
   @override
@@ -212,7 +216,7 @@ class _PaymentCmpState extends State<PaymentCmp> {
                   RichText(
                     text: TextSpan(
                       text: 'Tukarkan ',
-                      style: AppTextStyles.heading3SemiBold(),
+                      style: AppTextStyles.heading3SemiBold(AppColors.base1),
                       children: <TextSpan>[
                         TextSpan(
                             text: '3000',
@@ -323,9 +327,9 @@ class _PaymentCmpState extends State<PaymentCmp> {
           padding: const EdgeInsets.all(16),
           child: GlobalsButton(
             color: _isCoinUsed ? AppColors.secondary1 : AppColors.secondary3,
-            text: "Aktifkan Langganan",
+            text: widget.textButton,
             customTextStyle: AppTextStyles.headList1Bold(),
-            onPressed: () {},
+            onPressed: widget.onPressedButton,
           ),
         )
       ],

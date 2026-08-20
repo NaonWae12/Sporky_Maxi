@@ -16,6 +16,7 @@ class NutritionistsChat extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Column(
             children: [
+              SizedBox(height: 18),
               CmpListChat(
                 name: 'dr. Palomina',
                 message:

@@ -35,9 +35,7 @@ class _PageChatroomState extends State<PageChatroom> {
               'Aktif',
               'Selesai'
             ], tabViews: const [
-              AllChatExpert(
-                childUuid: 'default-uuid',
-              ),
+              AllChatExpert(),
               Center(child: Text('Aktif')),
               Center(child: Text('Selesai')),
             ]))

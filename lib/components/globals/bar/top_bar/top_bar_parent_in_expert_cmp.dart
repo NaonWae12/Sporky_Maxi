@@ -28,6 +28,7 @@ class TopBarParentInExpertCmp extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(parentName, style: AppTextStyles.heading2SemiBold()),
                 GlobalsCard(

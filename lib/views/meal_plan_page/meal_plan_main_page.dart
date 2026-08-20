@@ -40,7 +40,7 @@ class MealPlanMainPage extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: CmpTagCategory(
                 imageAsset: 'assets/svg/bento-box-rounded.svg',
-                text: 'Belajar Bareng Yuk',
+                text: 'Menu Terbaik Hari Ini',
                 textAndImageColor: AppColors.warn1,
               ),
             ),

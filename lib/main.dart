@@ -3,6 +3,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'views/initial_display/login_page.dart';
 import 'views/initial_display/splash_screen.dart';
+// import 'views/initial_display/welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -27,6 +27,52 @@ class CmpArticle extends StatelessWidget {
     this.onTap,
   });
 
+  bool _isNetworkImage(String imagePath) {
+    return imagePath.startsWith('http://') || imagePath.startsWith('https://');
+  }
+
+  Widget _buildImage() {
+    final imagePath = imageAsset?.trim();
+    if (imagePath == null || imagePath.isEmpty) {
+      return _placeholder();
+    }
+
+    if (_isNetworkImage(imagePath)) {
+      return Image.network(
+        imagePath,
+        height: 88,
+        width: 120,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return SizedBox(
+            height: 88,
+            width: 120,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) => _placeholder(),
+      );
+    }
+
+    return Image.asset(
+      imagePath,
+      height: 88,
+      width: 120,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _placeholder(),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      height: 88,
+      width: 120,
+      color: AppColors.base3,
+      child: const Icon(Icons.broken_image, size: 28, color: AppColors.base2),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -39,20 +85,7 @@ class CmpArticle extends StatelessWidget {
               // Gambar/video placeholder
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: imageAsset != null
-                    ? Image.asset(
-                        imageAsset!,
-                        height: 88,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        height: 88,
-                        width: 120,
-                        color: AppColors.base3,
-                        child: const Icon(Icons.broken_image,
-                            size: 28, color: AppColors.base2),
-                      ),
+                child: _buildImage(),
               ),
               const SizedBox(width: 5),
               Column(
@@ -75,7 +108,15 @@ class CmpArticle extends StatelessWidget {
                         .toList(),
                   ),
 
-                  Text(title, style: AppTextStyles.list1Bold(AppColors.base1)),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.58,
+                    child: Text(
+                      title,
+                      style: AppTextStyles.list1Bold(AppColors.base1),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   Row(
                     children: [
                       const Icon(Icons.circle,

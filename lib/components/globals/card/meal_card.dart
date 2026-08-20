@@ -1,12 +1,16 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:sporky_maxi/components/globals/button/globals_button.dart';
+import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
+import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
 
 import '../colors/colors.dart';
 import '../dialog/dialog_alert.dart';
 import '../text/text_style.dart';
 import 'card_lable_meal_plan.dart';
 
-class MealCard extends StatelessWidget {
+class MealCard extends StatefulWidget {
   final String imagePath;
   final String category;
   final String title;
@@ -15,6 +19,8 @@ class MealCard extends StatelessWidget {
   final String categoryType;
   final VoidCallback onTap;
   final bool isSporkyPlus;
+  final String? mealPlanUuid;
+  final bool initialIsFavorite;
 
   const MealCard({
     super.key,
@@ -26,7 +32,128 @@ class MealCard extends StatelessWidget {
     required this.categoryType,
     required this.onTap,
     this.isSporkyPlus = false,
+    this.mealPlanUuid,
+    this.initialIsFavorite = false,
   });
+
+  @override
+  State<MealCard> createState() => _MealCardState();
+}
+
+class _MealCardState extends State<MealCard> {
+  late bool _isFavorited;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorited = widget.initialIsFavorite;
+    _checkInitialFavoriteStatus();
+  }
+
+  @override
+  void didUpdateWidget(MealCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialIsFavorite != widget.initialIsFavorite) {
+      setState(() {
+        _isFavorited = widget.initialIsFavorite;
+      });
+    }
+  }
+
+  Future<void> _checkInitialFavoriteStatus() async {
+    if (widget.mealPlanUuid == null) return;
+    try {
+      final token = await SecureStorageService.getToken();
+      if (token == null || token.isEmpty) return;
+      final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
+
+      // Gunakan favorites list karena GET /favorite/{uuid} tidak tersedia di BE
+      final response = await http.get(
+        Uri.parse(ApiEndpoints.mealPlanFavorites),
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final dataNode = decoded['data'];
+        if (dataNode is Map<String, dynamic>) {
+          final mealPlansNode = dataNode['meal_plans'];
+          if (mealPlansNode is List) {
+            final isFav = mealPlansNode
+                .whereType<Map<String, dynamic>>()
+                .any((m) => m['uuid']?.toString() == widget.mealPlanUuid);
+            if (mounted) {
+              setState(() {
+                _isFavorited = isFav;
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[MealCard] Error checking favorite status: $e');
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (widget.mealPlanUuid == null) return;
+
+    final originalFav = _isFavorited;
+    setState(() {
+      _isFavorited = !_isFavorited;
+    });
+
+    try {
+      final token = await SecureStorageService.getToken();
+      if (token == null || token.isEmpty) {
+        setState(() {
+          _isFavorited = originalFav;
+        });
+        return;
+      }
+
+      final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.mealPlanFavorite(widget.mealPlanUuid!)),
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = decoded['data'];
+        if (data != null) {
+          final isFav = data['is_favorite'] as bool? ?? false;
+          if (mounted) {
+            setState(() {
+              _isFavorited = isFav;
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('[MealCard] Error toggling favorite: $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _isFavorited = originalFav;
+      });
+    }
+  }
+
+  Color get _buttonColor {
+    final cat = widget.categoryType.trim().toLowerCase();
+    if (cat.contains('snack')) {
+      return AppColors.warn4;
+    }
+    return AppColors.success2;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +161,7 @@ class MealCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
       child: GestureDetector(
         onTap: () {
-          if (isSporkyPlus) {
+          if (widget.isSporkyPlus) {
             DialogAlert.show(
               barrierDismissible: true,
               context: context,
@@ -43,13 +170,13 @@ class MealCard extends StatelessWidget {
                   "Beberapa fitur hanya tersedia untuk paket lengkap. Yuk, upgrade paket agar si Kecil bisa tumbuh lebih optimal! 🌱",
             );
           } else {
-            onTap();
+            widget.onTap();
           }
         },
         child: Stack(
           children: [
             Opacity(
-              opacity: isSporkyPlus ? 0.5 : 1.0,
+              opacity: widget.isSporkyPlus ? 0.5 : 1.0,
               child: Container(
                 width: 140,
                 decoration: BoxDecoration(
@@ -65,79 +192,85 @@ class MealCard extends StatelessWidget {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
                   child: Column(
                     children: [
                       Stack(
                         children: [
                           // Gambar
                           ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(8),
-                              topRight: Radius.circular(8),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
                             ),
-                            child: _buildImage(imagePath),
+                            child: _buildImage(widget.imagePath),
                           ),
 
                           // Label atas
                           Positioned(
-                            top: 10,
-                            left: 5,
-                            child:
-                                CardLableMealPlan(categoryType: categoryType),
+                            top: 6,
+                            left: 4,
+                            child: CardLableMealPlan(
+                                categoryType: widget.categoryType),
                           ),
                         ],
                       ),
-
+                      const SizedBox(height: 5),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Judul
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width / 5,
-                                child: Text(
-                                  title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.lable3SemiBold(
-                                      AppColors.base1),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Judul
+                                SizedBox(
+                                  width: 90,
+                                  child: Text(
+                                    widget.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTextStyles.lable3SemiBold(
+                                        AppColors.base1),
+                                  ),
                                 ),
-                              ),
-
-                              // Deskripsi
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width / 5,
-                                child: Text(
-                                  description,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.list3Regular(
-                                      AppColors.base1),
+                                // Deskripsi
+                                SizedBox(
+                                  width: 90,
+                                  child: Text(
+                                    widget.description,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTextStyles.list3Regular(
+                                        AppColors.base1),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 5),
+                          // Kalori
                           Container(
-                              width: 45,
-                              height: 27,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary1,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('${calories.toStringAsFixed(0)} ',
-                                      style: AppTextStyles.list1Bold(
-                                          AppColors.base5)),
-                                  Text("kal",
-                                      style: AppTextStyles.list3Regular(
-                                          AppColors.base5))
-                                ],
-                              ))
+                            width: 45,
+                            height: 27,
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary1,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${widget.calories.toStringAsFixed(0)} ',
+                                  style:
+                                      AppTextStyles.list1Bold(AppColors.base5),
+                                ),
+                                Text(
+                                  "kal",
+                                  style: AppTextStyles.list3Regular(
+                                      AppColors.base5),
+                                )
+                              ],
+                            ),
+                          ),
                         ],
                       ),
 
@@ -145,12 +278,18 @@ class MealCard extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: GlobalsButton(
-                          onPressed: () {},
+                          color: _buttonColor,
+                          onPressed: _toggleFavorite,
                           height: 22,
                           child: Row(
                             children: [
-                              const Icon(Icons.favorite_border,
-                                  size: 14, color: AppColors.base5),
+                              Icon(
+                                _isFavorited
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                size: 14,
+                                color: AppColors.base5,
+                              ),
                               const SizedBox(width: 5),
                               Text(
                                 'Meal Plan',
@@ -165,7 +304,7 @@ class MealCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (isSporkyPlus)
+            if (widget.isSporkyPlus)
               Positioned(
                 top: 90,
                 left: 8,

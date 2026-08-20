@@ -7,8 +7,16 @@ import 'package:sporky_maxi/components/globals/card/globals_card.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
+import '../../../models/components/meal_plan_cmp_mdl/meal_plan_model.dart';
+import '../../../views/meal_form/add_meal_category_page.dart';
+
 class BottomContentMeal extends StatelessWidget {
-  const BottomContentMeal({super.key});
+  const BottomContentMeal({
+    super.key,
+    required this.mealPlan,
+  });
+
+  final MealPlan mealPlan;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +27,7 @@ class BottomContentMeal extends StatelessWidget {
         padding: EdgeInsets.all(8),
         backgroundColor: AppColors.base4,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -43,7 +52,20 @@ class BottomContentMeal extends StatelessWidget {
               child: GlobalsButton(
                 height: 32,
                 width: MediaQuery.of(context).size.width / 1.2,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddMealCategoryPage(
+                          mealPlanUuid: mealPlan.uuid,
+                          mealPlanName: mealPlan.name,
+                          mealPlanCarbohydrate: mealPlan.carbohydrate,
+                          mealPlanProtein: mealPlan.protein,
+                          mealPlanFat: mealPlan.fat,
+                          mealPlanCalories: mealPlan.calories,
+                        ),
+                      ));
+                },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

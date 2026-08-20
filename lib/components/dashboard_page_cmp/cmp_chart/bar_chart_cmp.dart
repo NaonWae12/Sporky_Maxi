@@ -4,13 +4,17 @@ import 'package:sporky_maxi/components/globals/card/globals_card.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
+import '../../../views/dashboard_page/child_eating_history/main_page_eating_history.dart';
 import '../../globals/chart/z_score_bar_chart.dart';
+import 'food_waste_alert_cmp.dart';
 
 class BarChartCmp extends StatelessWidget {
   final double heightButton;
+  final String? childUuid;
   const BarChartCmp({
     super.key,
     this.heightButton = 22,
+    this.childUuid,
   });
 
   @override
@@ -77,11 +81,18 @@ class BarChartCmp extends StatelessWidget {
             )
           ],
         ),
+        const SizedBox(height: 8),
+        FoodWasteAlertCmp(childUuid: childUuid),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Center(
             child: GlobalsButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MainPageEatingHistory()));
+              },
               height: heightButton,
               width: MediaQuery.of(context).size.width / 1.1,
               child: Row(

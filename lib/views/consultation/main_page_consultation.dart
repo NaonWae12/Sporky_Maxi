@@ -3,6 +3,7 @@ import 'package:sporky_maxi/components/globals/card/cmp_tag_attention.dart';
 import 'package:sporky_maxi/components/globals/card/cmp_tag_category.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
+import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
 
 import '../../components/consultation_cmp/row_expert.dart';
 import '../../components/consultation_cmp/row_rekomendation.dart';
@@ -20,7 +21,11 @@ class MainPageConsultation extends StatelessWidget {
             const SizedBox(width: 8),
             IconButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Navbar(),
+                      ));
                 },
                 icon: const Icon(Icons.arrow_back_ios)),
             Text(

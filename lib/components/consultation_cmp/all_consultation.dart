@@ -81,7 +81,9 @@ class _AllConsultationState extends State<AllConsultation> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ProfileExpert(),
+                    builder: (context) => const ProfileExpert(
+                      expertUuid: '',
+                    ),
                   ));
             },
             imageAsset: 'assets/temp_img/dr.palomina1.jpg',
@@ -98,7 +100,9 @@ class _AllConsultationState extends State<AllConsultation> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ProfileExpert(),
+                    builder: (context) => const ProfileExpert(
+                      expertUuid: '',
+                    ),
                   ));
             },
             imageAsset: 'assets/temp_img/dr.palomina1.jpg',

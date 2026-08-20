@@ -13,7 +13,7 @@ class ContentVidHorz extends StatelessWidget {
       child: Row(
         children: [
           VideoCardItem(
-            imageAsset: 'assets/temp_img/picky_eater.png', // contoh dummy
+            mediaUrl: 'assets/temp_img/picky_eater.png', // contoh dummy
             categories: const ['Nutrisi Anak', 'Picky Eater'],
             views: 1200,
             likes: 567,
@@ -29,7 +29,7 @@ class ContentVidHorz extends StatelessWidget {
             },
           ),
           VideoCardItem(
-            imageAsset: 'assets/temp_img/picky_eater.png', // contoh dummy
+            mediaUrl: 'assets/temp_img/picky_eater.png', // contoh dummy
             categories: const ['Nutrisi Anak', 'Picky Eater'],
             views: 1200,
             likes: 567,

@@ -52,6 +52,8 @@ class ChatInputBar extends StatelessWidget {
                 child: TextField(
                   controller: controller,
                   enabled: enabled,
+                  minLines: 1,
+                  maxLines: 14,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => onSend(),
                   decoration: InputDecoration(

@@ -27,9 +27,9 @@ class CmsHtmlContent extends StatelessWidget {
           padding: HtmlPaddings.all(0),
         ),
 
-        // Bold text (strong/b) pakai SemiBold
-        "strong": Style(fontWeight: FontWeight.w600),
-        "b": Style(fontWeight: FontWeight.w600),
+        // Bold text (strong/b) pakai Bold
+        "strong": Style(fontWeight: FontWeight.bold),
+        "b": Style(fontWeight: FontWeight.bold),
       },
     );
   }

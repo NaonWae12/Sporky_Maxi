@@ -12,19 +12,36 @@ class IconLabelCard extends StatelessWidget {
   final VoidCallback? onTap;
   final Color borderColor;
   final double imageSize;
+
+  // Default color untuk gambar dan teks.
   final Color colorImageAndText;
 
-  const IconLabelCard(
-      {super.key,
-      required this.imageAsset,
-      required this.label,
-      this.cardSize = 50.0,
-      this.borderRadius = 16.0,
-      this.hasShadow = false,
-      this.onTap,
-      this.borderColor = AppColors.base3,
-      this.imageSize = 24.0,
-      this.colorImageAndText = AppColors.primary1});
+  // Optional override untuk warna gambar dan teks secara terpisah.
+  final Color? colorImage;
+  final Color? colorText;
+
+  const IconLabelCard({
+    super.key,
+    required this.imageAsset,
+    required this.label,
+    this.cardSize = 50.0,
+    this.borderRadius = 16.0,
+    this.hasShadow = false,
+    this.onTap,
+    this.borderColor = AppColors.base3,
+    this.imageSize = 24.0,
+    this.colorImageAndText = AppColors.primary1,
+    this.colorImage,
+    this.colorText,
+  });
+
+  // Jika colorImage tidak diberikan,
+  // gunakan colorImageAndText sebagai fallback.
+  Color get _imageColor => colorImage ?? colorImageAndText;
+
+  // Jika colorText tidak diberikan,
+  // gunakan colorImageAndText sebagai fallback.
+  Color get _textColor => colorText ?? colorImageAndText;
 
   Widget _buildImage() {
     if (imageAsset.toLowerCase().endsWith('.svg')) {
@@ -32,7 +49,10 @@ class IconLabelCard extends StatelessWidget {
         imageAsset,
         width: imageSize,
         height: imageSize,
-        colorFilter: ColorFilter.mode(colorImageAndText, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(
+          _imageColor,
+          BlendMode.srcIn,
+        ),
         fit: BoxFit.contain,
         placeholderBuilder: (context) => const SizedBox(),
       );
@@ -41,7 +61,7 @@ class IconLabelCard extends StatelessWidget {
         imageAsset,
         width: imageSize,
         height: imageSize,
-        color: colorImageAndText,
+        color: _imageColor,
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) => const SizedBox(),
       );
@@ -66,14 +86,16 @@ class IconLabelCard extends StatelessWidget {
                 boxShadow: hasShadow
                     ? [
                         BoxShadow(
-                          color: AppColors.base1
-                              .withValues(alpha: 0.1 * 255.round()),
+                          color: AppColors.base1.withValues(alpha: 0.1),
                           offset: const Offset(0, 2),
                           blurRadius: 6,
                         ),
                       ]
                     : [],
-                border: Border.all(color: borderColor, width: 1),
+                border: Border.all(
+                  color: borderColor,
+                  width: 1,
+                ),
               ),
               child: _buildImage(),
             ),
@@ -82,7 +104,7 @@ class IconLabelCard extends StatelessWidget {
               height: 36,
               child: Text(
                 label,
-                style: AppTextStyles.lable3Medium(colorImageAndText),
+                style: AppTextStyles.lable3Medium(_textColor),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

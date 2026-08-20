@@ -5,21 +5,93 @@ import 'package:sporky_maxi/components/globals/card/cmp_tag_attention.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/profile_cmp/in_expert/child_profile_in_box.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
+import 'package:sporky_maxi/core/services/child/screening_service.dart';
+import 'package:sporky_maxi/core/utils/age_helper.dart';
+import 'package:sporky_maxi/models/components/child/child_latest_screening_model.dart';
 import 'package:sporky_maxi/views/expert_page/chatroom/chating_page.dart';
 
 import '../../../components/globals/dialog/badge_tooltip.dart';
 import '../../../components/globals/dialog/child_profile_in_expert.dart';
 import '../../profile/child_profile/page_child_profile_in_expert.dart';
+import '../../../components/globals/chat_cache/chat_sync_service.dart';
 
-class DetailProfile extends StatelessWidget {
+class DetailProfile extends StatefulWidget {
   final String childUuid;
+  final String roomUuid;
+  final String parentName;
   const DetailProfile({
     super.key,
     required this.childUuid,
+    required this.roomUuid,
+    this.parentName = 'Orang Tua',
   });
 
   @override
+  State<DetailProfile> createState() => _DetailProfileState();
+}
+
+class _DetailProfileState extends State<DetailProfile> {
+  String _childName = 'Anak';
+  int _ageYear = 0;
+  int _ageMonth = 0;
+  String _nutritionStatus = '-';
+  String _weight = '-';
+  String _height = '-';
+  String _medicalHistories = '-';
+  String _allergies = '-';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChildProfile();
+  }
+
+  String get _resolvedParentName {
+    final normalized = widget.parentName.trim();
+    return normalized.isEmpty ? 'Orang Tua' : normalized;
+  }
+
+  Future<void> _loadChildProfile() async {
+    final childUuid = widget.childUuid.trim();
+    if (childUuid.isEmpty) return;
+
+    try {
+      final data = await ScreeningService().getLatestByChildUuid(childUuid);
+      final profileData = await ChatSyncService.fetchChildProfile(widget.roomUuid);
+
+      if (!mounted) return;
+      
+      _applyChildData(data);
+      
+      setState(() {
+        _medicalHistories = profileData.medicalHistories.isEmpty 
+            ? '-' : profileData.medicalHistories.join(', ');
+        _allergies = profileData.allergies.isEmpty 
+            ? '-' : profileData.allergies.join(', ');
+      });
+    } catch (e) {
+      debugPrint('[DetailProfile] Gagal memuat profil anak: $e');
+    }
+  }
+
+  void _applyChildData(ChildLatestScreening data) {
+    final childName = data.child.name.trim().isEmpty ? 'Anak' : data.child.name.trim();
+    final age = calculateAge(data.child.dob);
+    final nutritionStatus = (data.screening?.nutritionStatus ?? '').trim();
+
+    setState(() {
+      _childName = childName;
+      _ageYear = age['year'] ?? 0;
+      _ageMonth = age['month'] ?? 0;
+      _nutritionStatus = nutritionStatus.isEmpty ? '-' : nutritionStatus;
+      _weight = data.screening?.weight?.toStringAsFixed(1) ?? '-';
+      _height = data.screening?.height?.toString() ?? '-';
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -32,8 +104,8 @@ class DetailProfile extends StatelessWidget {
                 },
                 icon: Icon(Icons.arrow_back_ios)),
             TopBarParentInExpertCmp(
-              parentName: 'Alicia Azzahra',
-              childName: 'Thalia Amara',
+              parentName: _resolvedParentName,
+              childName: _childName,
               isActive: true,
               isAsset: true,
               photoUrl: 'assets/temp_img/parent.png',
@@ -68,12 +140,22 @@ class DetailProfile extends StatelessWidget {
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: ChildProfileInExpert(
+                      childName: _childName,
+                      ageMonth: _ageMonth,
+                      ageYear: _ageYear,
+                      status: _nutritionStatus,
+                      weight: _weight,
+                      height: _height,
+                      medicalHistories: _medicalHistories,
+                      allergies: _allergies,
                       onPressed: () {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => PageChildProfileInExpert(
-                                      childUuid: childUuid,
+                                      childUuid: widget.childUuid,
+                                      roomUuid: widget.roomUuid,
+                                      parentName: _resolvedParentName,
                                     )));
                       },
                     ),
@@ -83,10 +165,10 @@ class DetailProfile extends StatelessWidget {
             },
             isAsset: true,
             photoUrl: 'assets/temp_img/kids.png',
-            childName: 'Thalia Amara',
-            ageMonth: 4,
-            ageYear: 1,
-            status: 'Normal',
+            childName: _childName,
+            ageMonth: _ageMonth,
+            ageYear: _ageYear,
+            status: _nutritionStatus,
             step: TooltipStep.awal,
           ),
         ],
@@ -100,7 +182,11 @@ class DetailProfile extends StatelessWidget {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ChatingPage(),
+                  builder: (context) => ChatingPage(
+                    roomUuid: widget.roomUuid,
+                    parentName: _resolvedParentName,
+                    childName: _childName,
+                  ),
                 ));
           },
         ),

@@ -5,6 +5,7 @@ import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
 class SearchInput extends StatelessWidget {
   final TextEditingController controller;
+  final ValueChanged<String>? onChanged;
   final VoidCallback? onHeartPressed;
   final VoidCallback? onLeadingPressed;
   final bool showHeartIcon;
@@ -14,10 +15,12 @@ class SearchInput extends StatelessWidget {
   final double leadingSize;
   final bool showChild;
   final Widget? child;
+  final double height;
 
   const SearchInput({
     super.key,
     required this.controller,
+    this.onChanged,
     this.onHeartPressed,
     this.showHeartIcon = true,
     this.hintText = 'tumbuh kembang anak',
@@ -27,6 +30,7 @@ class SearchInput extends StatelessWidget {
     this.leadingSize = 22,
     this.showChild = false,
     this.child,
+    this.height = 26,
   });
 
   @override
@@ -47,10 +51,11 @@ class SearchInput extends StatelessWidget {
             ),
           Expanded(
             child: SizedBox(
-              height: 26,
+              height: height,
               child: TextField(
                 cursorHeight: 18,
                 controller: controller,
+                onChanged: onChanged,
                 style: AppTextStyles.list1Regular(),
                 decoration: InputDecoration(
                   hintText: hintText,

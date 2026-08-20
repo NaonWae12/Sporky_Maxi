@@ -10,7 +10,12 @@ import '../../../components/globals/card/cmp_tag_category.dart';
 import '../../../components/globals/text/text_style.dart';
 
 class ArticlePage extends StatefulWidget {
-  const ArticlePage({super.key});
+  final String searchQuery;
+
+  const ArticlePage({
+    super.key,
+    this.searchQuery = '',
+  });
 
   @override
   State<ArticlePage> createState() => _ArticlePageState();
@@ -103,12 +108,12 @@ class _ArticlePageState extends State<ArticlePage> {
             imageAsset: 'assets/svg/ic_ rocket.svg',
             text: 'Topik Hangat untuk Bunda',
           ),
-          const HotTopic(),
+          HotTopic(searchQuery: widget.searchQuery),
           const CmpTagCategory(
             imageAsset: 'assets/svg/sun.svg',
             text: 'Topik Hangat untuk Bunda',
           ),
-          const SpecialForMom()
+          SpecialForMom(searchQuery: widget.searchQuery)
         ],
       ),
     );

@@ -8,11 +8,15 @@ import 'package:sporky_maxi/components/globals/text/text_style.dart';
 class BalanceCardCmp extends StatefulWidget {
   final int? balance;
   final int? balanceCollected;
+  final String period;
+  final int totalConsultations;
   final VoidCallback? onTapHistory;
   const BalanceCardCmp({
     super.key,
     this.balance = 0,
     this.balanceCollected = 0,
+    this.period = '-',
+    this.totalConsultations = 0,
     this.onTapHistory,
   });
 
@@ -87,9 +91,19 @@ class _BalanceCardCmpState extends State<BalanceCardCmp> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                      'Rp.${widget.balanceCollected} sudah terkumpul bulan ini'),
-                  Icon(Icons.keyboard_arrow_right)
+                  Expanded(
+                    child: Text(
+                      'Rp.${widget.balanceCollected} ',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text('${widget.totalConsultations} sesi'),
+                      const SizedBox(width: 4),
+                      Icon(Icons.keyboard_arrow_right),
+                    ],
+                  ),
                 ],
               ),
             ),

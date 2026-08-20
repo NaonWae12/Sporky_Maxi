@@ -6,6 +6,9 @@ import '../dialog/modal_bottom_sheet.dart';
 class FilterContentButton extends StatelessWidget {
   final String title;
   final List<String> categories;
+  final List<Map<String, dynamic>>? structuredCategories;
+  final List<String> initialSelected;
+  final String? buttonText;
   final Function(List<String>) onFilterApplied;
 
   const FilterContentButton({
@@ -13,6 +16,9 @@ class FilterContentButton extends StatelessWidget {
     required this.title,
     required this.categories,
     required this.onFilterApplied,
+    this.structuredCategories,
+    this.initialSelected = const [],
+    this.buttonText,
   });
 
   @override
@@ -21,11 +27,23 @@ class FilterContentButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: GestureDetector(
         onTap: () async {
-          final selected = await showFilterBottomSheet(
-            context,
-            title: title,
-            categories: categories,
-          );
+          final List<String>? selected;
+          if (structuredCategories != null) {
+            selected = await showIngredientFilterBottomSheet(
+              context,
+              title: title,
+              structuredCategories: structuredCategories!,
+              initialSelected: initialSelected,
+              buttonText: buttonText ?? 'Tampilkan Meal Plan',
+            );
+          } else {
+            selected = await showFilterBottomSheet(
+              context,
+              title: title,
+              categories: categories,
+              buttonText: buttonText ?? 'Tampilkan Meal Plan',
+            );
+          }
           if (selected != null) {
             onFilterApplied(selected);
           }

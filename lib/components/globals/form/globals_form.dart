@@ -11,6 +11,7 @@ class GlobalsForm extends StatefulWidget {
   final bool hasShadow;
   final Color focusBorderColor;
   final Color enableBorderColor;
+  final Color outlineInputBorderColor;
   final Color fillColor;
   final BorderRadius? borderRadius;
   final double? height;
@@ -32,6 +33,7 @@ class GlobalsForm extends StatefulWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final Widget? hint;
+  final bool enableFloatingLabel;
 
   const GlobalsForm({
     super.key,
@@ -42,6 +44,7 @@ class GlobalsForm extends StatefulWidget {
     this.hasShadow = false,
     this.focusBorderColor = AppColors.primary1,
     this.enableBorderColor = AppColors.primary1,
+    this.outlineInputBorderColor = AppColors.base3,
     this.fillColor = AppColors.base5,
     this.borderRadius,
     this.height,
@@ -64,6 +67,7 @@ class GlobalsForm extends StatefulWidget {
     this.readOnly = false,
     this.onTap,
     this.hint,
+    this.enableFloatingLabel = true,
   });
 
   @override
@@ -121,7 +125,7 @@ class _GlobalsFormState extends State<GlobalsForm> {
         obscureText: widget.isObscure,
         style: AppTextStyles.heading3Medium(),
         decoration: InputDecoration(
-          hint: widget.hint,
+          hint: !widget.enableFloatingLabel ? Text(widget.label) : widget.hint,
           suffixIcon:
               (widget.suffixIcon != null || widget.suffixSvgAsset != null)
                   ? Padding(
@@ -154,7 +158,7 @@ class _GlobalsFormState extends State<GlobalsForm> {
                       ),
                     )
                   : null,
-          labelText: widget.label,
+          labelText: widget.enableFloatingLabel ? widget.label : null,
           labelStyle: widget.labelStyle ??
               AppTextStyles.heading3Medium(widget.labelColor),
           filled: true,
@@ -162,6 +166,9 @@ class _GlobalsFormState extends State<GlobalsForm> {
           floatingLabelStyle: AppTextStyles.heading3Medium(
             AppColors.primary1,
           ),
+          floatingLabelBehavior: widget.enableFloatingLabel
+              ? FloatingLabelBehavior.auto
+              : FloatingLabelBehavior.never,
           focusedBorder: OutlineInputBorder(
             borderRadius: widget.borderRadius ?? BorderRadius.circular(19.5),
             borderSide: BorderSide(color: widget.focusBorderColor, width: 2),
@@ -174,8 +181,8 @@ class _GlobalsFormState extends State<GlobalsForm> {
                 )
               : OutlineInputBorder(
                   borderRadius: BorderRadius.circular(19.5),
-                  borderSide:
-                      const BorderSide(color: AppColors.base3, width: 1.2),
+                  borderSide: BorderSide(
+                      color: widget.outlineInputBorderColor, width: 1.2),
                 ),
           contentPadding: widget.contentPadding,
         ),

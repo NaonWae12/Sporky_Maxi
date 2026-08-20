@@ -38,9 +38,19 @@ class _TopContentState extends State<TopContent> {
   // ✅ Fungsi tambahan: cek token di secure storage
   Future<void> _checkToken() async {
     final token = await SecureStorageService.getToken();
+    final cachedRole = await SecureStorageService.getUserRole();
+    debugPrint(
+        '[Login] cached token exists: ${token != null && token.isNotEmpty}');
+    debugPrint('[Login] cached role before auto-redirect: $cachedRole');
     debugPrint("🔑 token: $token");
 
     if (token == null || token.isEmpty) return;
+    if (cachedRole == null || cachedRole.trim().isEmpty) {
+      debugPrint(
+          '[Login] token exists but role missing, clearing stale session');
+      await SecureStorageService.clearAll();
+      return;
+    }
 
     if (!mounted) return;
     await LoginRedirectHandler.handle(context);
@@ -81,8 +91,15 @@ class _TopContentState extends State<TopContent> {
         final tokenType = body['data']?['token_type'] as String? ?? "Bearer";
         final userUuid = body['data']?['user']?['uuid'] as String?;
         final userName = body['data']?['user']?['name'] as String?;
+        final userRole = body['data']?['user']?['role'] as String?;
+        final normalizedRole = userRole?.trim().toLowerCase();
+        debugPrint(
+            '[Login] API role raw: $userRole | normalized: $normalizedRole');
 
-        if (token == null || userUuid == null) {
+        if (token == null ||
+            userUuid == null ||
+            normalizedRole == null ||
+            normalizedRole.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text("Login berhasil tapi data tidak lengkap")),
@@ -92,6 +109,9 @@ class _TopContentState extends State<TopContent> {
 
         await SecureStorageService.saveToken("$tokenType $token");
         await SecureStorageService.saveUserUuid(userUuid);
+        await SecureStorageService.saveUserRole(normalizedRole);
+        final savedRole = await SecureStorageService.getUserRole();
+        debugPrint('[Login] role saved in storage: $savedRole');
         if (userName != null && userName.isNotEmpty) {
           await SecureStorageService.saveUserName(userName);
         }

@@ -7,10 +7,12 @@ import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/home_page_cmp/card_consultation.dart';
 import 'package:sporky_maxi/components/home_page_cmp/insight_section.dart';
 import 'package:sporky_maxi/components/home_page_cmp/learning_section.dart';
-import 'package:sporky_maxi/components/home_page_cmp/meal_plan_recommendation.dart';
+
 import 'package:sporky_maxi/components/home_page_cmp/promo_section.dart';
 
 import '../../components/dashboard_page_cmp/child_profile/child_profile.dart';
+import '../../components/home_page_cmp/carousel_section.dart';
+import '../../components/meal_plan_cmp/cmp_top_meal_plan.dart';
 import '../../core/services/child/child_service.dart';
 import '../../core/utils/secure_storage_service.dart';
 import '../initial_display/profil_si_kecil_flow_test.dart';
@@ -26,12 +28,14 @@ class ChildDashboardPage extends StatefulWidget {
 class _ChildDashboardPageState extends State<ChildDashboardPage> {
   late Future<List<String>> _childUuidsFuture;
   String _parentName = 'Bunda';
+  String? _selectedChildUuid;
 
   @override
   void initState() {
     super.initState();
     _childUuidsFuture = ChildService().getChildUuids();
     _loadParentName();
+    _loadSelectedChildUuid();
   }
 
   Future<void> _loadParentName() async {
@@ -42,6 +46,19 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
         _parentName = name ?? 'Bunda';
       });
     }
+  }
+
+  Future<void> _loadSelectedChildUuid() async {
+    final uuid = await SecureStorageService.getSelectedChildUuid();
+    if (mounted) {
+      setState(() {
+        _selectedChildUuid = uuid;
+      });
+    }
+  }
+
+  Future<void> _persistSelectedChildUuid(String uuid) async {
+    await SecureStorageService.saveSelectedChildUuid(uuid);
   }
 
   @override
@@ -94,10 +111,29 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
                   );
                 }
 
+                if (_selectedChildUuid == null ||
+                    !childUuids.contains(_selectedChildUuid)) {
+                  final fallbackUuid = childUuids.first;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {
+                        _selectedChildUuid = fallbackUuid;
+                      });
+                    }
+                  });
+                  _persistSelectedChildUuid(fallbackUuid);
+                }
+
+                final selectedUuid = (_selectedChildUuid != null &&
+                        childUuids.contains(_selectedChildUuid))
+                    ? _selectedChildUuid
+                    : childUuids.first;
+
                 return Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: ChildProfile(
                     childUuids: childUuids,
+                    selectedChildUuid: selectedUuid,
                     showAddChildCard: true,
                     onAddChildTap: () {
                       Navigator.push(
@@ -106,18 +142,26 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
                             builder: (context) => ProfilSiKecilFlowTest(),
                           ));
                     },
+                    onChildSelected: (uuid) {
+                      setState(() {
+                        _selectedChildUuid = uuid;
+                      });
+                      _persistSelectedChildUuid(uuid);
+                    },
                   ),
                 );
               },
             ),
 
-            /// ================= KOMPONEN LAIN =================
+            /// =============== KOMPONEN SHORTCUT ================
             CmpTagAttention(
               text:
                   'Sudah cek kebutuhan gizi harian anak hari ini, Bun? Bekal sehat bantu tumbuh optimal!',
               imageAsset: 'assets/svg/ic_warn.svg',
             ),
             CardConsultation(),
+
+            /// ================= KOMPONEN MENU =================
             Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: CmpTagCategory(
@@ -127,16 +171,27 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
                 wrapText: 1.5,
               ),
             ),
-            MealPlanRecommendation(),
+            // =============== REKOMENDASI MEALPLAN ===============
+            // MealPlanRecommendation(),
+            Row(
+              children: [
+                SizedBox(width: 8),
+                Expanded(child: CmpTopMealPlan()),
+              ],
+            ),
+            // =========== ads ===================
             Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: CmpTagCategory(
                 text: 'Penawaran Seru untuk Bunda',
                 imageAsset: 'assets/svg/ic_ rocket.svg',
                 textAndImageColor: AppColors.warn1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            CarouselSection(),
             PromoSection(),
+            // ============== ===================
             Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: CmpTagCategory(

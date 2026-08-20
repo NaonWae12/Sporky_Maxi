@@ -6,8 +6,27 @@ import '../globals/card/globals_card.dart';
 import '../globals/colors/colors.dart';
 import '../globals/text/text_style.dart';
 
+class FoodWasteMealOption {
+  final String text;
+  final String iconAsset;
+  final Color iconColor;
+
+  const FoodWasteMealOption({
+    required this.text,
+    required this.iconAsset,
+    required this.iconColor,
+  });
+}
+
 class FirstFormCmp extends StatefulWidget {
-  const FirstFormCmp({super.key});
+  const FirstFormCmp({
+    super.key,
+    this.selectedMealOption,
+    this.onMealOptionChanged,
+  });
+
+  final FoodWasteMealOption? selectedMealOption;
+  final ValueChanged<FoodWasteMealOption>? onMealOptionChanged;
 
   @override
   State<FirstFormCmp> createState() => _FirstFormCmpState();
@@ -15,6 +34,49 @@ class FirstFormCmp extends StatefulWidget {
 
 class _FirstFormCmpState extends State<FirstFormCmp> {
   bool isExpanded1 = false;
+  FoodWasteMealOption? _selectedMealOption;
+
+  static const List<FoodWasteMealOption> _mealOptions = [
+    FoodWasteMealOption(
+      text: 'Makan Pagi',
+      iconAsset: 'assets/svg/bento-box-rounded.svg',
+      iconColor: AppColors.primary1,
+    ),
+    FoodWasteMealOption(
+      text: 'Snack Pagi',
+      iconAsset: 'assets/svg/bento-box-rounded.svg',
+      iconColor: AppColors.info1,
+    ),
+    FoodWasteMealOption(
+      text: 'Makan Siang',
+      iconAsset: 'assets/svg/bento-box-rounded.svg',
+      iconColor: AppColors.warn1,
+    ),
+    FoodWasteMealOption(
+      text: 'Snack Sore',
+      iconAsset: 'assets/svg/bento-box-rounded.svg',
+      iconColor: AppColors.info1,
+    ),
+    FoodWasteMealOption(
+      text: 'Makan Malam',
+      iconAsset: 'assets/svg/bento-box-rounded.svg',
+      iconColor: AppColors.secondary1,
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMealOption = widget.selectedMealOption;
+  }
+
+  @override
+  void didUpdateWidget(covariant FirstFormCmp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedMealOption != oldWidget.selectedMealOption) {
+      _selectedMealOption = widget.selectedMealOption;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +97,18 @@ class _FirstFormCmpState extends State<FirstFormCmp> {
             children: [
               Row(
                 children: [
-                  SvgPicture.asset('assets/svg/bento-box-rounded.svg'),
+                  SvgPicture.asset(
+                    _selectedMealOption?.iconAsset ??
+                        'assets/svg/bento-box-rounded.svg',
+                    colorFilter: _selectedMealOption != null
+                        ? ColorFilter.mode(
+                            _selectedMealOption!.iconColor,
+                            BlendMode.srcIn,
+                          )
+                        : null,
+                  ),
                   const SizedBox(width: 8),
-                  Text('Pilih Jenis Makanan',
+                  Text(_selectedMealOption?.text ?? 'Pilih Jenis Makanan',
                       style: AppTextStyles.headList1Regular()),
                 ],
               ),
@@ -56,54 +127,33 @@ class _FirstFormCmpState extends State<FirstFormCmp> {
             ],
           ),
         ),
-        // tampilkan CmpTagAttention jika isExpanded1 true
         if (isExpanded1) ...[
-          CmpTagAttention(
-            space: 8,
-            textStyle: AppTextStyles.headList1Regular(),
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            text: 'Makan Pagi',
-            lineColor: AppColors.base4,
-            imageColor: AppColors.primary1,
-          ),
-          const SizedBox(height: 8),
-          CmpTagAttention(
-            space: 8,
-            textStyle: AppTextStyles.headList1Regular(),
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            text: 'Snack Pagi',
-            lineColor: AppColors.base4,
-            imageColor: AppColors.info1,
-          ),
-          const SizedBox(height: 8),
-          CmpTagAttention(
-            space: 8,
-            textStyle: AppTextStyles.headList1Regular(),
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            text: 'Makan Siang',
-            lineColor: AppColors.base4,
-            imageColor: AppColors.warn1,
-          ),
-          const SizedBox(height: 8),
-          CmpTagAttention(
-            space: 8,
-            textStyle: AppTextStyles.headList1Regular(),
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            text: 'Snack Sore',
-            lineColor: AppColors.base4,
-            imageColor: AppColors.info1,
-          ),
-          const SizedBox(height: 8),
-          CmpTagAttention(
-            space: 8,
-            textStyle: AppTextStyles.headList1Regular(),
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            text: 'Makan Malam',
-            lineColor: AppColors.base4,
-            imageColor: AppColors.secondary1,
-          ),
+          for (var i = 0; i < _mealOptions.length; i++) ...[
+            _mealOptionItem(_mealOptions[i]),
+            if (i != _mealOptions.length - 1) const SizedBox(height: 8),
+          ],
         ]
       ],
+    );
+  }
+
+  Widget _mealOptionItem(FoodWasteMealOption option) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedMealOption = option;
+          isExpanded1 = false;
+        });
+        widget.onMealOptionChanged?.call(option);
+      },
+      child: CmpTagAttention(
+        space: 8,
+        textStyle: AppTextStyles.headList1Regular(),
+        imageAsset: option.iconAsset,
+        text: option.text,
+        lineColor: AppColors.base4,
+        imageColor: option.iconColor,
+      ),
     );
   }
 }

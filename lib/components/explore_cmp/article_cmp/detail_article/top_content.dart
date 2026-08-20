@@ -11,7 +11,7 @@ class TopContent extends StatefulWidget {
   final String? doctor;
   final String? doctorImage;
   final VoidCallback? onTap;
-  final double views;
+  final int views;
   final int likes;
   final List<String> categories;
 
@@ -33,8 +33,86 @@ class TopContent extends StatefulWidget {
 
 class _TopContentState extends State<TopContent> {
   bool isFavorited = false;
+
+  bool _isNetworkImage(String imagePath) {
+    return imagePath.startsWith('http://') || imagePath.startsWith('https://');
+  }
+
+  Widget _buildImage() {
+    final imagePath = widget.imageAsset?.trim();
+    if (imagePath == null || imagePath.isEmpty) {
+      return _placeholderCover();
+    }
+
+    if (_isNetworkImage(imagePath)) {
+      return Image.network(
+        imagePath,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return SizedBox(
+            height: 180,
+            width: double.infinity,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) => _placeholderCover(),
+      );
+    }
+
+    return Image.asset(
+      imagePath,
+      height: 180,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _placeholderCover(),
+    );
+  }
+
+  Widget _placeholderCover() {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      color: AppColors.base3,
+      child: const Icon(Icons.broken_image, size: 48, color: AppColors.base2),
+    );
+  }
+
+  Widget _buildDoctorImage() {
+    final doctorImage = widget.doctorImage?.trim();
+    if (doctorImage == null || doctorImage.isEmpty) {
+      return const Icon(Icons.person, size: 12, color: AppColors.base2);
+    }
+
+    if (_isNetworkImage(doctorImage)) {
+      return Image.network(
+        doctorImage,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.person, size: 12, color: AppColors.base2);
+        },
+      );
+    }
+
+    return Image.asset(
+      doctorImage,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return const Icon(Icons.person, size: 12, color: AppColors.base2);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final doctorName = (widget.doctor?.trim().isNotEmpty ?? false)
+        ? widget.doctor!.trim()
+        : 'Tim Sporky';
+    final categories =
+        widget.categories.isNotEmpty ? widget.categories : const ['Artikel'];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -43,20 +121,7 @@ class _TopContentState extends State<TopContent> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: widget.imageAsset != null
-                ? Image.asset(
-                    widget.imageAsset!,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    height: 180,
-                    width: double.infinity,
-                    color: AppColors.base3,
-                    child: const Icon(Icons.broken_image,
-                        size: 48, color: AppColors.base2),
-                  ),
+            child: _buildImage(),
           ),
         ),
 
@@ -77,7 +142,7 @@ class _TopContentState extends State<TopContent> {
                         Wrap(
                           spacing: 6,
                           runSpacing: 4,
-                          children: widget.categories
+                          children: categories
                               .map((cat) => GlobalsCardOutlined(
                                     text: cat,
                                     textStyle: AppTextStyles.lable4SemiRegular(
@@ -146,16 +211,12 @@ class _TopContentState extends State<TopContent> {
                           decoration: BoxDecoration(
                             color: AppColors.base5,
                             shape: BoxShape.circle,
-                            border:
-                                Border.all(color: AppColors.base2, width: 1),
-                            image: DecorationImage(
-                              image: AssetImage(widget.doctorImage!),
-                              fit: BoxFit.cover,
-                            ),
+                            border: Border.all(color: AppColors.base2, width: 1),
                           ),
+                          child: ClipOval(child: _buildDoctorImage()),
                         ),
                         Text(
-                          widget.doctor!,
+                          doctorName,
                           style: AppTextStyles.list1Regular(),
                         ),
                       ],

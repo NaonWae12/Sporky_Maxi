@@ -22,11 +22,15 @@ class _ChatroomPageState extends State<ChatroomPage> {
         padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
         child: Column(
           children: [
-            const SizedBox(height: 15),
-            SearchInput(
-                controller: searchController,
-                hintText: 'cari chat siapa?',
-                showHeartIcon: false),
+            const SizedBox(height: 18),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20.0),
+              child: SearchInput(
+                  height: 35,
+                  controller: searchController,
+                  hintText: 'cari chat siapa?',
+                  showHeartIcon: false),
+            ),
             Expanded(
                 child: FullWidthTabBar(tabs: const [
               'Semua',
