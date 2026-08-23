@@ -42,7 +42,7 @@ packages:
     source: hosted
     version: "1.1.2"
   collection:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: collection
       sha256: "2f5709ae4d3d59dd8f7cd309b4e023046b57d8a6c82130785d2b0e5868084e76"
@@ -69,10 +69,10 @@ packages:
     dependency: transitive
     description:
       name: csslib
-      sha256: "09bad715f418841f976c77db72d5398dc1253c21fb9c0c7f0b0b985860b2d58e"
+      sha256: "831883fb353c8bdc1d71979e5b342c7d88acfbc643113c14ae51e2442ea0f20f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "0.17.3"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -138,10 +138,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_html
-      sha256: "38a2fd702ffdf3243fb7441ab58aa1bc7e6922d95a50db76534de8260638558d"
+      sha256: "342c7908f0a67bcec62b6e0f7cf23e23bafe7f64693665dd35be98d5e783bdfd"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "3.0.0-alpha.6"
   flutter_inappwebview:
     dependency: "direct main"
     description:
@@ -316,10 +316,10 @@ packages:
     dependency: transitive
     description:
       name: html
-      sha256: "6d1264f2dffa1b1101c25a91dff0dc2daee4c18e87cd8538729773c073dbf602"
+      sha256: "3a7812d5bcd2894edf53dfaf8cd640876cf6cef50a8f238745c8b8120ea74d3a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.15.6"
+    version: "0.15.4"
   http:
     dependency: "direct main"
     description:
@@ -384,14 +384,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.1.1"
-  list_counter:
-    dependency: transitive
-    description:
-      name: list_counter
-      sha256: c447ae3dfcd1c55f0152867090e67e219d42fe6d4f2807db4bbe8b8d69912237
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   matcher:
     dependency: transitive
     description:
@@ -416,6 +408,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+  numerus:
+    dependency: transitive
+    description:
+      name: numerus
+      sha256: "0324b50768c821a742d5838aa40ebf09521a0f9b87562f20950b15ba7e999f6b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
   path:
     dependency: transitive
     description:
