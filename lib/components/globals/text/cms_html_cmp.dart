@@ -24,7 +24,7 @@ class CmsHtmlContent extends StatelessWidget {
         // Bullet list indent (ul) biar njorok ke dalam
         "ul": Style(
           margin: Margins.only(left: 16),
-          padding: HtmlPaddings.all(0),
+          padding: EdgeInsets.zero,
         ),
 
         // Bold text (strong/b) pakai Bold
