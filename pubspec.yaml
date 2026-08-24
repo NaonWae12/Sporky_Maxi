@@ -38,7 +38,7 @@ dependencies:
   flutter_svg: ^2.1.0
   convex_bottom_bar: ^3.2.0
   percent_indicator: ^4.2.5
-  flutter_html: 3.0.0-alpha.6
+  flutter_html: ^3.0.0
   intl: ^0.20.2
   dropdown_button2: ^2.3.9
   http: ^1.4.0
