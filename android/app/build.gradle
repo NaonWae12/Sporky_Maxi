@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.sporky_maxi"
+    namespace = "com.sporky_maxi.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

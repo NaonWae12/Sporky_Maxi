@@ -1,4 +1,4 @@
-package com.example.sporky_maxi
+package com.sporky_maxi.app
 
 import io.flutter.embedding.android.FlutterActivity
 
