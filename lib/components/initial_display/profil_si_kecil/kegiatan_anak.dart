@@ -41,6 +41,27 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
     fetchActivities();
   }
 
+  void _restoreSelectedActivity() {
+    final selectedActivityId = int.tryParse(widget.data["kegiatanAnak"] ?? "");
+    if (selectedActivityId == null) return;
+
+    final matchedActivities = activities.where(
+      (activity) => activity.id == selectedActivityId,
+    );
+    if (matchedActivities.isEmpty) return;
+
+    selectedActivity = matchedActivities.first;
+  }
+
+  void _syncData() {
+    widget.onUpdate("kegiatanAnak", selectedActivity?.id.toString() ?? "");
+  }
+
+  void handleBack() {
+    _syncData();
+    widget.onBack();
+  }
+
   Future<void> fetchActivities() async {
     setState(() => isLoading = true);
     try {
@@ -49,10 +70,7 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
 
       final response = await http.get(
         Uri.parse(ApiEndpoints.childActivity),
-        headers: {
-          'Authorization': token,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': token, 'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
@@ -64,6 +82,7 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
               .map((e) => ChildActivity.fromJson(e))
               .where((e) => e.isActive) // ✅ AMAN
               .toList();
+          _restoreSelectedActivity();
         });
       } else {
         debugPrint("❌ Activity API error: ${response.statusCode}");
@@ -83,10 +102,7 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
       return;
     }
 
-    widget.onUpdate(
-      "kegiatanAnak",
-      selectedActivity!.id.toString(),
-    );
+    _syncData();
 
     widget.onFinish();
   }
@@ -114,59 +130,67 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
             padding: const EdgeInsets.all(8),
             backgroundColor: AppColors.base4,
             hasShadow: false,
-            child: isLoading
-                ? const Padding(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    "Apa Kegiatan Keseharian Anak Bunda?",
+                    style: AppTextStyles.desc1Regular(AppColors.base1),
+                  ),
+                ),
+                if (isLoading)
+                  const Padding(
                     padding: EdgeInsets.all(20),
                     child: Center(child: CircularProgressIndicator()),
                   )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: activities.map((activity) {
-                      final isSelected = selectedActivity?.id == activity.id;
+                else
+                  ...activities.map((activity) {
+                    final isSelected = selectedActivity?.id == activity.id;
 
-                      return Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedActivity = activity;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 8,
-                              ),
-                              color: Colors.transparent,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    isSelected
-                                        ? Icons.radio_button_checked
-                                        : Icons.radio_button_unchecked,
-                                    color: isSelected
-                                        ? AppColors.primary1
-                                        : AppColors.base3,
+                    return Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedActivity = activity;
+                              _syncData();
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 8,
+                            ),
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isSelected
+                                      ? Icons.radio_button_checked
+                                      : Icons.radio_button_unchecked,
+                                  color: isSelected
+                                      ? AppColors.primary1
+                                      : AppColors.base3,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    activity.name,
+                                    style: AppTextStyles.list1Regular(),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      activity.name,
-                                      style: AppTextStyles.list1Regular(),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
-                          Container(
-                            height: 1,
-                            color: AppColors.base4,
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
+                        ),
+                        Container(height: 1, color: AppColors.base4),
+                      ],
+                    );
+                  }),
+              ],
+            ),
           ),
           const Spacer(),
           Row(
@@ -174,14 +198,17 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
               Expanded(
                 child: GlobalsButtonTransparent(
                   text: "Sebelumnya",
-                  onPressed: widget.onBack,
+                  onPressed: handleBack,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: GlobalsButton(
                   text: "Selesai",
-                  onPressed: handleFinish,
+                  onPressed: selectedActivity == null ? null : handleFinish,
+                  color: selectedActivity == null
+                      ? AppColors.base3
+                      : AppColors.primary1,
                 ),
               ),
             ],

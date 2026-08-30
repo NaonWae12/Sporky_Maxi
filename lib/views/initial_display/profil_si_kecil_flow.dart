@@ -23,7 +23,9 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
     "tinggi": "",
     "berat": "",
     "riwayatPenyakitAnak": "",
+    "hasDiseaseHistory": "false",
     "alergiAnak": "",
+    "hasAllergy": "false",
     "makananFavorit": "",
     "makananDihindari": "",
     "kegiatanAnak": "",
@@ -46,9 +48,7 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
   }
 
   void updateData(String key, String value) {
-    setState(() {
-      data[key] = value;
-    });
+    data[key] = value;
   }
 
   void submitData() {
@@ -63,10 +63,9 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
             'Data si kecil sudah berhasil dicatat. Informasi ini akan membantu kami menyesuaikan saran nutrisi dan rekomendasi yang lebih tepat untuk anak Bunda.',
         onPressed: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Navbar(),
-              ));
+            context,
+            MaterialPageRoute(builder: (context) => Navbar()),
+          );
         },
         textNav: 'Akses Beranda',
       ),
@@ -85,11 +84,12 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
         progressValue: progressValue,
       ),
       RiwayatKesehatanPage(
-          data: data,
-          onUpdate: updateData,
-          onNext: nextStep,
-          onBack: previousStep,
-          progressValue: progressValue),
+        data: data,
+        onUpdate: updateData,
+        onNext: nextStep,
+        onBack: previousStep,
+        progressValue: progressValue,
+      ),
       MakananPage(
         data: data,
         onUpdate: updateData,
@@ -98,29 +98,20 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
         progressValue: progressValue,
       ),
       KegiatanAnak(
-          data: data,
-          onUpdate: updateData,
-          onFinish: submitData,
-          onBack: previousStep,
-          progressValue: progressValue),
+        data: data,
+        onUpdate: updateData,
+        onFinish: submitData,
+        onBack: previousStep,
+        progressValue: progressValue,
+      ),
     ];
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leadingWidth: MediaQuery.of(context).size.width,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 9),
-          child: Row(
-            children: [
-              const Icon(Icons.keyboard_arrow_left, size: 30),
-              Text(
-                'Profil si kecil',
-                style: AppTextStyles.heading1SemiBold(),
-              )
-            ],
-          ),
-        ),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text('Profil si kecil', style: AppTextStyles.heading1SemiBold()),
       ),
       body: pages[currentStep],
     );

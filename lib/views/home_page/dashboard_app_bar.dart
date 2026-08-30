@@ -1,6 +1,6 @@
-// tidak digunakan
 import 'package:flutter/material.dart';
-import 'package:sporky_maxi/components/globals/colors/colors.dart';
+import 'package:sporky_maxi/components/globals/bar/top_bar/notification_badge_button.dart';
+import 'package:sporky_maxi/views/expert_page/notif/page_notif_parent.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
 class DashboardAppBar extends StatelessWidget {
@@ -46,32 +46,8 @@ class DashboardAppBar extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Stack(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications,
-                                  color: AppColors.primary1),
-                              onPressed: () {},
-                            ),
-                            Positioned(
-                              right: 8,
-                              top: 8,
-                              child: Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.secondary1,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Text(
-                                  '5',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        NotificationBadgeButton(
+                          pageBuilder: (context) => const PageNotifParent(),
                         ),
                       ],
                     ),

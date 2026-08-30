@@ -45,10 +45,7 @@ class _MealPlanFavState extends State<MealPlanFav> {
       final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
       final response = await http.get(
         Uri.parse(ApiEndpoints.mealPlanFavorites),
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
@@ -72,7 +69,9 @@ class _MealPlanFavState extends State<MealPlanFav> {
         for (var mealJson in mealsRaw) {
           if (mealJson is Map<String, dynamic>) {
             final uuid = (mealJson['uuid'] ?? '').toString();
-            final totalFavs = int.tryParse(mealJson['total_favorites']?.toString() ?? '') ?? 0;
+            final totalFavs =
+                int.tryParse(mealJson['total_favorites']?.toString() ?? '') ??
+                0;
             likesMap[uuid] = totalFavs;
           }
         }
@@ -99,9 +98,11 @@ class _MealPlanFavState extends State<MealPlanFav> {
     setState(() {
       _searchQuery = query;
       _filteredMealPlans = _mealPlans
-          .where((meal) =>
-              meal.name.toLowerCase().contains(query.toLowerCase()) ||
-              meal.subtitle.toLowerCase().contains(query.toLowerCase()))
+          .where(
+            (meal) =>
+                meal.name.toLowerCase().contains(query.toLowerCase()) ||
+                meal.subtitle.toLowerCase().contains(query.toLowerCase()),
+          )
           .toList();
     });
   }
@@ -124,14 +125,12 @@ class _MealPlanFavState extends State<MealPlanFav> {
           children: [
             const SizedBox(width: 5),
             IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.arrow_back_ios)),
-            Text(
-              'Meal Plan Favorit',
-              style: AppTextStyles.heading2SemiBold(),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_back_ios),
             ),
+            Text('Meal Plan Favorit', style: AppTextStyles.heading2SemiBold()),
           ],
         ),
       ),
@@ -142,7 +141,6 @@ class _MealPlanFavState extends State<MealPlanFav> {
               showHeartIcon: false,
               hintText: 'brokoli pasta',
               controller: searchController,
-              onHeartPressed: () {},
               onChanged: _filterMealPlans,
             ),
             const SizedBox(height: 16),

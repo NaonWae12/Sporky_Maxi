@@ -10,6 +10,7 @@ class CmpListTransactionsHistory extends StatelessWidget {
   final Color? iconColor;
   final String title;
   final double price;
+  final String? amountLabel;
   final String desc;
   final String timeStamp;
   final String transactionType;
@@ -20,6 +21,7 @@ class CmpListTransactionsHistory extends StatelessWidget {
     this.iconColor,
     required this.title,
     required this.price,
+    this.amountLabel,
     required this.desc,
     required this.timeStamp,
     required this.transactionType,
@@ -31,17 +33,15 @@ class CmpListTransactionsHistory extends StatelessWidget {
       children: [
         Stack(
           children: [
-            const SizedBox(
-              height: 35,
-              width: 35,
-            ),
+            const SizedBox(height: 35, width: 35),
             SvgPicture.asset(
-                colorFilter: iconColor != null
-                    ? ColorFilter.mode(iconColor!, BlendMode.srcIn)
-                    : null,
-                height: 32,
-                width: 32,
-                iconAsset),
+              colorFilter: iconColor != null
+                  ? ColorFilter.mode(iconColor!, BlendMode.srcIn)
+                  : null,
+              height: 32,
+              width: 32,
+              iconAsset,
+            ),
             Positioned(
               bottom: 0,
               right: 0,
@@ -52,7 +52,7 @@ class CmpListTransactionsHistory extends StatelessWidget {
                 height: 10,
                 width: 10,
               ),
-            )
+            ),
           ],
         ),
         const SizedBox(width: 8),
@@ -65,15 +65,20 @@ class CmpListTransactionsHistory extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(title, style: AppTextStyles.list1Bold()),
-                  Text(formatRupiah(price), style: AppTextStyles.list1Bold()),
+                  Text(
+                    amountLabel ?? formatRupiah(price),
+                    style: AppTextStyles.list1Bold(),
+                  ),
                 ],
               ),
               Text(desc, style: AppTextStyles.list1Regular(AppColors.base3)),
-              Text(timeStamp,
-                  style: AppTextStyles.list1Regular(AppColors.base3)),
+              Text(
+                timeStamp,
+                style: AppTextStyles.list1Regular(AppColors.base3),
+              ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

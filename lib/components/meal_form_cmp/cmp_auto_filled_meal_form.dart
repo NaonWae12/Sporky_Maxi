@@ -16,17 +16,22 @@ class CmpAutoFilledMealForm extends StatelessWidget {
     return Column(
       children: [
         CmpTagAttention(
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            child: Text.rich(
-                TextSpan(style: AppTextStyles.list1Regular(), children: [
-              const TextSpan(text: 'Mau isi kalori '),
-              TextSpan(text: 'manual', style: AppTextStyles.list1Bold()),
-              const TextSpan(text: ', pengisian otomatis melalui menu '),
-              TextSpan(text: 'meal plan', style: AppTextStyles.list1Bold()),
-              const TextSpan(text: ', atau cukup '),
-              TextSpan(text: 'scan QR ', style: AppTextStyles.list1Bold()),
-              const TextSpan(text: 'catering Sporky? Semuanya bisa!'),
-            ]))),
+          imageAsset: 'assets/svg/bento-box-rounded.svg',
+          child: Text.rich(
+            TextSpan(
+              style: AppTextStyles.list1Regular(),
+              children: [
+                const TextSpan(text: 'Mau isi kalori '),
+                TextSpan(text: 'manual', style: AppTextStyles.list1Bold()),
+                const TextSpan(text: ', pengisian otomatis melalui menu '),
+                TextSpan(text: 'meal plan', style: AppTextStyles.list1Bold()),
+                const TextSpan(text: ', atau cukup '),
+                TextSpan(text: 'scan QR ', style: AppTextStyles.list1Bold()),
+                const TextSpan(text: 'catering Sporky? Semuanya bisa!'),
+              ],
+            ),
+          ),
+        ),
         GlobalsCard(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           backgroundColor: AppColors.base4,
@@ -38,34 +43,50 @@ class CmpAutoFilledMealForm extends StatelessWidget {
                 children: [
                   SvgPicture.asset('assets/svg/bento-box-rounded.svg'),
                   const SizedBox(width: 8),
-                  Text('Meal Plan (Auto Filled)',
-                      style: AppTextStyles.headList1Regular()),
-                  SvgPicture.asset(height: 11, width: 11, 'assets/svg/sun.svg')
+                  Text(
+                    'Meal Plan (Auto Filled)',
+                    style: AppTextStyles.headList1Regular(),
+                  ),
+                  SvgPicture.asset(height: 11, width: 11, 'assets/svg/sun.svg'),
                 ],
               ),
               IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                ),
-              )
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Meal plan otomatis sudah terbuka'),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.keyboard_arrow_down),
+              ),
             ],
           ),
         ),
-        const CmpAddMealForm(
-          normalFill: false,
-        ),
+        const CmpAddMealForm(normalFill: false),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             _buildNutritionCard(
-                'assets/svg/ic_nutrition.svg', 'Karbohidrat', '100', 'gr'),
+              'assets/svg/ic_nutrition.svg',
+              'Karbohidrat',
+              '100',
+              'gr',
+            ),
             _buildNutritionCard('assets/svg/ic_fat.svg', 'Lemak', '100', 'gr'),
             _buildNutritionCard(
-                'assets/svg/ic_proteins.svg', 'Protein', '100', 'gr'),
+              'assets/svg/ic_proteins.svg',
+              'Protein',
+              '100',
+              'gr',
+            ),
             _buildNutritionCard(
-                'assets/svg/ic_fire.svg', 'Total Kalori', '100', 'kcal'),
+              'assets/svg/ic_fire.svg',
+              'Total Kalori',
+              '100',
+              'kcal',
+            ),
           ],
         ),
         Padding(
@@ -73,31 +94,37 @@ class CmpAutoFilledMealForm extends StatelessWidget {
           child: GlobalsButton(
             color: AppColors.secondary1,
             height: 44,
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Data meal plan otomatis sudah siap'),
+                ),
+              );
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.add,
-                  color: AppColors.base5,
-                  size: 20,
-                ),
+                const Icon(Icons.add, color: AppColors.base5, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Simpan Kalori Makanan',
                   style: AppTextStyles.headList1Bold(AppColors.base5),
-                )
+                ),
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }
 }
 
 Widget _buildNutritionCard(
-    String iconPath, String title, String value, String unit) {
+  String iconPath,
+  String title,
+  String value,
+  String unit,
+) {
   return SizedBox(
     width: 170,
     child: GlobalsCard(
@@ -109,10 +136,7 @@ Widget _buildNutritionCard(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SvgPicture.asset(iconPath),
-          Text(
-            title,
-            style: AppTextStyles.list1Regular(),
-          ),
+          Text(title, style: AppTextStyles.list1Regular()),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -128,16 +152,13 @@ Widget _buildNutritionCard(
                 backgroundColor: AppColors.base4,
                 child: Row(
                   children: [
-                    Text(
-                      unit,
-                      style: AppTextStyles.heading3SemiBold(),
-                    ),
+                    Text(unit, style: AppTextStyles.heading3SemiBold()),
                     const Icon(Icons.keyboard_arrow_down, size: 16),
                   ],
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     ),

@@ -1,13 +1,14 @@
-// ignore_for_file: avoid_print, prefer_const_declarations, use_build_context_synchronously
+// ignore_for_file: prefer_const_declarations, use_build_context_synchronously
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:http/http.dart' as http;
-import 'package:sporky_maxi/components/globals/dialog/dialog_alert.dart';
-import 'package:sporky_maxi/views/initial_display/login_page.dart';
-import 'dart:convert';
+import 'package:sporky_maxi/components/globals/dialog/sporky_dialog.dart';
+import 'package:sporky_maxi/components/globals/text/text_style.dart';
+import 'package:sporky_maxi/core/services/auth/auth_service.dart';
+import 'package:sporky_maxi/core/utils/login_redirect_handler.dart';
 
 import '../../globals/button/globals_button.dart';
-import '../../globals/constants/api_endpoints.dart';
 import '../../globals/form/globals_form.dart';
 
 class RegistrationForm extends StatefulWidget {
@@ -55,10 +56,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 16),
-        GlobalsForm(
-          label: 'Username*',
-          controller: usernameController,
-        ),
+        GlobalsForm(label: 'Username*', controller: usernameController),
         const SizedBox(height: 16),
         GlobalsForm(
           label: 'No. Hp / WhatsApp*',
@@ -97,74 +95,125 @@ class _RegistrationFormState extends State<RegistrationForm> {
         ),
         const SizedBox(height: 24),
         GlobalsButton(
-            text: 'Register',
-            onPressed: () async {
-              final String name = usernameController.text;
-              final String email = emailController.text;
-              final String phone = phoneController.text;
-              final String password = passwordController.text;
-              final String confirmPassword = confirmPasswordController.text;
+          text: 'Register',
+          onPressed: () async {
+            final String name = usernameController.text;
+            final String email = emailController.text;
+            final String phone = phoneController.text;
+            final String password = passwordController.text;
+            final String confirmPassword = confirmPasswordController.text;
 
-              final url = Uri.parse(ApiEndpoints.register);
-
-              final response = await http.post(
-                url,
-                headers: {'Content-Type': 'application/json'},
-                body: jsonEncode({
-                  "name": name,
-                  "email": email,
-                  "phone_number": phone,
-                  "password": password,
-                  "password_confirmation": confirmPassword,
-                }),
+            try {
+              final response = await AuthService.register(
+                name: name,
+                email: email,
+                phoneNumber: phone,
+                password: password,
+                passwordConfirmation: confirmPassword,
               );
+              await AuthService.persistSession(response);
 
-              print("Status code: ${response.statusCode}");
-              print("Response body: ${response.body}");
+              emailController.clear();
+              usernameController.clear();
+              phoneController.clear();
+              passwordController.clear();
+              confirmPasswordController.clear();
+              if (!mounted) return;
+              await _showRegistrationSuccessDialog();
+            } on ApiException catch (e) {
+              final errors = e.body['errors'];
 
-              if (response.statusCode == 200 || response.statusCode == 201) {
-                // Registrasi berhasil
-                emailController.clear();
-                usernameController.clear();
-                phoneController.clear();
-                passwordController.clear();
-                confirmPasswordController.clear();
-                DialogAlert.show(
-                    context: context,
-                    customChild: Content1(
-                        title: "Akun Berhasil dibuat",
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => LoginPage(),
-                              ));
-                        },
-                        textNav: "Login",
-                        message: 'Klik Tombol Login Untuk Memulai Kegiatan'));
-              } else if (response.statusCode == 422) {
-                // Validation error dari backend
-                final Map<String, dynamic> body = jsonDecode(response.body);
-                final errors = body['errors'];
+              String errorMessage = e.message;
 
-                String errorMessage = "Gagal registrasi.";
-
-                if (errors != null && errors.containsKey('email')) {
-                  errorMessage = errors['email']
-                      [0]; // contoh: "The email has already been taken."
-                }
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(errorMessage)),
-                );
-              } else {
-                // Error lain (misal 500, 403, dll)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Gagal: ${response.body}')),
-                );
+              if (errors is Map && errors['email'] is List) {
+                errorMessage = errors['email'][0].toString();
               }
-            }),
+
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(errorMessage)));
+            } catch (e) {
+              // Error lain (misal 500, 403, dll)
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+            }
+          },
+        ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    usernameController.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _showRegistrationSuccessDialog() async {
+    const initialCountdown = 5;
+    var remainingSeconds = initialCountdown;
+    Timer? timer;
+    var hasRedirected = false;
+
+    Future<void> redirect() async {
+      if (hasRedirected || !mounted) return;
+      hasRedirected = true;
+      timer?.cancel();
+
+      final navigator = Navigator.of(context, rootNavigator: true);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+
+      await LoginRedirectHandler.handle(context);
+    }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (_, setDialogState) {
+            timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
+              if (remainingSeconds <= 1) {
+                redirect();
+                return;
+              }
+
+              setDialogState(() {
+                remainingSeconds--;
+              });
+            });
+
+            return SporkyDialog(
+              title: 'Akun Berhasil Dibuat',
+              actions: [
+                SporkyDialogAction(
+                  label: 'Masuk Sekarang',
+                  onPressed: redirect,
+                  isPrimary: true,
+                ),
+              ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset('assets/giff/gif1.gif', height: 180),
+                  Text(
+                    'Kamu akan masuk otomatis dalam $remainingSeconds detik.',
+                    style: AppTextStyles.list1Regular(),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    ).whenComplete(() => timer?.cancel());
   }
 }

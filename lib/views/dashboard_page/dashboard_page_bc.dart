@@ -9,8 +9,8 @@ import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
 import '../../components/globals/card/cmp_tag_attention.dart';
 import '../../components/home_page_cmp/learning_section.dart';
-import '../../components/home_page_cmp/meal_plan_recommendation.dart';
 import '../../components/dashboard_page_cmp/child_profile/child_profile.dart';
+import '../../components/meal_plan_cmp/cmp_top_meal_plan.dart';
 import '../../core/services/child/child_service.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -35,10 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
-          'Dashboard',
-          style: AppTextStyles.heading2SemiBold(),
-        ),
+        title: Text('Dashboard', style: AppTextStyles.heading2SemiBold()),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -147,7 +144,10 @@ class _DashboardPageState extends State<DashboardPage> {
               imageAsset: 'assets/svg/ic_warn.svg',
             ),
 
-            MealPlanRecommendation(),
+            const Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: CmpTopMealPlan(),
+            ),
           ],
         ),
       ),

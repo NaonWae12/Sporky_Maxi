@@ -14,6 +14,8 @@ class DataMedicalRecordCmp extends StatefulWidget {
   final String weight;
   final String height;
   final String complaint;
+  final String diagnosisResult;
+  final String recommendation;
 
   const DataMedicalRecordCmp({
     super.key,
@@ -24,15 +26,24 @@ class DataMedicalRecordCmp extends StatefulWidget {
     required this.weight,
     required this.height,
     required this.complaint,
+    required this.diagnosisResult,
+    required this.recommendation,
   });
 
   @override
-  State<DataMedicalRecordCmp> createState() => _DataMedicalRecordCmpState();
+  State<DataMedicalRecordCmp> createState() => DataMedicalRecordCmpState();
 }
 
-class _DataMedicalRecordCmpState extends State<DataMedicalRecordCmp> {
+class DataMedicalRecordCmpState extends State<DataMedicalRecordCmp> {
   final TextEditingController diagnosisController = TextEditingController();
   final TextEditingController adviceController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    diagnosisController.text = widget.diagnosisResult;
+    adviceController.text = widget.recommendation;
+  }
 
   @override
   void dispose() {
@@ -55,7 +66,11 @@ class _DataMedicalRecordCmpState extends State<DataMedicalRecordCmp> {
               Expanded(
                 child: CardComponents1(
                   margin: const EdgeInsets.only(
-                      left: 16, top: 8, right: 8, bottom: 8),
+                    left: 16,
+                    top: 8,
+                    right: 8,
+                    bottom: 8,
+                  ),
                   title: 'Tanggal',
                   desc: widget.calendar,
                   showIcon: true,
@@ -64,7 +79,11 @@ class _DataMedicalRecordCmpState extends State<DataMedicalRecordCmp> {
               Expanded(
                 child: CardComponents1(
                   margin: const EdgeInsets.only(
-                      left: 8, top: 8, right: 16, bottom: 8),
+                    left: 8,
+                    top: 8,
+                    right: 16,
+                    bottom: 8,
+                  ),
                   title: 'Usia',
                   desc: widget.age,
                 ),
@@ -76,7 +95,11 @@ class _DataMedicalRecordCmpState extends State<DataMedicalRecordCmp> {
               Expanded(
                 child: CardComponents1(
                   margin: const EdgeInsets.only(
-                      left: 16, top: 8, right: 8, bottom: 8),
+                    left: 16,
+                    top: 8,
+                    right: 8,
+                    bottom: 8,
+                  ),
                   title: 'Berat Badan (kg)',
                   desc: widget.weight,
                 ),
@@ -84,7 +107,11 @@ class _DataMedicalRecordCmpState extends State<DataMedicalRecordCmp> {
               Expanded(
                 child: CardComponents1(
                   margin: const EdgeInsets.only(
-                      left: 8, top: 8, right: 16, bottom: 8),
+                    left: 8,
+                    top: 8,
+                    right: 16,
+                    bottom: 8,
+                  ),
                   title: 'Tinggi Badan (cm)',
                   desc: widget.height,
                 ),
@@ -152,10 +179,7 @@ class CardComponents1 extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: AppTextStyles.list3SemiBold(AppColors.base2),
-              ),
+              Text(title, style: AppTextStyles.list3SemiBold(AppColors.base2)),
               SizedBox(
                 width: widthBox,
                 child: Text(
@@ -163,7 +187,7 @@ class CardComponents1 extends StatelessWidget {
                   style: AppTextStyles.headList1Regular(AppColors.base1),
                   overflow: TextOverflow.clip,
                 ),
-              )
+              ),
             ],
           ),
           if (showIcon)
@@ -171,8 +195,10 @@ class CardComponents1 extends StatelessWidget {
               'assets/svg/ic_ calendar - schedule.svg',
               width: 20,
               height: 20,
-              colorFilter:
-                  ColorFilter.mode(AppColors.primary1, BlendMode.srcIn),
+              colorFilter: ColorFilter.mode(
+                AppColors.primary1,
+                BlendMode.srcIn,
+              ),
             ),
         ],
       ),

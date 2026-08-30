@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:sporky_maxi/components/globals/button/globals_button.dart';
 import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
@@ -38,6 +40,7 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
   bool _isLoadingFoodIntakes = false;
   bool _isSubmitting = false;
   bool _isExpanded1 = false;
+  XFile? _photoEvidence;
 
   static const List<FoodWasteMealOption> _mealOptions = [
     FoodWasteMealOption(
@@ -139,6 +142,19 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     }
   }
 
+  Future<void> _pickPhotoEvidence() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _photoEvidence = pickedFile;
+    });
+  }
+
   Future<void> _loadFoodIntakeNames() async {
     debugPrint('[AddFormWasteCmp] load food-intake names started');
     debugPrint(
@@ -166,19 +182,14 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
       }
       final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
 
-      final uri = Uri.parse(ApiEndpoints.foodIntakes).replace(
-        queryParameters: {
-          'child_uuid': childUuid,
-        },
-      );
+      final uri = Uri.parse(
+        ApiEndpoints.foodIntakes,
+      ).replace(queryParameters: {'child_uuid': childUuid});
       debugPrint('[AddFormWasteCmp] GET $uri');
 
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
       debugPrint('[AddFormWasteCmp] response status: ${response.statusCode}');
       debugPrint('[AddFormWasteCmp] response body: ${response.body}');
@@ -210,11 +221,9 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
       final filtered = expectedMealTime == null
           ? foodIntakes
           : foodIntakes
-              .where((e) => e['meal_time'] == expectedMealTime)
-              .toList();
-      debugPrint(
-        '[AddFormWasteCmp] filtered count: ${filtered.length}',
-      );
+                .where((e) => e['meal_time'] == expectedMealTime)
+                .toList();
+      debugPrint('[AddFormWasteCmp] filtered count: ${filtered.length}');
 
       final seen = <String>{};
       final names = <String>[];
@@ -381,9 +390,9 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
 
   void _showAlert(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   bool _isMealSelected(int index) {
@@ -396,7 +405,8 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
 
     if (!_isMealSelected(index)) {
       _showAlert(
-          'Isi nama makanan form ke-${index + 1} dulu sebelum geser slider.');
+        'Isi nama makanan form ke-${index + 1} dulu sebelum geser slider.',
+      );
       return;
     }
 
@@ -465,6 +475,15 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
         request.fields['intake_uuid'] = option.intakeUuid;
         request.fields['leftover_food'] = leftoverValue.toStringAsFixed(4);
 
+        if (_photoEvidence != null) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'photo_evidence',
+              _photoEvidence!.path,
+            ),
+          );
+        }
+
         final streamed = await request.send();
         final body = await streamed.stream.bytesToString();
         debugPrint(
@@ -506,17 +525,15 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
           buttonCollorRight: AppColors.primary1,
           onPressedLeft: () {
             Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PageSummary(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => PageSummary()),
+            );
           },
           onPressedRight: () {
             Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const Navbar(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => const Navbar()),
+            );
           },
         ),
       );
@@ -553,6 +570,7 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     return Column(
       children: [
         const FoodPortionGuideButton(slug: 'food-waste-guide'),
+        _buildPhotoEvidenceField(),
         GlobalsCard(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           backgroundColor: AppColors.base4,
@@ -572,9 +590,10 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
                     widget.selectedMealOption?.iconAsset ??
                         'assets/svg/bento-box-rounded.svg',
                     colorFilter: ColorFilter.mode(
-                        widget.selectedMealOption?.iconColor ??
-                            AppColors.primary1,
-                        BlendMode.srcIn),
+                      widget.selectedMealOption?.iconColor ??
+                          AppColors.primary1,
+                      BlendMode.srcIn,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -596,7 +615,7 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
                       ? Icons.keyboard_arrow_up
                       : Icons.keyboard_arrow_down,
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -656,30 +675,43 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildNutritionCard('assets/svg/ic_nutrition.svg', 'Karbohidrat',
-                _formatValue(_carbohydrateTotal), 'gr'),
-            _buildNutritionCard('assets/svg/ic_fat.svg', 'Lemak',
-                _formatValue(_fatTotal), 'gr'),
-            _buildNutritionCard('assets/svg/ic_proteins.svg', 'Protein',
-                _formatValue(_proteinTotal), 'gr'),
-            _buildNutritionCard('assets/svg/ic_fire.svg', 'Total Kalori',
-                _formatValue(_caloriesTotal), 'kcal'),
+            _buildNutritionCard(
+              'assets/svg/ic_nutrition.svg',
+              'Karbohidrat',
+              _formatValue(_carbohydrateTotal),
+              'gr',
+            ),
+            _buildNutritionCard(
+              'assets/svg/ic_fat.svg',
+              'Lemak',
+              _formatValue(_fatTotal),
+              'gr',
+            ),
+            _buildNutritionCard(
+              'assets/svg/ic_proteins.svg',
+              'Protein',
+              _formatValue(_proteinTotal),
+              'gr',
+            ),
+            _buildNutritionCard(
+              'assets/svg/ic_fire.svg',
+              'Total Kalori',
+              _formatValue(_caloriesTotal),
+              'kcal',
+            ),
           ],
         ),
         const SizedBox(height: 10),
         Row(
           children: [
             const GlobalsCard(
-                margin: EdgeInsets.only(left: 16),
-                hasShadow: false,
-                backgroundColor: AppColors.primary1,
-                height: 44,
-                width: 56,
-                child: Icon(
-                  Icons.camera_alt,
-                  size: 20,
-                  color: AppColors.base5,
-                )),
+              margin: EdgeInsets.only(left: 16),
+              hasShadow: false,
+              backgroundColor: AppColors.primary1,
+              height: 44,
+              width: 56,
+              child: Icon(Icons.camera_alt, size: 20, color: AppColors.base5),
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Padding(
@@ -735,10 +767,50 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildPhotoEvidenceField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        children: [
+          GlobalsCard(
+            backgroundColor: AppColors.base4,
+            height: 180,
+            width: double.infinity,
+            hasShadow: false,
+            onTap: _pickPhotoEvidence,
+            child: _photoEvidence == null
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.camera_alt,
+                        size: 36,
+                        color: AppColors.primary1,
+                      ),
+                      Text(
+                        'Buka Galeri',
+                        style: AppTextStyles.list1Regular(AppColors.primary1),
+                      ),
+                    ],
+                  )
+                : Image.file(fit: BoxFit.cover, File(_photoEvidence!.path)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Opsional: unggah foto sisa makanan dari atas dengan pencahayaan cukup.',
+              style: AppTextStyles.list3Regular(AppColors.base2),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -762,7 +834,11 @@ class _FoodIntakeOption {
 }
 
 Widget _buildNutritionCard(
-    String iconPath, String title, String value, String unit) {
+  String iconPath,
+  String title,
+  String value,
+  String unit,
+) {
   return SizedBox(
     width: 170,
     child: GlobalsCard(
@@ -774,10 +850,7 @@ Widget _buildNutritionCard(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SvgPicture.asset(iconPath),
-          Text(
-            title,
-            style: AppTextStyles.list1Regular(),
-          ),
+          Text(title, style: AppTextStyles.list1Regular()),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -793,16 +866,13 @@ Widget _buildNutritionCard(
                 backgroundColor: AppColors.base4,
                 child: Row(
                   children: [
-                    Text(
-                      unit,
-                      style: AppTextStyles.heading3SemiBold(),
-                    ),
+                    Text(unit, style: AppTextStyles.heading3SemiBold()),
                     const Icon(Icons.keyboard_arrow_down, size: 16),
                   ],
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     ),

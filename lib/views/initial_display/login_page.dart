@@ -11,19 +11,9 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leadingWidth: MediaQuery.of(context).size.width,
-        leading: Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Row(
-            children: [
-              Icon(Icons.keyboard_arrow_left),
-              Text(
-                "Masuk",
-                style: AppTextStyles.heading2SemiBold(),
-              )
-            ],
-          ),
-        ),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text("Masuk", style: AppTextStyles.heading2SemiBold()),
       ),
       body: const Padding(
         padding: EdgeInsets.all(15.0),
@@ -34,7 +24,7 @@ class LoginPage extends StatelessWidget {
               SizedBox(height: 8),
               TopContent(),
               SizedBox(height: 8),
-              BottomContent()
+              BottomContent(),
             ],
           ),
         ),

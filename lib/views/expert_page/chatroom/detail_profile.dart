@@ -9,6 +9,7 @@ import 'package:sporky_maxi/core/services/child/screening_service.dart';
 import 'package:sporky_maxi/core/utils/age_helper.dart';
 import 'package:sporky_maxi/models/components/child/child_latest_screening_model.dart';
 import 'package:sporky_maxi/views/expert_page/chatroom/chating_page.dart';
+import 'package:sporky_maxi/views/expert_page/medical_record/page_medical_record.dart';
 
 import '../../../components/globals/dialog/badge_tooltip.dart';
 import '../../../components/globals/dialog/child_profile_in_expert.dart';
@@ -57,17 +58,21 @@ class _DetailProfileState extends State<DetailProfile> {
 
     try {
       final data = await ScreeningService().getLatestByChildUuid(childUuid);
-      final profileData = await ChatSyncService.fetchChildProfile(widget.roomUuid);
+      final profileData = await ChatSyncService.fetchChildProfile(
+        widget.roomUuid,
+      );
 
       if (!mounted) return;
-      
+
       _applyChildData(data);
-      
+
       setState(() {
-        _medicalHistories = profileData.medicalHistories.isEmpty 
-            ? '-' : profileData.medicalHistories.join(', ');
-        _allergies = profileData.allergies.isEmpty 
-            ? '-' : profileData.allergies.join(', ');
+        _medicalHistories = profileData.medicalHistories.isEmpty
+            ? '-'
+            : profileData.medicalHistories.join(', ');
+        _allergies = profileData.allergies.isEmpty
+            ? '-'
+            : profileData.allergies.join(', ');
       });
     } catch (e) {
       debugPrint('[DetailProfile] Gagal memuat profil anak: $e');
@@ -75,7 +80,9 @@ class _DetailProfileState extends State<DetailProfile> {
   }
 
   void _applyChildData(ChildLatestScreening data) {
-    final childName = data.child.name.trim().isEmpty ? 'Anak' : data.child.name.trim();
+    final childName = data.child.name.trim().isEmpty
+        ? 'Anak'
+        : data.child.name.trim();
     final age = calculateAge(data.child.dob);
     final nutritionStatus = (data.screening?.nutritionStatus ?? '').trim();
 
@@ -91,7 +98,6 @@ class _DetailProfileState extends State<DetailProfile> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -99,17 +105,18 @@ class _DetailProfileState extends State<DetailProfile> {
         leading: Row(
           children: [
             IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: Icon(Icons.arrow_back_ios)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.arrow_back_ios),
+            ),
             TopBarParentInExpertCmp(
               parentName: _resolvedParentName,
               childName: _childName,
               isActive: true,
               isAsset: true,
               photoUrl: 'assets/temp_img/parent.png',
-            )
+            ),
           ],
         ),
       ),
@@ -122,11 +129,14 @@ class _DetailProfileState extends State<DetailProfile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Sesi Konsultasi Chat belum dimulai',
-                    style: AppTextStyles.list1Bold()),
                 Text(
-                    'Klik tombol “Mulai Konsultasi” sesuai jadwal. Cek profil anak untuk pahami kondisinya.',
-                    style: AppTextStyles.list1Regular()),
+                  'Sesi Konsultasi Chat belum dimulai',
+                  style: AppTextStyles.list1Bold(),
+                ),
+                Text(
+                  'Klik tombol “Mulai Konsultasi” sesuai jadwal. Cek profil anak untuk pahami kondisinya.',
+                  style: AppTextStyles.list1Regular(),
+                ),
               ],
             ),
           ),
@@ -150,13 +160,15 @@ class _DetailProfileState extends State<DetailProfile> {
                       allergies: _allergies,
                       onPressed: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => PageChildProfileInExpert(
-                                      childUuid: widget.childUuid,
-                                      roomUuid: widget.roomUuid,
-                                      parentName: _resolvedParentName,
-                                    )));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PageChildProfileInExpert(
+                              childUuid: widget.childUuid,
+                              roomUuid: widget.roomUuid,
+                              parentName: _resolvedParentName,
+                            ),
+                          ),
+                        );
                       },
                     ),
                   ),
@@ -171,6 +183,18 @@ class _DetailProfileState extends State<DetailProfile> {
             status: _nutritionStatus,
             step: TooltipStep.awal,
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PageMedicalRecord(roomUuid: widget.roomUuid),
+                ),
+              );
+            },
+            child: const Text('Buka Rekam Medis'),
+          ),
         ],
       ),
       bottomNavigationBar: Padding(
@@ -180,14 +204,15 @@ class _DetailProfileState extends State<DetailProfile> {
           text: 'Mulai Sesi',
           onPressed: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatingPage(
-                    roomUuid: widget.roomUuid,
-                    parentName: _resolvedParentName,
-                    childName: _childName,
-                  ),
-                ));
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatingPage(
+                  roomUuid: widget.roomUuid,
+                  parentName: _resolvedParentName,
+                  childName: _childName,
+                ),
+              ),
+            );
           },
         ),
       ),

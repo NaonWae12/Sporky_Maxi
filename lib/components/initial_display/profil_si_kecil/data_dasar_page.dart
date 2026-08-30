@@ -40,15 +40,76 @@ class _DataDasarPageState extends State<DataDasarPage> {
     tanggalLahir = TextEditingController(text: widget.data["tanggalLahir"]);
     tinggi = TextEditingController(text: widget.data["tinggi"]);
     berat = TextEditingController(text: widget.data["berat"]);
+    jenisKelamin = widget.data["jenisKelamin"]?.isNotEmpty == true
+        ? widget.data["jenisKelamin"]
+        : null;
+
+    nama.addListener(_syncData);
+    tanggalLahir.addListener(_syncData);
+    tinggi.addListener(_syncData);
+    berat.addListener(_syncData);
   }
 
-  void handleNext() {
+  void _syncData() {
     widget.onUpdate("nama", nama.text);
     widget.onUpdate("tanggalLahir", tanggalLahir.text);
     widget.onUpdate("tinggi", tinggi.text);
     widget.onUpdate("berat", berat.text);
-    widget.onUpdate("jenisKelamin", jenisKelamin!);
+    widget.onUpdate("jenisKelamin", jenisKelamin ?? "");
+  }
+
+  bool _isValidPositiveNumber(String value) {
+    final parsedValue = double.tryParse(value.trim().replaceAll(',', '.'));
+    return parsedValue != null && parsedValue > 0;
+  }
+
+  String? _validationMessage() {
+    if (nama.text.trim().isEmpty) return "Nama anak wajib diisi";
+    if (jenisKelamin == null || jenisKelamin!.trim().isEmpty) {
+      return "Jenis kelamin wajib dipilih";
+    }
+    if (tanggalLahir.text.trim().isEmpty) return "Tanggal lahir wajib diisi";
+    if (tinggi.text.trim().isEmpty) return "Tinggi badan wajib diisi";
+    if (!_isValidPositiveNumber(tinggi.text)) {
+      return "Tinggi badan harus berupa angka lebih dari 0";
+    }
+    if (berat.text.trim().isEmpty) return "Berat badan wajib diisi";
+    if (!_isValidPositiveNumber(berat.text)) {
+      return "Berat badan harus berupa angka lebih dari 0";
+    }
+
+    return null;
+  }
+
+  void handleNext() {
+    _syncData();
+
+    final validationMessage = _validationMessage();
+    if (validationMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(validationMessage)));
+      return;
+    }
+
     widget.onNext();
+  }
+
+  @override
+  void dispose() {
+    nama
+      ..removeListener(_syncData)
+      ..dispose();
+    tanggalLahir
+      ..removeListener(_syncData)
+      ..dispose();
+    tinggi
+      ..removeListener(_syncData)
+      ..dispose();
+    berat
+      ..removeListener(_syncData)
+      ..dispose();
+    super.dispose();
   }
 
   @override
@@ -76,14 +137,20 @@ class _DataDasarPageState extends State<DataDasarPage> {
             label: "Jenis Kelamin*",
             value: jenisKelamin,
             items: ['Perempuan', 'Laki-laki']
-                .map((val) => DropdownMenuItem(
+                .map(
+                  (val) => DropdownMenuItem(
                     value: val,
                     child: Text(
                       val,
                       style: AppTextStyles.heading3Medium(AppColors.base1),
-                    )))
+                    ),
+                  ),
+                )
                 .toList(),
-            onChanged: (val) => setState(() => jenisKelamin = val),
+            onChanged: (val) => setState(() {
+              jenisKelamin = val;
+              widget.onUpdate("jenisKelamin", val ?? "");
+            }),
           ),
           const SizedBox(height: 16),
           DateDropdownField(
@@ -97,23 +164,30 @@ class _DataDasarPageState extends State<DataDasarPage> {
                 : null,
             controller: tanggalLahir,
             onDateSelected: (date) {
-              // Kalau mau update state atau validasi bisa di sini
+              widget.onUpdate(
+                "tanggalLahir",
+                DateFormat('dd/MM/yyyy').format(date),
+              );
             },
           ),
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
-                  child: GlobalsForm(
-                      label: "Tinggi Badan (cm)*",
-                      controller: tinggi,
-                      keyboardType: TextInputType.number)),
+                child: GlobalsForm(
+                  label: "Tinggi (cm)*",
+                  controller: tinggi,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child: GlobalsForm(
-                      label: "Berat Badan (kg)*",
-                      controller: berat,
-                      keyboardType: TextInputType.number)),
+                child: GlobalsForm(
+                  label: "Berat (kg)*",
+                  controller: berat,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
             ],
           ),
           const Spacer(),

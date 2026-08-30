@@ -19,7 +19,9 @@ import '../initial_display/profil_si_kecil_flow_test.dart';
 import '../profile/parent_profile.dart';
 
 class ChildDashboardPage extends StatefulWidget {
-  const ChildDashboardPage({super.key});
+  final VoidCallback? onDashboardTap;
+
+  const ChildDashboardPage({super.key, this.onDashboardTap});
 
   @override
   State<ChildDashboardPage> createState() => _ChildDashboardPageState();
@@ -28,22 +30,25 @@ class ChildDashboardPage extends StatefulWidget {
 class _ChildDashboardPageState extends State<ChildDashboardPage> {
   late Future<List<String>> _childUuidsFuture;
   String _parentName = 'Bunda';
+  String? _parentPhoto;
   String? _selectedChildUuid;
 
   @override
   void initState() {
     super.initState();
     _childUuidsFuture = ChildService().getChildUuids();
-    _loadParentName();
+    _loadParentProfileCache();
     _loadSelectedChildUuid();
   }
 
-  Future<void> _loadParentName() async {
+  Future<void> _loadParentProfileCache() async {
     final name = await SecureStorageService.getUserName();
+    final photo = await SecureStorageService.getUserPhoto();
     // debugPrint("👤 Parent name loaded: $name");
     if (mounted) {
       setState(() {
-        _parentName = name ?? 'Bunda';
+        _parentName = (name == null || name.trim().isEmpty) ? 'Bunda' : name;
+        _parentPhoto = photo;
       });
     }
   }
@@ -69,12 +74,12 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
         leading: TopBarParentCmp(
           onTap: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ParentProfile(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => const ParentProfile()),
+            ).then((_) => _loadParentProfileCache());
           },
           name: _parentName,
+          photoUrl: _parentPhoto,
           chitChat: 'Bagaimana kondisi anakmu hari ini?',
         ),
       ),
@@ -124,7 +129,8 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
                   _persistSelectedChildUuid(fallbackUuid);
                 }
 
-                final selectedUuid = (_selectedChildUuid != null &&
+                final selectedUuid =
+                    (_selectedChildUuid != null &&
                         childUuids.contains(_selectedChildUuid))
                     ? _selectedChildUuid
                     : childUuids.first;
@@ -137,10 +143,11 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
                     showAddChildCard: true,
                     onAddChildTap: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProfilSiKecilFlowTest(),
-                          ));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfilSiKecilFlowTest(),
+                        ),
+                      );
                     },
                     onChildSelected: (uuid) {
                       setState(() {
@@ -159,7 +166,7 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
                   'Sudah cek kebutuhan gizi harian anak hari ini, Bun? Bekal sehat bantu tumbuh optimal!',
               imageAsset: 'assets/svg/ic_warn.svg',
             ),
-            CardConsultation(),
+            CardConsultation(onGrowthTap: widget.onDashboardTap),
 
             /// ================= KOMPONEN MENU =================
             Padding(
@@ -171,8 +178,6 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
                 wrapText: 1.5,
               ),
             ),
-            // =============== REKOMENDASI MEALPLAN ===============
-            // MealPlanRecommendation(),
             Row(
               children: [
                 SizedBox(width: 8),

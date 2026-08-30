@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sporky_maxi/components/globals/button/globals_button.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
+import 'package:sporky_maxi/components/globals/dialog/sporky_dialog.dart';
 
 import '../text/text_style.dart';
 
@@ -22,37 +23,45 @@ class DialogAlert {
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.base5,
-          title: title != null
-              ? Text(
-                  title,
-                  style: titleStyle ?? AppTextStyles.headList1Bold(),
-                )
-              : null,
-          content: child ??
-              customChild ??
-              (message != null
-                  ? Text(
-                      message,
-                      style: messageStyle ??
-                          AppTextStyles.list1Regular(Colors.black87),
-                    )
-                  : const SizedBox()),
+        return SporkyDialog(
           actions: confirmText != null
               ? [
-                  TextButton(
+                  SporkyDialogAction(
+                    label: confirmText,
                     onPressed: () {
                       Navigator.of(context).pop();
                       if (onConfirm != null) onConfirm();
                     },
-                    child: Text(
-                      confirmText,
-                      style: AppTextStyles.headList1Bold(Colors.blue),
-                    ),
+                    isPrimary: true,
                   ),
                 ]
-              : null,
+              : const [],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (title != null) ...[
+                Text(
+                  title,
+                  style:
+                      titleStyle ??
+                      AppTextStyles.heading2SemiBold(AppColors.base1),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+              ],
+              child ??
+                  customChild ??
+                  (message != null
+                      ? Text(
+                          message,
+                          style:
+                              messageStyle ??
+                              AppTextStyles.list1Regular(Colors.black87),
+                          textAlign: TextAlign.center,
+                        )
+                      : const SizedBox()),
+            ],
+          ),
         );
       },
     );
@@ -96,15 +105,13 @@ class Content1 extends StatelessWidget {
         Align(
           alignment: Alignment.topRight,
           child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.close)),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: Icon(Icons.close),
+          ),
         ),
-        Text(
-          title,
-          style: titleStyle ?? AppTextStyles.headList1Bold(),
-        ),
+        Text(title, style: titleStyle ?? AppTextStyles.headList1Bold()),
         Image.asset(height: 200, image),
         Padding(
           padding: textPadding,
@@ -129,12 +136,13 @@ class Content1 extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 textNav,
-                style: textNavStyle ??
+                style:
+                    textNavStyle ??
                     AppTextStyles.headList1Bold(AppColors.base5),
-              )
+              ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

@@ -46,41 +46,58 @@ class _BalanceCardCmpState extends State<BalanceCardCmp> {
                         style: AppTextStyles.heading3SemiBold(),
                       ),
                       GlobalsCard(
-                          onTap: () {},
-                          margin: EdgeInsets.symmetric(horizontal: 5),
-                          backgroundColor: AppColors.base5,
-                          hasShadow: false,
-                          child: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: SvgPicture.asset(
-                              'assets/svg/ic_eye.svg',
-                              colorFilter: ColorFilter.mode(
-                                  AppColors.base1, BlendMode.srcIn),
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Detail saldo belum tersedia'),
                             ),
-                          ))
+                          );
+                        },
+                        margin: EdgeInsets.symmetric(horizontal: 5),
+                        backgroundColor: AppColors.base5,
+                        hasShadow: false,
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: SvgPicture.asset(
+                            'assets/svg/ic_eye.svg',
+                            colorFilter: ColorFilter.mode(
+                              AppColors.base1,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   Text(
                     'Rp.${widget.balance}',
                     style: AppTextStyles.heading1SemiBold(),
-                  )
+                  ),
                 ],
               ),
               GlobalsCard(
-                  backgroundColor: AppColors.base5,
-                  hasShadow: false,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        SvgPicture.asset('assets/svg/ic_withdraw.svg'),
-                        Text(
-                          'Tarik Saldo',
-                          style: AppTextStyles.lable4SemiRegular(),
-                        )
-                      ],
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Penarikan saldo belum tersedia'),
                     ),
-                  ))
+                  );
+                },
+                backgroundColor: AppColors.base5,
+                hasShadow: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      SvgPicture.asset('assets/svg/ic_withdraw.svg'),
+                      Text(
+                        'Tarik Saldo',
+                        style: AppTextStyles.lable4SemiRegular(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           GestureDetector(
@@ -107,7 +124,7 @@ class _BalanceCardCmpState extends State<BalanceCardCmp> {
                 ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );

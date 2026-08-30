@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
-import '../../../../views/profile/child_profile/medical_history_details_page.dart';
+import 'package:sporky_maxi/core/services/expert_feature/expert_feature_service.dart';
+import 'package:sporky_maxi/models/components/expert_feature/child_medical_model.dart';
+import 'package:sporky_maxi/views/profile/child_profile/medical_history_details_page.dart';
 
-class MedicalHistoryCmp extends StatelessWidget {
+class MedicalHistoryCmp extends StatefulWidget {
   final String childUuid;
   final String? roomUuid;
   final String parentName;
@@ -17,120 +19,160 @@ class MedicalHistoryCmp extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Data dummy sesuai gambar
-    final List<Map<String, String>> medicalData = [
-      {
-        'title': 'Nafsu Makan Turun',
-        'desc':
-            'Lorem ipsum dolor sit amet consectetur. Arcu arcu lacus justo tellus facilisis eges...',
-        'time': '10.08',
-      },
-      {
-        'title': 'Sesak Nafas, Batuk Kering',
-        'desc':
-            'Lorem ipsum dolor sit amet consectetur. Arcu arcu lacus justo tellus facilisis eges...',
-        'time': '30/07/25',
-      },
-      {
-        'title': 'Panas Tidak Turun dalam 5 Hari',
-        'desc':
-            'Lorem ipsum dolor sit amet consectetur. Arcu arcu lacus justo tellus facilisis eges...',
-        'time': '30/07/25',
-      },
-    ];
+  State<MedicalHistoryCmp> createState() => _MedicalHistoryCmpState();
+}
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Column(
-        children: medicalData.map((data) {
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MedicalHistoryDetailsPage(
-                          childUuid: childUuid,
-                          roomUuid: roomUuid,
-                          parentName: parentName,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Circle Placeholder
-                      Container(
-                        height: 64,
-                        width: 64,
-                        decoration: const BoxDecoration(
-                          color: AppColors.base3,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Content
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    data['title']!,
-                                    style: AppTextStyles.headList1Bold(
-                                        AppColors.base1),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Text(
-                                  data['time']!,
-                                  style: AppTextStyles.list1Regular(
-                                      AppColors.base2),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width / 1.5,
-                                  child: Text(
-                                    data['desc']!,
-                                    style: AppTextStyles.list1Regular(
-                                        AppColors.base2),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                SvgPicture.asset(
-                                  'assets/svg/medical_record.svg',
-                                  height: 24,
-                                  width: 24,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Divider(color: AppColors.base3, thickness: 1),
-            ],
+class _MedicalHistoryCmpState extends State<MedicalHistoryCmp> {
+  static const ExpertFeatureService _service = ExpertFeatureService();
+
+  late Future<List<ChildScreeningHistoryItem>> _historyFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  void _loadHistory() {
+    final roomUuid = widget.roomUuid?.trim() ?? '';
+    if (roomUuid.isEmpty) {
+      _historyFuture = Future.value(const []);
+      return;
+    }
+
+    _historyFuture = _service.getChildScreeningHistory(roomUuid);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<ChildScreeningHistoryItem>>(
+      future: _historyFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 220,
+            child: Center(child: CircularProgressIndicator()),
           );
-        }).toList(),
-      ),
+        }
+
+        if (snapshot.hasError) {
+          return SizedBox(
+            height: 180,
+            child: Center(
+              child: TextButton(
+                onPressed: () => setState(_loadHistory),
+                child: const Text('Gagal memuat riwayat medis. Coba lagi'),
+              ),
+            ),
+          );
+        }
+
+        final histories = snapshot.data ?? [];
+        if (histories.isEmpty) {
+          return const SizedBox(
+            height: 160,
+            child: Center(child: Text('Belum ada riwayat medis anak')),
+          );
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Column(
+            children: histories.map((history) {
+              return Column(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MedicalHistoryDetailsPage(
+                            childUuid: widget.childUuid,
+                            roomUuid: widget.roomUuid,
+                            parentName: widget.parentName,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 64,
+                          width: 64,
+                          decoration: const BoxDecoration(
+                            color: AppColors.base3,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              history.zScore.toStringAsFixed(1),
+                              style: AppTextStyles.list1Bold(AppColors.base1),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      history.nutritionStatus,
+                                      style: AppTextStyles.headList1Bold(
+                                        AppColors.base1,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    history.date,
+                                    style: AppTextStyles.list1Regular(
+                                      AppColors.base2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width / 1.5,
+                                    child: Text(
+                                      'Berat ${history.weight}, tinggi ${history.height}, Z-score ${history.zScore.toStringAsFixed(2)}',
+                                      style: AppTextStyles.list1Regular(
+                                        AppColors.base2,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  SvgPicture.asset(
+                                    'assets/svg/medical_record.svg',
+                                    height: 24,
+                                    width: 24,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: AppColors.base3, thickness: 1),
+                ],
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 }

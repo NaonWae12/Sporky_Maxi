@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
+import 'package:sporky_maxi/components/globals/dialog/sporky_dialog.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
 import 'chip_selector_display_with_focus.dart';
@@ -40,18 +41,46 @@ class _ChipSelectorFormFieldState extends State<ChipSelectorFormField> {
     final TextEditingController manualInputController = TextEditingController();
     List<String> tempSelected = [...widget.selectedItems];
 
+    void addManualInput(StateSetter setModalState) {
+      final input = manualInputController.text.trim();
+      if (input.isEmpty) return;
+
+      setModalState(() {
+        if (!_allOptions.contains(input)) {
+          _allOptions.add(input);
+        }
+        if (!tempSelected.contains(input)) {
+          tempSelected.add(input);
+        }
+        manualInputController.clear();
+      });
+    }
+
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return AlertDialog(
-              backgroundColor: AppColors.base5,
-              title: Text(
-                "Pilih ${widget.label}",
-                style: AppTextStyles.heading1SemiBold(),
-              ),
-              content: SingleChildScrollView(
+            return SporkyDialog(
+              title: "Pilih ${widget.label}",
+              actions: [
+                SporkyDialogAction(
+                  label: "Batal",
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                SporkyDialogAction(
+                  label: "Simpan",
+                  onPressed: () {
+                    setState(() {
+                      // simpan ke parent
+                      widget.onChanged(tempSelected);
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  isPrimary: true,
+                ),
+              ],
+              child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -82,50 +111,20 @@ class _ChipSelectorFormFieldState extends State<ChipSelectorFormField> {
                     TextField(
                       controller: manualInputController,
                       style: AppTextStyles.heading3Medium(),
-                      decoration: InputDecoration(
+                      decoration: SporkyDialog.inputDecoration(
                         labelText: "Tambahkan manual",
-                        labelStyle:
-                            AppTextStyles.heading3Medium(AppColors.base2),
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(16))),
+                        suffixIcon: IconButton(
+                          tooltip: "Tambah manual",
+                          icon: const Icon(Icons.add_circle),
+                          color: AppColors.primary1,
+                          onPressed: () => addManualInput(setModalState),
+                        ),
                       ),
-                      onSubmitted: (value) {
-                        final input = value.trim();
-                        if (input.isNotEmpty && !_allOptions.contains(input)) {
-                          setModalState(() {
-                            _allOptions.add(input);
-                            tempSelected.add(input);
-                            manualInputController.clear();
-                          });
-                        }
-                      },
+                      onSubmitted: (_) => addManualInput(setModalState),
                     ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    "Batal",
-                    style: AppTextStyles.heading3Medium(),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      // simpan ke parent
-                      widget.onChanged(tempSelected);
-                    });
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    "Simpan",
-                    style: AppTextStyles.heading3Medium(),
-                  ),
-                ),
-              ],
             );
           },
         );
@@ -136,11 +135,12 @@ class _ChipSelectorFormFieldState extends State<ChipSelectorFormField> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: _openSelectionDialog,
+      child: ChipSelectorDisplayWithFocus(
+        hint: widget.hint,
+        selectedItems: widget.selectedItems,
         onTap: _openSelectionDialog,
-        child: ChipSelectorDisplayWithFocus(
-          hint: widget.hint,
-          selectedItems: widget.selectedItems,
-          onTap: _openSelectionDialog,
-        ));
+      ),
+    );
   }
 }

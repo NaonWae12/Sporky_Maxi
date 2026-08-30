@@ -14,6 +14,7 @@ class ChildNutritionChart extends StatelessWidget {
   final DateTime selectedDate;
   final VoidCallback onPrevDay;
   final VoidCallback onNextDay;
+  final ValueChanged<DateTime>? onDateSelected;
 
   const ChildNutritionChart({
     super.key,
@@ -23,19 +24,31 @@ class ChildNutritionChart extends StatelessWidget {
     required this.selectedDate,
     required this.onPrevDay,
     required this.onNextDay,
+    this.onDateSelected,
     this.hasData = true,
     this.isLoading = false,
   });
 
   String _formatDisplayDate() {
     final now = DateTime.now();
-    final isToday = selectedDate.year == now.year &&
+    final isToday =
+        selectedDate.year == now.year &&
         selectedDate.month == now.month &&
         selectedDate.day == now.day;
 
     final months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     final monthName = months[selectedDate.month - 1];
     final dateStr = '${selectedDate.day} $monthName ${selectedDate.year}';
@@ -45,7 +58,8 @@ class ChildNutritionChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isEmpty = !hasData || (carbohydrate == 0 && protein == 0 && fat == 0);
+    final bool isEmpty =
+        !hasData || (carbohydrate == 0 && protein == 0 && fat == 0);
 
     final List<NutritionData> nutritionData = isEmpty
         ? [
@@ -101,20 +115,33 @@ class ChildNutritionChart extends StatelessWidget {
               GlobalsCard(
                 hasShadow: false,
                 backgroundColor: AppColors.base4,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 2,
+                ),
                 child: Row(
                   children: [
                     Text(_formatDisplayDate()),
                     const SizedBox(width: 8),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: this.selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime.now(),
+                        );
+
+                        if (selectedDate != null) {
+                          onDateSelected?.call(selectedDate);
+                        }
+                      },
                       child: SvgPicture.asset(
                         'assets/svg/ic_ calendar - schedule.svg',
                         height: 16,
                         width: 16,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -145,8 +172,10 @@ class ChildNutritionChart extends StatelessWidget {
                   margin: EdgeInsets.all(0),
                   width: MediaQuery.of(context).size.width / 2,
                   hasShadow: false,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   backgroundColor: AppColors.base4,
                   child: isEmpty
                       ? Padding(
@@ -159,16 +188,18 @@ class ChildNutritionChart extends StatelessWidget {
                         )
                       : Column(
                           children: nutritionData
-                              .map((item) => NutritionList(
-                                    iconPath: item.iconPath,
-                                    text: item.name,
-                                    value: item.value.toInt(),
-                                  ))
+                              .map(
+                                (item) => NutritionList(
+                                  iconPath: item.iconPath,
+                                  text: item.name,
+                                  value: item.value.toInt(),
+                                ),
+                              )
                               .toList(),
                         ),
                 ),
               ],
-            )
+            ),
         ],
       ),
     );
@@ -180,11 +211,12 @@ class NutritionList extends StatelessWidget {
   final int value;
   final String iconPath;
 
-  const NutritionList(
-      {super.key,
-      required this.text,
-      required this.value,
-      required this.iconPath});
+  const NutritionList({
+    super.key,
+    required this.text,
+    required this.value,
+    required this.iconPath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -195,11 +227,7 @@ class NutritionList extends StatelessWidget {
         children: [
           Row(
             children: [
-              SvgPicture.asset(
-                iconPath,
-                width: 20,
-                height: 20,
-              ),
+              SvgPicture.asset(iconPath, width: 20, height: 20),
               const SizedBox(width: 8),
               Text(text),
             ],

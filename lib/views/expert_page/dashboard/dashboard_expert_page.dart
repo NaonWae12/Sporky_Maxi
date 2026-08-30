@@ -19,6 +19,7 @@ class DashboardExpertPage extends StatefulWidget {
 
 class _DashboardExpertPageState extends State<DashboardExpertPage> {
   String _expertName = 'Dokter';
+  String? _expertPhoto;
   int _totalBalance = 0;
   String _balancePeriod = '-';
   int _totalConsultations = 0;
@@ -26,15 +27,17 @@ class _DashboardExpertPageState extends State<DashboardExpertPage> {
   @override
   void initState() {
     super.initState();
-    _loadExpertName();
+    _loadExpertProfileCache();
     _loadExpertBalance();
   }
 
-  Future<void> _loadExpertName() async {
+  Future<void> _loadExpertProfileCache() async {
     final name = await SecureStorageService.getUserName();
+    final photo = await SecureStorageService.getUserPhoto();
     if (!mounted) return;
     setState(() {
       _expertName = (name == null || name.trim().isEmpty) ? 'Dokter' : name;
+      _expertPhoto = photo;
     });
   }
 
@@ -45,10 +48,7 @@ class _DashboardExpertPageState extends State<DashboardExpertPage> {
 
       final response = await http.get(
         Uri.parse(ApiEndpoints.expertMyBalance),
-        headers: {
-          'Authorization': token,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': token, 'Accept': 'application/json'},
       );
 
       if (response.statusCode != 200) {
@@ -93,8 +93,10 @@ class _DashboardExpertPageState extends State<DashboardExpertPage> {
       appBar: AppBar(
         leadingWidth: MediaQuery.of(context).size.width,
         leading: TopBarExpertCmp(
-            name: _expertName,
-            title: 'Ahli Gizi, Spesialis Rehabilitas Nutrisi'),
+          name: _expertName,
+          photoUrl: _expertPhoto,
+          title: 'Ahli Gizi, Spesialis Rehabilitas Nutrisi',
+        ),
       ),
       body: Column(
         children: [
@@ -105,14 +107,15 @@ class _DashboardExpertPageState extends State<DashboardExpertPage> {
             totalConsultations: _totalConsultations,
             onTapHistory: () {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PageTransactionHistory(),
-                  ));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PageTransactionHistory(),
+                ),
+              );
             },
           ),
           const SizedBox(height: 15),
-          InsightConsultationCmp()
+          InsightConsultationCmp(),
         ],
       ),
     );

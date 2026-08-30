@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sporky_maxi/views/form_food_waste/page_form_food_waste.dart';
 import 'package:sporky_maxi/views/subscriptions/subs_plan_page.dart';
 
 import '../../views/consultation/main_page_consultation.dart';
@@ -9,17 +10,16 @@ import '../globals/card/icon_lable_card.dart';
 import '../globals/colors/colors.dart';
 
 class CardConsultation extends StatelessWidget {
-  const CardConsultation({super.key});
+  final VoidCallback? onGrowthTap;
+
+  const CardConsultation({super.key, this.onGrowthTap});
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Padding(
-        padding: const EdgeInsets.only(
-          left: 8.0,
-          top: 2,
-        ),
+        padding: const EdgeInsets.only(left: 8.0, top: 2),
         child: Row(
           children: [
             IconLabelCard(
@@ -28,10 +28,11 @@ class CardConsultation extends StatelessWidget {
               colorImageAndText: AppColors.secondary1,
               onTap: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MainPageConsultation(),
-                    ));
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MainPageConsultation(),
+                  ),
+                );
               },
             ),
             IconLabelCard(
@@ -41,10 +42,9 @@ class CardConsultation extends StatelessWidget {
               colorText: AppColors.secondary1,
               onTap: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MealFormMainPage(),
-                    ));
+                  context,
+                  MaterialPageRoute(builder: (context) => MealFormMainPage()),
+                );
               },
             ),
             IconLabelCard(
@@ -52,7 +52,21 @@ class CardConsultation extends StatelessWidget {
               label: 'Tumbuh Kembang',
               colorImage: AppColors.success2,
               colorText: AppColors.secondary1,
-              onTap: () {},
+              onTap: onGrowthTap,
+            ),
+            IconLabelCard(
+              imageAsset: 'assets/svg/food-bank.svg',
+              label: 'Food Waste',
+              colorImage: AppColors.success2,
+              colorText: AppColors.secondary1,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PageFormFoodWaste(),
+                  ),
+                );
+              },
             ),
             IconLabelCard(
               imageAsset: 'assets/svg/sun.svg',
@@ -60,10 +74,9 @@ class CardConsultation extends StatelessWidget {
               colorText: AppColors.secondary1,
               onTap: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SubsPlanPage(),
-                    ));
+                  context,
+                  MaterialPageRoute(builder: (context) => SubsPlanPage()),
+                );
               },
             ),
             IconLabelCard(
@@ -86,10 +99,9 @@ class CardConsultation extends StatelessWidget {
               colorText: AppColors.secondary1,
               onTap: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MainPageTicketCst(),
-                    ));
+                  context,
+                  MaterialPageRoute(builder: (context) => MainPageTicketCst()),
+                );
               },
             ),
           ],

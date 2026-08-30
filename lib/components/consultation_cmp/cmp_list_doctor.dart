@@ -60,22 +60,13 @@ class CmpListDoctor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> infoItems = [
-      {
-        'icon': 'assets/svg/ic_ doctor.svg',
-        'text': specialization,
-      },
+      {'icon': 'assets/svg/ic_ doctor.svg', 'text': specialization},
       {
         'icon': 'assets/svg/ic_ work time_suitcase.svg',
         'text': '$experience Tahun',
       },
-      {
-        'icon': 'assets/svg/ic_ calendar - schedule.svg',
-        'text': workingDays,
-      },
-      {
-        'icon': 'assets/svg/ic_clock.svg',
-        'text': workingHours,
-      },
+      {'icon': 'assets/svg/ic_ calendar - schedule.svg', 'text': workingDays},
+      {'icon': 'assets/svg/ic_clock.svg', 'text': workingHours},
     ];
     final bool effectiveShowChat = isAvailable ? showChat : false;
     final bool effectiveShowVideoCall = isAvailable ? showVideoCall : false;
@@ -116,8 +107,9 @@ class CmpListDoctor extends StatelessWidget {
                     bottom: 3,
                     child: GlobalsCard(
                       height: 16,
-                      backgroundColor:
-                          isAvailable ? AppColors.success1 : AppColors.warn1,
+                      backgroundColor: isAvailable
+                          ? AppColors.success1
+                          : AppColors.warn1,
                       child: Row(
                         children: [
                           const SizedBox(width: 5),
@@ -127,7 +119,9 @@ class CmpListDoctor extends StatelessWidget {
                               height: 8,
                               width: 8,
                               colorFilter: const ColorFilter.mode(
-                                  AppColors.base5, BlendMode.srcIn),
+                                AppColors.base5,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           if (effectiveShowChat && effectiveShowVideoCall)
                             const SizedBox(width: 2),
@@ -137,7 +131,9 @@ class CmpListDoctor extends StatelessWidget {
                               height: 8,
                               width: 8,
                               colorFilter: const ColorFilter.mode(
-                                  AppColors.base5, BlendMode.srcIn),
+                                AppColors.base5,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           if ((effectiveShowChat || effectiveShowVideoCall))
                             const SizedBox(width: 2),
@@ -171,12 +167,14 @@ class CmpListDoctor extends StatelessWidget {
                                 backgroundColor: _getRoleColor(),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
+                                    horizontal: 8.0,
+                                  ),
                                   child: Center(
                                     child: Text(
                                       role,
                                       style: AppTextStyles.list3SemiBold(
-                                          AppColors.base5),
+                                        AppColors.base5,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -189,12 +187,14 @@ class CmpListDoctor extends StatelessWidget {
                                   backgroundColor: expertGroupColor,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
+                                      horizontal: 8.0,
+                                    ),
                                     child: Center(
                                       child: Text(
                                         namesOfExpert!,
                                         style: AppTextStyles.list3SemiBold(
-                                            AppColors.base5),
+                                          AppColors.base5,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -215,11 +215,12 @@ class CmpListDoctor extends StatelessWidget {
                                 Text(
                                   starCount,
                                   style: AppTextStyles.list3SemiBold(
-                                      AppColors.warn1),
-                                )
+                                    AppColors.warn1,
+                                  ),
+                                ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                       Text(doctorName, style: AppTextStyles.heading3SemiBold()),
@@ -239,11 +240,14 @@ class CmpListDoctor extends StatelessWidget {
                                 children: [
                                   const SizedBox(width: 8),
                                   SvgPicture.asset(
-                                      height: 9,
-                                      width: 9,
-                                      colorFilter: const ColorFilter.mode(
-                                          AppColors.base1, BlendMode.srcIn),
-                                      item['icon']!),
+                                    height: 9,
+                                    width: 9,
+                                    colorFilter: const ColorFilter.mode(
+                                      AppColors.base1,
+                                      BlendMode.srcIn,
+                                    ),
+                                    item['icon']!,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     item['text']!,
@@ -260,32 +264,37 @@ class CmpListDoctor extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           GlobalsCard(
-                              margin: const EdgeInsets.all(0),
-                              hasShadow: false,
-                              height: 26,
-                              width: MediaQuery.of(context).size.width / 3.65,
-                              backgroundColor: AppColors.base3,
-                              child: Center(
-                                child: Text('Rp. $price',
-                                    style: AppTextStyles.list1Bold()),
-                              )),
+                            margin: const EdgeInsets.all(0),
+                            hasShadow: false,
+                            height: 26,
+                            width: MediaQuery.of(context).size.width / 3.65,
+                            backgroundColor: AppColors.base3,
+                            child: Center(
+                              child: Text(
+                                'Rp. $price',
+                                style: AppTextStyles.list1Bold(),
+                              ),
+                            ),
+                          ),
                           GlobalsButton(
                             elevation: 0,
                             color: AppColors.secondary1,
                             height: 26,
                             width: MediaQuery.of(context).size.width / 2.6,
-                            onPressed: () {},
+                            onPressed: onTap,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 SvgPicture.asset(
-                                    'assets/svg/ic_coupon - ticket.svg'),
+                                  'assets/svg/ic_coupon - ticket.svg',
+                                ),
                                 const SizedBox(width: 2),
                                 Text(
                                   'Beli Tiket',
-                                  style:
-                                      AppTextStyles.list1Bold(AppColors.base5),
-                                )
+                                  style: AppTextStyles.list1Bold(
+                                    AppColors.base5,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -294,7 +303,7 @@ class CmpListDoctor extends StatelessWidget {
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -302,7 +311,7 @@ class CmpListDoctor extends StatelessWidget {
             height: 2,
             width: MediaQuery.of(context).size.width / 1.05,
             color: AppColors.base3,
-          )
+          ),
         ],
       ),
     );

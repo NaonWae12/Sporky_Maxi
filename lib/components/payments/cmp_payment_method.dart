@@ -6,247 +6,112 @@ import '../globals/card/globals_card.dart';
 import '../globals/colors/colors.dart';
 import '../globals/text/text_style.dart';
 
+enum PaymentMethodOption { qris, gopay, virtualAccount, card }
+
 class CmpPaymentMethod extends StatefulWidget {
-  const CmpPaymentMethod({super.key});
+  final PaymentMethodOption? initialSelection;
+  final ValueChanged<PaymentMethodOption>? onSelected;
+
+  const CmpPaymentMethod({super.key, this.initialSelection, this.onSelected});
 
   @override
   State<CmpPaymentMethod> createState() => _CmpPaymentMethodState();
 }
 
 class _CmpPaymentMethodState extends State<CmpPaymentMethod> {
-  bool isQris = false;
-  bool isGopay = false;
+  late PaymentMethodOption? _selected = widget.initialSelection;
+
+  void _select(PaymentMethodOption option) {
+    setState(() {
+      _selected = option;
+    });
+    widget.onSelected?.call(option);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        GlobalsCard(
-          padding: const EdgeInsets.all(12),
-          backgroundColor: AppColors.base4,
-          hasShadow: false,
-          child: Column(
-            children: [
-              Row(children: [
-                SvgPicture.asset(
-                    height: 18, width: 18, 'assets/svg/ic_ bill.svg'),
-                const SizedBox(width: 5),
-                Text(
-                  "Rincian Pembayaran",
-                  style: AppTextStyles.heading3SemiBold(),
-                )
-              ]),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Harga Paket Berlangganan",
-                        style: AppTextStyles.list1Regular(AppColors.base2),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        "Biaya Layanan 1%",
-                        style: AppTextStyles.list1Regular(AppColors.base2),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        "Pajak 2%",
-                        style: AppTextStyles.list1Regular(AppColors.base2),
-                      ),
-                      const SizedBox(height: 3),
-                      RichText(
-                        text: TextSpan(
-                          text: 'Koin Ditukarkan: ',
-                          style: AppTextStyles.list1Regular(AppColors.base2),
-                          children: <TextSpan>[
-                            TextSpan(
-                                text: '3000',
-                                style: AppTextStyles.list1Medium(
-                                    AppColors.primary1)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        "Total Pembayaran",
-                        style: AppTextStyles.headList1Medium(),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "Rp2.000.000",
-                        style: AppTextStyles.list1Regular(AppColors.base2),
-                      ),
-                      Text(
-                        "Rp300.000",
-                        style: AppTextStyles.list1Regular(AppColors.base2),
-                      ),
-                      Text(
-                        "-Rp3.000",
-                        style: AppTextStyles.list1Regular(AppColors.base2),
-                      ),
-                      Text(
-                        "Rp2.297.000",
-                        style: AppTextStyles.headList1Medium(),
-                      ),
-                    ],
-                  )
-                ],
-              )
-            ],
-          ),
-        ),
-        GlobalsCard(
-            padding: const EdgeInsets.all(12),
-            hasShadow: false,
-            height: 42,
-            backgroundColor: AppColors.base4,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                        height: 16, width: 16, 'assets/svg/ic_ qr.svg'),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Qris',
-                      style: AppTextStyles.heading3SemiBold(),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => isQris = !isQris),
-                  child: Icon(
-                    isQris
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    color: AppColors.primary1,
-                    size: 20,
-                  ),
-                )
-              ],
-            )),
-        GlobalsCard(
-            padding: const EdgeInsets.all(12),
-            hasShadow: false,
-            height: 42,
-            backgroundColor: AppColors.base4,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                        height: 16, width: 16, 'assets/svg/ic_credit_card.svg'),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Gopay',
-                      style: AppTextStyles.heading3SemiBold(),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => isGopay = !isGopay),
-                  child: Icon(
-                    isGopay
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    color: AppColors.primary1,
-                    size: 20,
-                  ),
-                )
-              ],
-            )),
-        GlobalsCard(
-            padding: const EdgeInsets.all(12),
-            hasShadow: false,
-            height: 42,
-            backgroundColor: AppColors.base4,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                        height: 16, width: 16, 'assets/svg/ic_credit_card.svg'),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Virtual Account (VA)',
-                      style: AppTextStyles.heading3SemiBold(),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => isGopay = !isGopay),
-                  child: Icon(
-                    isGopay
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    color: AppColors.primary1,
-                    size: 20,
-                  ),
-                )
-              ],
-            )),
-        GlobalsCard(
-            padding: const EdgeInsets.all(12),
-            hasShadow: false,
-            height: 42,
-            backgroundColor: AppColors.base4,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                        height: 16, width: 16, 'assets/svg/ic_credit_card.svg'),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Debit/Credit Card',
-                      style: AppTextStyles.heading3SemiBold(),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => isGopay = !isGopay),
-                  child: Icon(
-                    isGopay
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    color: AppColors.primary1,
-                    size: 20,
-                  ),
-                )
-              ],
-            )),
+        ...PaymentMethodOption.values.map((option) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _PaymentMethodCard(
+              option: option,
+              isSelected: _selected == option,
+              onTap: () => _select(option),
+            ),
+          );
+        }),
         Padding(
           padding: const EdgeInsets.all(16),
           child: GlobalsButton(
-            color: isGopay
-                ? isQris
-                    ? AppColors.secondary1
-                    : AppColors.secondary3
-                : AppColors.secondary3,
-            text: "Pilih",
+            color: _selected == null
+                ? AppColors.secondary3
+                : AppColors.secondary1,
+            text: 'Pilih',
             customTextStyle: AppTextStyles.headList1Bold(),
-            onPressed: () {},
+            onPressed: _selected == null
+                ? null
+                : () => Navigator.of(context).pop(_selected),
           ),
-        )
+        ),
       ],
     );
+  }
+}
+
+class _PaymentMethodCard extends StatelessWidget {
+  final PaymentMethodOption option;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _PaymentMethodCard({
+    required this.option,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GlobalsCard(
+      padding: const EdgeInsets.all(12),
+      hasShadow: false,
+      backgroundColor: AppColors.base4,
+      onTap: onTap,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              SvgPicture.asset(
+                height: 16,
+                width: 16,
+                option == PaymentMethodOption.qris
+                    ? 'assets/svg/ic_ qr.svg'
+                    : 'assets/svg/ic_credit_card.svg',
+              ),
+              const SizedBox(width: 5),
+              Text(_label, style: AppTextStyles.heading3SemiBold()),
+            ],
+          ),
+          Icon(
+            isSelected
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+            color: AppColors.primary1,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _label {
+    return switch (option) {
+      PaymentMethodOption.qris => 'QRIS',
+      PaymentMethodOption.gopay => 'Gopay',
+      PaymentMethodOption.virtualAccount => 'Virtual Account (VA)',
+      PaymentMethodOption.card => 'Debit/Credit Card',
+    };
   }
 }

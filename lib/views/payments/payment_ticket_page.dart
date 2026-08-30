@@ -1,17 +1,23 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
+import 'package:sporky_maxi/components/globals/dialog/sporky_dialog.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/components/payments/payment_cmp.dart';
+import 'package:sporky_maxi/core/services/api/api_client.dart';
+import 'package:sporky_maxi/core/services/consultation/chat_room_service.dart';
+import 'package:sporky_maxi/core/services/consultation/consultation_service.dart';
+import 'package:sporky_maxi/core/services/foundation/api_foundation_service.dart';
 import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
+import 'package:sporky_maxi/models/components/payment/transaction_model.dart';
+import 'package:sporky_maxi/views/chatroom/chating_page_parent.dart';
+import 'package:sporky_maxi/views/payments/consultation_checkout_webview_page.dart';
 
 class PaymentTicketPage extends StatefulWidget {
   final String? expertId;
   final String? expertUuid;
   final String? doctorName;
   final double? price;
+  final String? productUuid;
+  final DateTime? consultationDate;
 
   const PaymentTicketPage({
     super.key,
@@ -19,6 +25,8 @@ class PaymentTicketPage extends StatefulWidget {
     this.expertUuid,
     this.doctorName,
     this.price,
+    this.productUuid,
+    this.consultationDate,
   });
 
   @override
@@ -26,7 +34,12 @@ class PaymentTicketPage extends StatefulWidget {
 }
 
 class _PaymentTicketPageState extends State<PaymentTicketPage> {
+  static const ConsultationService _consultationService = ConsultationService();
+  static const ChatRoomService _chatRoomService = ChatRoomService();
+  static const ApiFoundationService _foundationService = ApiFoundationService();
+
   bool _isSubmitting = false;
+  String? _selectedPaymentMethod;
 
   String _priceInThousands(double? amount) {
     if (amount == null || amount <= 0) return '0';
@@ -43,115 +56,121 @@ class _PaymentTicketPageState extends State<PaymentTicketPage> {
   Future<void> _showResultDialog({
     required bool isSuccess,
     required String message,
+    VoidCallback? onOk,
   }) async {
     if (!mounted) return;
 
     await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(isSuccess ? 'Berhasil' : 'Gagal'),
-        content: Text(message),
+      builder: (dialogContext) => SporkyDialog(
+        title: isSuccess ? 'Berhasil' : 'Gagal',
+        message: message,
+        icon: Container(
+          width: 62,
+          height: 62,
+          decoration: BoxDecoration(
+            color: isSuccess
+                ? const Color(0xFFEAFBEA)
+                : const Color(0xFFFFECE3),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            isSuccess ? Icons.check_rounded : Icons.close_rounded,
+            color: isSuccess
+                ? const Color(0xFF259945)
+                : const Color(0xFFED2326),
+            size: 34,
+          ),
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+          SporkyDialogAction(
+            label: 'OK',
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              onOk?.call();
+            },
+            isPrimary: true,
           ),
         ],
       ),
     );
   }
 
-  Future<void> _createChatRoomAfterPayment() async {
+  Future<void> _checkoutConsultation() async {
     if (_isSubmitting) return;
+
+    final expertUuid = _expertUuid;
+    final productUuid = (widget.productUuid ?? '').trim();
+
+    if (expertUuid.isEmpty) {
+      await _showResultDialog(
+        isSuccess: false,
+        message: 'Data expert tidak ditemukan. Silakan pilih expert lagi.',
+      );
+      return;
+    }
+
+    if (productUuid.isEmpty) {
+      await _showResultDialog(
+        isSuccess: false,
+        message: 'Produk konsultasi belum tersedia untuk expert ini.',
+      );
+      return;
+    }
+
+    final paymentMethod = _selectedPaymentMethod?.trim();
+    if (paymentMethod == null || paymentMethod.isEmpty) {
+      await _showResultDialog(
+        isSuccess: false,
+        message: 'Pilih metode pembayaran terlebih dahulu.',
+      );
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      final token = await SecureStorageService.getToken();
-      if (token == null || token.isEmpty) {
-        await _showResultDialog(
-          isSuccess: false,
-          message: 'Token tidak ditemukan. Silakan login ulang.',
-        );
-        return;
-      }
-
-      final selectedChildUuidRaw =
-          await SecureStorageService.getSelectedChildUuid();
-      final selectedChildUuid = (selectedChildUuidRaw ?? '').trim();
-      final expertIdRaw = (widget.expertId ?? '').trim();
-      final expertUserUuidRaw = (widget.expertUuid ?? '').trim();
-      final expertUserUuidPayload =
-          expertUserUuidRaw.isNotEmpty ? expertUserUuidRaw : expertIdRaw;
-
-      debugPrint('[PaymentTicketPage] expertIdRaw: $expertIdRaw');
-      debugPrint('[PaymentTicketPage] expertUserUuidRaw: $expertUserUuidRaw');
-      debugPrint(
-          '[PaymentTicketPage] expertUserUuidPayload: $expertUserUuidPayload');
-      debugPrint('[PaymentTicketPage] selectedChildUuid: $selectedChildUuid');
-
-      if (expertUserUuidPayload.isEmpty) {
-        await _showResultDialog(
-          isSuccess: false,
-          message:
-              'Data user expert tidak ditemukan. Silakan pilih expert lagi.',
-        );
-        return;
-      }
-
-      if (selectedChildUuid.isEmpty) {
-        await _showResultDialog(
-          isSuccess: false,
-          message: 'Profil anak belum dipilih. Pilih anak terlebih dahulu.',
-        );
-        return;
-      }
-
-      final payload = <String, dynamic>{
-        'user_uuid': expertUserUuidPayload,
-        'expert_id': expertUserUuidPayload,
-        'expert_uuid': expertUserUuidPayload,
-        'child_uuid': selectedChildUuid,
-        'room_type': 'konsultasi',
-      };
-
-      debugPrint('[PaymentTicketPage] Payload: ${jsonEncode(payload)}');
-
-      final response = await http.post(
-        Uri.parse(ApiEndpoints.chatRoomGetOrCreate),
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(payload),
+      final checkout = await _consultationService.checkout(
+        expertUuid: expertUuid,
+        productUuid: productUuid,
+        date:
+            widget.consultationDate ??
+            DateTime.now().add(const Duration(hours: 1)),
       );
 
-      debugPrint('[PaymentTicketPage] Status: ${response.statusCode}');
-      debugPrint('[PaymentTicketPage] Response: ${response.body}');
+      if (!mounted) return;
 
-      Map<String, dynamic> body = {};
-      try {
-        body = jsonDecode(response.body) as Map<String, dynamic>;
-      } catch (_) {
-        body = {};
-        debugPrint('[PaymentTicketPage] Response body is not valid JSON');
+      final transactionUuid = await _completeCheckoutWebView(
+        checkout.checkoutUrl,
+      );
+
+      if (transactionUuid == null) {
+        await _showResultDialog(
+          isSuccess: false,
+          message: 'Checkout dibatalkan.',
+        );
+        return;
       }
 
-      final message = (body['message'] as String?)?.trim().isNotEmpty == true
-          ? (body['message'] as String)
-          : 'Status: ${response.statusCode}';
+      final transaction = await _waitForCompletedTransaction(transactionUuid);
 
-      await _showResultDialog(
-        isSuccess: response.statusCode >= 200 && response.statusCode < 300,
-        message: message,
-      );
-    } catch (e) {
+      if (transaction.status != 'completed') {
+        await _showResultDialog(
+          isSuccess: false,
+          message: 'Pembayaran belum selesai. Status: ${transaction.status}.',
+        );
+        return;
+      }
+
+      await _openChatRoomAfterCompletedTransaction();
+    } on ApiClientException catch (error) {
+      await _showResultDialog(isSuccess: false, message: error.message);
+    } catch (error) {
       await _showResultDialog(
         isSuccess: false,
-        message: 'Terjadi kesalahan: $e',
+        message: 'Terjadi kesalahan: $error',
       );
     } finally {
       if (mounted) {
@@ -160,6 +179,78 @@ class _PaymentTicketPageState extends State<PaymentTicketPage> {
         });
       }
     }
+  }
+
+  String get _expertUuid {
+    final widgetExpertUuid = (widget.expertUuid ?? '').trim();
+    if (widgetExpertUuid.isNotEmpty) return widgetExpertUuid;
+    return (widget.expertId ?? '').trim();
+  }
+
+  Future<String?> _completeCheckoutWebView(String checkoutUrl) async {
+    if (!mounted) return null;
+
+    final result = await Navigator.push<ConsultationCheckoutResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            ConsultationCheckoutWebviewPage(checkoutUrl: checkoutUrl),
+      ),
+    );
+
+    if (result == null || !result.isCompleted) return null;
+    return result.transactionUuid;
+  }
+
+  Future<AppTransaction> _waitForCompletedTransaction(String uuid) async {
+    const maxAttempts = 10;
+    var transaction = await _foundationService.getTransactionDetail(uuid);
+
+    for (
+      var attempt = 1;
+      attempt < maxAttempts && transaction.status != 'completed';
+      attempt++
+    ) {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      transaction = await _foundationService.getTransactionDetail(uuid);
+    }
+
+    return transaction;
+  }
+
+  Future<void> _openChatRoomAfterCompletedTransaction() async {
+    final childUuid = (await SecureStorageService.getSelectedChildUuid() ?? '')
+        .trim();
+
+    if (childUuid.isEmpty) {
+      await _showResultDialog(
+        isSuccess: false,
+        message: 'Pembayaran berhasil, tetapi profil anak belum dipilih.',
+      );
+      return;
+    }
+
+    final room = await _chatRoomService.getOrCreateConsultationRoom(
+      expertUserUuid: _expertUuid,
+      childUuid: childUuid,
+    );
+
+    await _showResultDialog(
+      isSuccess: true,
+      message: 'Pembayaran berhasil. Chat konsultasi sudah siap.',
+      onOk: () {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatingPageParent(
+              roomUuid: room.uuid,
+              doctorName: room.expertName,
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -172,32 +263,32 @@ class _PaymentTicketPageState extends State<PaymentTicketPage> {
           child: Row(
             children: [
               IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back_ios)),
-              Text(
-                'Pembayar',
-                style: AppTextStyles.heading1SemiBold(),
-              )
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
+              Text('Pembayar', style: AppTextStyles.heading1SemiBold()),
             ],
           ),
         ),
       ),
       body: PaymentCmp(
         doctorName: (widget.doctorName ?? '').trim().isEmpty
-            ? 'dr.Palomina'
+            ? 'Dokter Sporky'
             : widget.doctorName!.trim(),
         specialization: 'Anak',
         price: _priceInThousands(widget.price),
         session: '1',
         isExpertGroup: true,
-        textButton: _isSubmitting ? "Memproses..." : "Beli Tiket",
-        onPressedButton: _isSubmitting
-            ? () {}
-            : () {
-                _createChatRoomAfterPayment();
-              },
+        paymentMethodLabel: _selectedPaymentMethod ?? 'Pilih metode pembayaran',
+        onPaymentMethodSelected: (method) {
+          setState(() {
+            _selectedPaymentMethod = method;
+          });
+        },
+        textButton: _isSubmitting ? 'Memproses...' : 'Beli Tiket',
+        onPressedButton: _isSubmitting ? null : _checkoutConsultation,
       ),
     );
   }

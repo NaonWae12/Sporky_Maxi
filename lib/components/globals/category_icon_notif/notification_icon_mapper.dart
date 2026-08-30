@@ -3,8 +3,9 @@ class NotificationIconMapper {
     "promo": "assets/icons/promo.svg",
     "order": "assets/icons/order.svg",
     "chat": "assets/svg/chat-rounded.svg",
+    "consultation": "assets/svg/user-doctor.svg",
     "video": "assets/svg/video-fill.svg",
-    "consultations": "assets/svg/user-doctor.svg"
+    "consultations": "assets/svg/user-doctor.svg",
   };
 
   static String getIcon(String category) {

@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:sporky_maxi/components/consultation_cmp/cmp_profile_expert.dart';
-import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
+import 'package:sporky_maxi/core/services/consultation/consultation_service.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
-import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
+import 'package:sporky_maxi/models/components/consultation/consultation_product_model.dart';
+import 'package:sporky_maxi/models/api/api_parser.dart';
 
 import '../globals/bar/full_width_tab_bar.dart';
 import '../globals/dialog/dialog_content_cmp/chat_consultation.dart';
@@ -33,6 +31,7 @@ class ProfileExpert extends StatefulWidget {
 }
 
 class _ProfileExpertState extends State<ProfileExpert> {
+  static const ConsultationService _consultationService = ConsultationService();
   static const String _fallbackExperience = '';
   static const String _fallbackSpecialization = '';
   static const String _fallbackWorkingDays = '';
@@ -40,11 +39,13 @@ class _ProfileExpertState extends State<ProfileExpert> {
   static const String _fallbackPrice = '';
 
   late Future<_ExpertProfileData?> _expertProfileFuture;
+  late Future<List<ConsultationProduct>> _consultationProductsFuture;
 
   @override
   void initState() {
     super.initState();
     _expertProfileFuture = _fetchExpertProfile();
+    _consultationProductsFuture = _fetchConsultationProducts();
   }
 
   String get _profileUuid {
@@ -58,29 +59,9 @@ class _ProfileExpertState extends State<ProfileExpert> {
     if (profileUuid.isEmpty) return null;
 
     try {
-      final token = await SecureStorageService.getToken();
-      if (token == null || token.isEmpty) return null;
-
-      final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
-      final response = await http.get(
-        Uri.parse(ApiEndpoints.expertProfile(profileUuid)),
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        debugPrint(
-          '[ProfileExpert] Failed to load profile '
-          '(${response.statusCode}): ${response.body}',
-        );
-        return null;
-      }
-
-      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-      final dataNode = decoded['data'];
-      if (dataNode is! Map<String, dynamic>) return null;
+      final response = await _consultationService.getExpertProfile(profileUuid);
+      final dataNode = ApiParser.map(response['data']);
+      if (dataNode.isEmpty) return null;
 
       return _ExpertProfileData(
         name: _nonEmptyString(dataNode['name']),
@@ -94,6 +75,13 @@ class _ProfileExpertState extends State<ProfileExpert> {
       debugPrint('[ProfileExpert] Error loading profile: $e');
       return null;
     }
+  }
+
+  Future<List<ConsultationProduct>> _fetchConsultationProducts() async {
+    final profileUuid = _profileUuid;
+    if (profileUuid.isEmpty) return <ConsultationProduct>[];
+
+    return _consultationService.getExpertConsultationProducts(profileUuid);
   }
 
   String? _nonEmptyString(dynamic value) {
@@ -206,20 +194,26 @@ class _ProfileExpertState extends State<ProfileExpert> {
   }
 
   String _resolveYear(Map<String, dynamic> entry) {
-    final direct = _pickFirstNonEmpty(
-      entry,
-      const ['year', 'period', 'date', 'duration'],
-    );
+    final direct = _pickFirstNonEmpty(entry, const [
+      'year',
+      'period',
+      'date',
+      'duration',
+    ]);
     if (direct.isNotEmpty) return direct;
 
-    final start = _pickFirstNonEmpty(
-      entry,
-      const ['start_year', 'startYear', 'start_date', 'from'],
-    );
-    final end = _pickFirstNonEmpty(
-      entry,
-      const ['end_year', 'endYear', 'end_date', 'to'],
-    );
+    final start = _pickFirstNonEmpty(entry, const [
+      'start_year',
+      'startYear',
+      'start_date',
+      'from',
+    ]);
+    final end = _pickFirstNonEmpty(entry, const [
+      'end_year',
+      'endYear',
+      'end_date',
+      'to',
+    ]);
     if (start.isNotEmpty && end.isNotEmpty) return '$start - $end';
     if (start.isNotEmpty) return start;
     return end;
@@ -243,10 +237,11 @@ class _ProfileExpertState extends State<ProfileExpert> {
         leading: Row(
           children: [
             IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.arrow_back_ios)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_back_ios),
+            ),
             Text('Profil Expert', style: AppTextStyles.heading2SemiBold()),
           ],
         ),
@@ -256,77 +251,125 @@ class _ProfileExpertState extends State<ProfileExpert> {
         builder: (context, snapshot) {
           final profile = snapshot.data;
 
-          return Column(
-            children: [
-              CmpProfileExpert(
-                doctorName: profile?.name ?? widget.doctorName,
-                starCount: widget.starCount,
-                experience: profile?.experienceYears ?? _fallbackExperience,
-                specialization:
-                    profile?.specialization ?? _fallbackSpecialization,
-                workingDays: profile?.availableDays ?? _fallbackWorkingDays,
-                workingHours: profile?.availableHours ?? _fallbackWorkingHours,
-                price: _fallbackPrice,
-              ),
-              Expanded(
-                child: FullWidthTabBar(tabs: const [
-                  'Profil',
-                  'Tiket Konsultasi'
-                ], tabViews: [
-                  CmpTabProfileExpert(
-                    sections: profile?.profileSections ?? const <ProfileSection>[],
+          return FutureBuilder<List<ConsultationProduct>>(
+            future: _consultationProductsFuture,
+            builder: (context, productSnapshot) {
+              final products = productSnapshot.data ?? [];
+              final chatProduct = products
+                  .where((product) => product.type.toLowerCase() == 'chat')
+                  .toList();
+              final zoomProduct = products
+                  .where((product) => product.type.toLowerCase() == 'zoom')
+                  .toList();
+              final selectedChat = chatProduct.isNotEmpty
+                  ? chatProduct.reduce(
+                      (current, next) =>
+                          current.price <= next.price ? current : next,
+                    )
+                  : null;
+              final selectedZoom = zoomProduct.isNotEmpty
+                  ? zoomProduct.reduce(
+                      (current, next) =>
+                          current.price <= next.price ? current : next,
+                    )
+                  : null;
+
+              return Column(
+                children: [
+                  CmpProfileExpert(
+                    doctorName: profile?.name ?? widget.doctorName,
+                    starCount: widget.starCount,
+                    experience: profile?.experienceYears ?? _fallbackExperience,
+                    specialization:
+                        profile?.specialization ?? _fallbackSpecialization,
+                    workingDays: profile?.availableDays ?? _fallbackWorkingDays,
+                    workingHours:
+                        profile?.availableHours ?? _fallbackWorkingHours,
+                    price:
+                        selectedChat?.price.toStringAsFixed(0) ??
+                        selectedZoom?.price.toStringAsFixed(0) ??
+                        _fallbackPrice,
                   ),
-                  CmpTabTicketExpert(
-                    buyTicketCall: () {
-                      GlobalsBottomSheet.show(
-                        context: context,
-                        height: 350,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 13.0, vertical: 8.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ZoomConsultation(
-                                imageAsset: 'assets/temp_img/dr.palomina1.jpg',
-                                doctorName: widget.doctorName,
-                                price: 50000,
-                              )
-                            ],
-                          ),
+                  Expanded(
+                    child: FullWidthTabBar(
+                      tabs: const ['Profil', 'Tiket Konsultasi'],
+                      tabViews: [
+                        CmpTabProfileExpert(
+                          sections:
+                              profile?.profileSections ??
+                              const <ProfileSection>[],
                         ),
-                      );
-                    },
-                    buyTicketChat: () {
-                      GlobalsBottomSheet.show(
-                        context: context,
-                        height: 350,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 13.0, vertical: 8.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ChatConsultation(
-                                imageAsset: 'assets/temp_img/dr.palomina1.jpg',
-                                expertId: widget.expertId,
-                                expertUuid: widget.expertUuid,
-                                doctorName: widget.doctorName,
-                                price: 50000,
-                              )
-                            ],
-                          ),
+                        CmpTabTicketExpert(
+                          buyTicketCall: () {
+                            GlobalsBottomSheet.show(
+                              context: context,
+                              height: 350,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 13.0,
+                                  vertical: 8.0,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ZoomConsultation(
+                                      imageAsset:
+                                          'assets/temp_img/dr.palomina1.jpg',
+                                      doctorName: widget.doctorName,
+                                      price: selectedZoom?.price,
+                                      productUuid: selectedZoom?.uuid,
+                                      expertId: widget.expertId,
+                                      expertUuid: widget.expertUuid,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          buyTicketChat: () {
+                            GlobalsBottomSheet.show(
+                              context: context,
+                              height: 350,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 13.0,
+                                  vertical: 8.0,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ChatConsultation(
+                                      imageAsset:
+                                          'assets/temp_img/dr.palomina1.jpg',
+                                      expertId: widget.expertId,
+                                      expertUuid: widget.expertUuid,
+                                      doctorName: widget.doctorName,
+                                      price: selectedChat?.price,
+                                      productUuid: selectedChat?.uuid,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          callPrice: selectedZoom == null
+                              ? '-'
+                              : selectedZoom.price.toStringAsFixed(0),
+                          chatPrice: selectedChat == null
+                              ? '-'
+                              : selectedChat.price.toStringAsFixed(0),
+                          duration:
+                              selectedChat?.duration.toString() ??
+                              selectedZoom?.duration.toString() ??
+                              '-',
+                          session: '1',
                         ),
-                      );
-                    },
-                    callPrice: '100.000',
-                    chatPrice: '50.000',
-                    duration: '30',
-                    session: '1',
+                      ],
+                    ),
                   ),
-                ]),
-              ),
-            ],
+                ],
+              );
+            },
           );
         },
       ),

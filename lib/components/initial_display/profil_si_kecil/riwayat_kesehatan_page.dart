@@ -41,17 +41,64 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
   List<String> diseaseOptions = [];
   bool isLoadingDisease = false;
 
-  void handleNext() {
+  List<String> _splitData(String key) {
+    return widget.data[key]
+            ?.split(',')
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty)
+            .toList() ??
+        [];
+  }
+
+  void _syncData() {
     widget.onUpdate("riwayatPenyakitAnak", selectedDisease.join(', '));
     widget.onUpdate("alergiAnak", selectedAllergies2.join(', '));
+    widget.onUpdate("hasDiseaseHistory", hasDiseaseHistory.toString());
+    widget.onUpdate("hasAllergy", hasAllergy.toString());
+  }
+
+  void handleNext() {
+    _syncData();
     widget.onNext();
+  }
+
+  void handleBack() {
+    _syncData();
+    widget.onBack();
   }
 
   @override
   void initState() {
     super.initState();
+    selectedDisease = _splitData("riwayatPenyakitAnak");
+    selectedAllergies2 = _splitData("alergiAnak");
+    hasDiseaseHistory =
+        widget.data["hasDiseaseHistory"] == "true" ||
+        selectedDisease.isNotEmpty;
+    hasAllergy =
+        widget.data["hasAllergy"] == "true" || selectedAllergies2.isNotEmpty;
     fetchMedicalHistory();
     fetchAllergies();
+  }
+
+  void _toggleDiseaseHistory() {
+    setState(() {
+      hasDiseaseHistory = !hasDiseaseHistory;
+      if (!hasDiseaseHistory) {
+        selectedDisease = [];
+      }
+      _syncData();
+    });
+  }
+
+  void _toggleAllergy() {
+    setState(() {
+      hasAllergy = !hasAllergy;
+      if (!hasAllergy) {
+        selectedAllergies2 = [];
+      }
+      _syncData();
+    });
   }
 
   Future<void> fetchMedicalHistory() async {
@@ -66,10 +113,7 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
       final url = Uri.parse(ApiEndpoints.medicalHistory);
       final response = await http.get(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token,
-        },
+        headers: {'Content-Type': 'application/json', 'Authorization': token},
       );
 
       if (response.statusCode == 200) {
@@ -111,10 +155,7 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
       final url = Uri.parse(ApiEndpoints.allergies);
       final response = await http.get(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token,
-        },
+        headers: {'Content-Type': 'application/json', 'Authorization': token},
       );
 
       if (response.statusCode == 200) {
@@ -165,13 +206,10 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
             hasShadow: false,
             radius: 18,
             margin: EdgeInsets.symmetric(horizontal: 2),
-            onTap: () {
-              setState(() {
-                hasDiseaseHistory = !hasDiseaseHistory;
-              });
-            },
-            backgroundColor:
-                hasDiseaseHistory ? AppColors.primary3 : AppColors.base5,
+            onTap: _toggleDiseaseHistory,
+            backgroundColor: hasDiseaseHistory
+                ? AppColors.primary3
+                : AppColors.base5,
             border: Border.all(
               color: hasDiseaseHistory ? AppColors.primary2 : AppColors.base3,
             ),
@@ -186,11 +224,7 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
                         ? AppColors.primary1
                         : AppColors.base3,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      hasDiseaseHistory = !hasDiseaseHistory;
-                    });
-                  },
+                  onPressed: _toggleDiseaseHistory,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -212,6 +246,7 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
                       onChanged: (newItems) {
                         setState(() {
                           selectedDisease = newItems;
+                          _syncData();
                         });
                       },
                     ),
@@ -224,11 +259,7 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
             hasShadow: false,
             radius: 18,
             margin: EdgeInsets.symmetric(horizontal: 2),
-            onTap: () {
-              setState(() {
-                hasAllergy = !hasAllergy;
-              });
-            },
+            onTap: _toggleAllergy,
             backgroundColor: hasAllergy ? AppColors.primary3 : AppColors.base5,
             border: Border.all(
               color: hasAllergy ? AppColors.primary2 : AppColors.base3,
@@ -242,11 +273,7 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
                         : Icons.radio_button_unchecked,
                     color: hasAllergy ? AppColors.primary1 : AppColors.base3,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      hasAllergy = !hasAllergy;
-                    });
-                  },
+                  onPressed: _toggleAllergy,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -269,6 +296,7 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
                       onChanged: (newItems) {
                         setState(() {
                           selectedAllergies2 = newItems;
+                          _syncData();
                         });
                       },
                     ),
@@ -278,16 +306,19 @@ class _RiwayatKesehatanPageState extends State<RiwayatKesehatanPage> {
           Row(
             children: [
               Expanded(
-                  child: GlobalsButtonTransparent(
-                      text: "Sebelumnya", onPressed: widget.onBack)),
+                child: GlobalsButtonTransparent(
+                  text: "Sebelumnya",
+                  onPressed: handleBack,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                child:
-                    GlobalsButton(text: "Selanjutnya", onPressed: handleNext),
+                child: GlobalsButton(
+                  text: "Selanjutnya",
+                  onPressed: handleNext,
+                ),
               ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height / 8,
-              )
+              SizedBox(height: MediaQuery.of(context).size.height / 8),
             ],
           ),
         ],

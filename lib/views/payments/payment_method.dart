@@ -4,7 +4,9 @@ import 'package:sporky_maxi/components/payments/cmp_payment_method.dart';
 import '../../components/globals/text/text_style.dart';
 
 class PaymentMethod extends StatelessWidget {
-  const PaymentMethod({super.key});
+  final PaymentMethodOption? initialSelection;
+
+  const PaymentMethod({super.key, this.initialSelection});
 
   @override
   Widget build(BuildContext context) {
@@ -16,19 +18,20 @@ class PaymentMethod extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back_ios)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
               Text(
                 'Metode Pembayaran',
                 style: AppTextStyles.heading1SemiBold(),
-              )
+              ),
             ],
           ),
         ),
       ),
-      body: const CmpPaymentMethod(),
+      body: CmpPaymentMethod(initialSelection: initialSelection),
     );
   }
 }

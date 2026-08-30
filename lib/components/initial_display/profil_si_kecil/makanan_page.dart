@@ -41,14 +41,34 @@ class _MakananPageState extends State<MakananPage> {
   @override
   void initState() {
     super.initState();
+    selectedFavorit = _splitData("makananFavorit");
+    selectedDihindari = _splitData("makananDihindari");
     fetchFavoriteFoods();
     fetchAvoidedFoods();
   }
 
-  void handleNext() {
+  List<String> _splitData(String key) {
+    return widget.data[key]
+            ?.split(',')
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty)
+            .toList() ??
+        [];
+  }
+
+  void _syncData() {
     widget.onUpdate("makananFavorit", selectedFavorit.join(', '));
     widget.onUpdate("makananDihindari", selectedDihindari.join(', '));
+  }
+
+  void handleNext() {
+    _syncData();
     widget.onNext();
+  }
+
+  void handleBack() {
+    _syncData();
+    widget.onBack();
   }
 
   Future<void> fetchFavoriteFoods() async {
@@ -58,10 +78,10 @@ class _MakananPageState extends State<MakananPage> {
       if (token == null) return;
 
       final url = Uri.parse(ApiEndpoints.favoriteFoods);
-      final response = await http.get(url, headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token,
-      });
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'Authorization': token},
+      );
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
@@ -89,10 +109,10 @@ class _MakananPageState extends State<MakananPage> {
       if (token == null) return;
 
       final url = Uri.parse(ApiEndpoints.avoidedFoods);
-      final response = await http.get(url, headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token,
-      });
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json', 'Authorization': token},
+      );
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
@@ -140,7 +160,10 @@ class _MakananPageState extends State<MakananPage> {
                   options: favoriteFoodOptions,
                   selectedItems: selectedFavorit,
                   onChanged: (newItems) {
-                    setState(() => selectedFavorit = newItems);
+                    setState(() {
+                      selectedFavorit = newItems;
+                      _syncData();
+                    });
                   },
                 ),
           const SizedBox(height: 16),
@@ -152,19 +175,27 @@ class _MakananPageState extends State<MakananPage> {
                   options: avoidedFoodOptions,
                   selectedItems: selectedDihindari,
                   onChanged: (newItems) {
-                    setState(() => selectedDihindari = newItems);
+                    setState(() {
+                      selectedDihindari = newItems;
+                      _syncData();
+                    });
                   },
                 ),
           const Spacer(),
           Row(
             children: [
               Expanded(
-                  child: GlobalsButtonTransparent(
-                      text: "Sebelumnya", onPressed: widget.onBack)),
+                child: GlobalsButtonTransparent(
+                  text: "Sebelumnya",
+                  onPressed: handleBack,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                child:
-                    GlobalsButton(text: "Selanjutnya", onPressed: handleNext),
+                child: GlobalsButton(
+                  text: "Selanjutnya",
+                  onPressed: handleNext,
+                ),
               ),
             ],
           ),

@@ -52,14 +52,8 @@ class CmpListFinish extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> infoItems = [
-      {
-        'icon': 'assets/svg/ic_ calendar - schedule.svg',
-        'text': workingDays,
-      },
-      {
-        'icon': 'assets/svg/ic_clock.svg',
-        'text': workingHours,
-      },
+      {'icon': 'assets/svg/ic_ calendar - schedule.svg', 'text': workingDays},
+      {'icon': 'assets/svg/ic_clock.svg', 'text': workingHours},
       {
         'icon': 'assets/svg/ic_ calendar - schedule.svg',
         'text': 'Berlaku Hingga: $expire',
@@ -108,8 +102,9 @@ class CmpListFinish extends StatelessWidget {
                     bottom: 3,
                     child: GlobalsCard(
                       height: 16,
-                      backgroundColor:
-                          isAvailable ? AppColors.success1 : AppColors.warn1,
+                      backgroundColor: isAvailable
+                          ? AppColors.success1
+                          : AppColors.warn1,
                       child: Row(
                         children: [
                           const SizedBox(width: 5),
@@ -119,7 +114,9 @@ class CmpListFinish extends StatelessWidget {
                               height: 8,
                               width: 8,
                               colorFilter: const ColorFilter.mode(
-                                  AppColors.base5, BlendMode.srcIn),
+                                AppColors.base5,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           if (effectiveShowChat && effectiveShowVideoCall)
                             const SizedBox(width: 2),
@@ -129,7 +126,9 @@ class CmpListFinish extends StatelessWidget {
                               height: 8,
                               width: 8,
                               colorFilter: const ColorFilter.mode(
-                                  AppColors.base5, BlendMode.srcIn),
+                                AppColors.base5,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           if ((effectiveShowChat || effectiveShowVideoCall))
                             const SizedBox(width: 2),
@@ -158,13 +157,15 @@ class CmpListFinish extends StatelessWidget {
                             borderColor: AppColors.secondary1,
                             height: 16,
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
                               child: Center(
                                 child: Text(
                                   ticketType!,
                                   style: AppTextStyles.list3SemiBold(
-                                      AppColors.secondary1),
+                                    AppColors.secondary1,
+                                  ),
                                 ),
                               ),
                             ),
@@ -174,13 +175,15 @@ class CmpListFinish extends StatelessWidget {
                             height: 16,
                             borderColor: _getRoleColor(),
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
                               child: Center(
                                 child: Text(
                                   role,
                                   style: AppTextStyles.list3SemiBold(
-                                      _getRoleColor()),
+                                    _getRoleColor(),
+                                  ),
                                 ),
                               ),
                             ),
@@ -204,11 +207,14 @@ class CmpListFinish extends StatelessWidget {
                                 children: [
                                   const SizedBox(width: 4),
                                   SvgPicture.asset(
-                                      height: 9,
-                                      width: 9,
-                                      colorFilter: const ColorFilter.mode(
-                                          AppColors.base1, BlendMode.srcIn),
-                                      item['icon']!),
+                                    height: 9,
+                                    width: 9,
+                                    colorFilter: const ColorFilter.mode(
+                                      AppColors.base1,
+                                      BlendMode.srcIn,
+                                    ),
+                                    item['icon']!,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     item['text']!,
@@ -228,17 +234,24 @@ class CmpListFinish extends StatelessWidget {
                           color: AppColors.secondary1,
                           height: 26,
                           width: MediaQuery.of(context).size.width / 1.5,
-                          onPressed: () {},
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Pembelian ulang belum tersedia'),
+                              ),
+                            );
+                          },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SvgPicture.asset(
-                                  'assets/svg/ic_coupon - ticket.svg'),
+                                'assets/svg/ic_coupon - ticket.svg',
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 'Beli Lagi',
                                 style: AppTextStyles.list1Bold(AppColors.base5),
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -246,7 +259,7 @@ class CmpListFinish extends StatelessWidget {
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -254,7 +267,7 @@ class CmpListFinish extends StatelessWidget {
             height: 2,
             width: MediaQuery.of(context).size.width / 1.05,
             color: AppColors.base3,
-          )
+          ),
         ],
       ),
     );

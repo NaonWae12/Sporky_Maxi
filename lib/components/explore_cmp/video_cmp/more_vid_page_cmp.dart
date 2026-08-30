@@ -17,10 +17,7 @@ import '../../globals/filter/filter_content_button.dart';
 class MoreVidPageCmp extends StatefulWidget {
   final String searchQuery;
 
-  const MoreVidPageCmp({
-    super.key,
-    this.searchQuery = '',
-  });
+  const MoreVidPageCmp({super.key, this.searchQuery = ''});
 
   @override
   State<MoreVidPageCmp> createState() => _MoreVidPageCmpState();
@@ -32,7 +29,7 @@ class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
 
   // Topics dari API: index 0 selalu 'Semua'
   List<Map<String, dynamic>> _topics = [
-    {'id': null, 'name': 'Semua'}
+    {'id': null, 'name': 'Semua'},
   ];
   bool _topicsLoading = true;
 
@@ -47,8 +44,9 @@ class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
       final token = await SecureStorageService.getToken();
       final headers = <String, String>{'Accept': 'application/json'};
       if (token != null && token.isNotEmpty) {
-        headers['Authorization'] =
-            token.startsWith('Bearer ') ? token : 'Bearer $token';
+        headers['Authorization'] = token.startsWith('Bearer ')
+            ? token
+            : 'Bearer $token';
       }
 
       final response = await http.get(
@@ -64,10 +62,12 @@ class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
         if (dataNode is List) {
           final fetchedTopics = dataNode
               .whereType<Map<String, dynamic>>()
-              .map((t) => {
-                    'id': t['id'] as int?,
-                    'name': t['name']?.toString() ?? '',
-                  })
+              .map(
+                (t) => {
+                  'id': t['id'] as int?,
+                  'name': t['name']?.toString() ?? '',
+                },
+              )
               .where((t) => (t['name'] as String).isNotEmpty)
               .toList();
 
@@ -149,12 +149,18 @@ class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(filter,
-                                          style: AppTextStyles.list1Regular(
-                                              AppColors.base5)),
+                                      Text(
+                                        filter,
+                                        style: AppTextStyles.list1Regular(
+                                          AppColors.base5,
+                                        ),
+                                      ),
                                       IconButton(
-                                        icon: const Icon(Icons.close,
-                                            size: 15, color: AppColors.base5),
+                                        icon: const Icon(
+                                          Icons.close,
+                                          size: 15,
+                                          color: AppColors.base5,
+                                        ),
                                         padding: EdgeInsets.zero,
                                         constraints: const BoxConstraints(),
                                         onPressed: () {
@@ -197,7 +203,9 @@ class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
 }
 
 class MyWidget extends StatefulWidget {
-  const MyWidget({super.key});
+  final String? initialSearchQuery;
+
+  const MyWidget({super.key, this.initialSearchQuery});
 
   @override
   State<MyWidget> createState() => _MyWidgetState();
@@ -206,6 +214,13 @@ class MyWidget extends StatefulWidget {
 class _MyWidgetState extends State<MyWidget> {
   TextEditingController searchController = TextEditingController();
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchQuery = widget.initialSearchQuery ?? '';
+    searchController.text = _searchQuery;
+  }
 
   @override
   void dispose() {
@@ -230,7 +245,9 @@ class _MyWidgetState extends State<MyWidget> {
           },
           onHeartPressed: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (_) => const VideoFav()));
+              context,
+              MaterialPageRoute(builder: (_) => const VideoFav()),
+            );
           },
         ),
       ),

@@ -32,8 +32,10 @@ class ReactiveGlobalsDropdown<T> extends StatefulWidget {
     this.hasShadow = false,
     this.margin,
     this.padding,
-    this.contentPadding =
-        const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    this.contentPadding = const EdgeInsets.symmetric(
+      horizontal: 20,
+      vertical: 16,
+    ),
     this.radius = 18,
     this.labelStyle,
     this.labelColor = Colors.grey,
@@ -85,14 +87,15 @@ class _ReactiveGlobalsDropdownState<T>
       ),
       child: DropdownButtonFormField<T>(
         focusNode: _focusNode,
-        value: widget.value,
+        initialValue: widget.value,
         items: widget.items,
         icon: const Icon(Icons.keyboard_arrow_down_rounded),
         onChanged: widget.onChanged,
         style: AppTextStyles.heading3Medium(),
         decoration: InputDecoration(
           labelText: widget.label,
-          labelStyle: widget.labelStyle ??
+          labelStyle:
+              widget.labelStyle ??
               AppTextStyles.heading3Medium(widget.labelColor),
           filled: true,
           fillColor: widget.fillColor,
@@ -102,14 +105,18 @@ class _ReactiveGlobalsDropdownState<T>
               ? OutlineInputBorder(
                   borderRadius:
                       widget.borderRadius ?? BorderRadius.circular(19.5),
-                  borderSide:
-                      BorderSide(color: widget.enableBorderColor, width: 1.5),
+                  borderSide: BorderSide(
+                    color: widget.enableBorderColor,
+                    width: 1.5,
+                  ),
                 )
               : OutlineInputBorder(
                   borderRadius:
                       widget.borderRadius ?? BorderRadius.circular(19.5),
-                  borderSide:
-                      const BorderSide(color: AppColors.base3, width: 1.2),
+                  borderSide: const BorderSide(
+                    color: AppColors.base3,
+                    width: 1.2,
+                  ),
                 ),
           focusedBorder: OutlineInputBorder(
             borderRadius: widget.borderRadius ?? BorderRadius.circular(19.5),

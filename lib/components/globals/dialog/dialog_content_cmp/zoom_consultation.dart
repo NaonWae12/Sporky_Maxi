@@ -4,7 +4,7 @@ import 'package:sporky_maxi/components/globals/button/globals_button.dart';
 import 'package:sporky_maxi/components/globals/card/globals_card_outlined.dart';
 import 'package:sporky_maxi/components/globals/form/globals_form.dart';
 
-import '../../../../views/payments/payment_page.dart';
+import '../../../../views/payments/payment_ticket_page.dart';
 import '../../card/globals_card.dart';
 import '../../colors/colors.dart';
 import '../../text/text_style.dart';
@@ -13,12 +13,21 @@ class ZoomConsultation extends StatefulWidget {
   final String? imageAsset;
   final double? price;
   final String? doctorName;
+  final String? productUuid;
+  final String? expertId;
+  final String? expertUuid;
+  final DateTime? consultationDate;
 
-  const ZoomConsultation(
-      {this.imageAsset,
-      this.price,
-      this.doctorName = "dr. Natasha, Sp.GK",
-      super.key});
+  const ZoomConsultation({
+    this.imageAsset,
+    this.price,
+    this.doctorName = "dr. Natasha, Sp.GK",
+    this.productUuid,
+    this.expertId,
+    this.expertUuid,
+    this.consultationDate,
+    super.key,
+  });
 
   @override
   State<ZoomConsultation> createState() => _ZoomConsultationState();
@@ -26,6 +35,7 @@ class ZoomConsultation extends StatefulWidget {
 
 class _ZoomConsultationState extends State<ZoomConsultation> {
   final TextEditingController controller = TextEditingController(text: "0");
+  DateTime? _selectedDateTime;
 
   int get currentValue => int.tryParse(controller.text) ?? 0;
 
@@ -41,6 +51,36 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
         controller.text = (currentValue - 1).toString();
       });
     }
+  }
+
+  Future<void> _selectDateTime() async {
+    final now = DateTime.now();
+    final initialDateTime =
+        _selectedDateTime ?? now.add(const Duration(hours: 1));
+
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initialDateTime,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDateTime),
+    );
+    if (time == null || !mounted) return;
+
+    setState(() {
+      _selectedDateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+    });
   }
 
   @override
@@ -85,7 +125,9 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
                           height: 18,
                           width: 18,
                           colorFilter: const ColorFilter.mode(
-                              AppColors.base5, BlendMode.srcIn),
+                            AppColors.base5,
+                            BlendMode.srcIn,
+                          ),
                         ),
                         const SizedBox(width: 2),
                       ],
@@ -102,60 +144,73 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
                   text: 'Ticket Video Call',
                   textStyle: AppTextStyles.list1SemiBold(AppColors.base1),
                 ),
-                Text('${widget.doctorName}',
-                    style: AppTextStyles.heading1SemiBold(AppColors.base1)),
+                Text(
+                  '${widget.doctorName}',
+                  style: AppTextStyles.heading1SemiBold(AppColors.base1),
+                ),
                 GlobalsCard(
-                    margin: const EdgeInsets.all(0),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    radius: 6,
-                    backgroundColor: AppColors.base4,
-                    hasShadow: false,
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/svg/ic_coupon - ticket.svg',
-                          height: 18,
-                          width: 18,
-                          colorFilter: const ColorFilter.mode(
-                              AppColors.base1, BlendMode.srcIn),
+                  margin: const EdgeInsets.all(0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  radius: 6,
+                  backgroundColor: AppColors.base4,
+                  hasShadow: false,
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/svg/ic_coupon - ticket.svg',
+                        height: 18,
+                        width: 18,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.base1,
+                          BlendMode.srcIn,
                         ),
-                        Text('Rp. ${widget.price?.toStringAsFixed(0) ?? "0"}',
-                            style: AppTextStyles.list1SemiBold(AppColors.base1))
-                      ],
-                    ))
+                      ),
+                      Text(
+                        'Rp. ${widget.price?.toStringAsFixed(0) ?? "0"}',
+                        style: AppTextStyles.list1SemiBold(AppColors.base1),
+                      ),
+                    ],
+                  ),
+                ),
               ],
-            )
+            ),
           ],
         ),
-        Divider(
-          color: AppColors.base3,
-          height: 32,
-        ),
+        Divider(color: AppColors.base3, height: 32),
         GlobalsCard(
-            margin: const EdgeInsets.all(8.0),
-            hasShadow: false,
-            backgroundColor: AppColors.base4,
-            radius: 10,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GlobalsCard(
-                    padding: const EdgeInsets.all(8.0),
-                    backgroundColor: AppColors.base5,
-                    radius: 10,
-                    hasShadow: false,
-                    child: Row(
-                      children: [
-                        SvgPicture.asset('assets/svg/ic_coupon - ticket.svg',
-                            colorFilter: const ColorFilter.mode(
-                                AppColors.base1, BlendMode.srcIn)),
-                        Text('Jumlah :',
-                            style:
-                                AppTextStyles.list1SemiBold(AppColors.base1)),
-                      ],
-                    )),
-                Stack(children: [
+          margin: const EdgeInsets.all(8.0),
+          hasShadow: false,
+          backgroundColor: AppColors.base4,
+          radius: 10,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GlobalsCard(
+                padding: const EdgeInsets.all(8.0),
+                backgroundColor: AppColors.base5,
+                radius: 10,
+                hasShadow: false,
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      'assets/svg/ic_coupon - ticket.svg',
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.base1,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    Text(
+                      'Jumlah :',
+                      style: AppTextStyles.list1SemiBold(AppColors.base1),
+                    ),
+                  ],
+                ),
+              ),
+              Stack(
+                children: [
                   GlobalsCard(
                     width: 110,
                     height: 38,
@@ -174,9 +229,12 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
                           controller: controller,
                           label: '0',
                           keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
+                            decimal: true,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                         ),
                       ),
                     ),
@@ -184,37 +242,86 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
                   Positioned(
                     left: 0,
                     child: GlobalsCard(
-                        onTap: decrement,
-                        radius: 8,
-                        hasShadow: false,
-                        backgroundColor: AppColors.secondary1,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0, vertical: 10.0),
-                        child: Text('—',
-                            style: AppTextStyles.list1Bold(AppColors.base5))),
+                      onTap: decrement,
+                      radius: 8,
+                      hasShadow: false,
+                      backgroundColor: AppColors.secondary1,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14.0,
+                        vertical: 10.0,
+                      ),
+                      child: Text(
+                        '—',
+                        style: AppTextStyles.list1Bold(AppColors.base5),
+                      ),
+                    ),
                   ),
                   Positioned(
                     right: 0,
                     child: GlobalsCard(
-                        onTap: increment,
-                        radius: 8,
-                        hasShadow: false,
-                        backgroundColor: AppColors.secondary1,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0, vertical: 10.0),
-                        child: Text('+',
-                            style: AppTextStyles.list1Bold(AppColors.base5))),
+                      onTap: increment,
+                      radius: 8,
+                      hasShadow: false,
+                      backgroundColor: AppColors.secondary1,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14.0,
+                        vertical: 10.0,
+                      ),
+                      child: Text(
+                        '+',
+                        style: AppTextStyles.list1Bold(AppColors.base5),
+                      ),
+                    ),
                   ),
-                ])
+                ],
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+          child: GlobalsCard(
+            hasShadow: false,
+            backgroundColor: AppColors.base4,
+            padding: const EdgeInsets.all(12),
+            onTap: _selectDateTime,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedDateTime == null
+                        ? 'Pilih jadwal konsultasi'
+                        : '${_selectedDateTime!.day}/${_selectedDateTime!.month}/${_selectedDateTime!.year} '
+                              '${_selectedDateTime!.hour.toString().padLeft(2, '0')}:${_selectedDateTime!.minute.toString().padLeft(2, '0')}',
+                    style: AppTextStyles.list1Regular(AppColors.base1),
+                  ),
+                ),
+                const Icon(Icons.calendar_month),
               ],
-            )),
+            ),
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 16.0),
           child: GlobalsButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const PaymentPage()));
-            },
+            onPressed: _selectedDateTime == null
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PaymentTicketPage(
+                          expertId: widget.expertId,
+                          expertUuid: widget.expertUuid,
+                          doctorName: widget.doctorName,
+                          price: widget.price,
+                          productUuid: widget.productUuid,
+                          consultationDate: _selectedDateTime,
+                        ),
+                      ),
+                    );
+                  },
             color: AppColors.secondary1,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -224,7 +331,7 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
                 Text(
                   'Beli Tiket Konsultasi',
                   style: AppTextStyles.headList1Bold(AppColors.base5),
-                )
+                ),
               ],
             ),
           ),

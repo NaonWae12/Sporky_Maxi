@@ -38,41 +38,57 @@ class _MorePageConsultationState extends State<MorePageConsultation> {
                 child: Row(
                   children: [
                     IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MainPageTicketCst(),
-                              ));
-                        },
-                        icon: SvgPicture.asset(
-                            'assets/svg/ic_coupon - ticket.svg',
-                            height: 26,
-                            width: 26,
-                            colorFilter: const ColorFilter.mode(
-                                AppColors.primary1, BlendMode.srcIn))),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MainPageTicketCst(),
+                          ),
+                        );
+                      },
+                      icon: SvgPicture.asset(
+                        'assets/svg/ic_coupon - ticket.svg',
+                        height: 26,
+                        width: 26,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary1,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                     IconButton(
-                        onPressed: () {},
-                        icon: SvgPicture.asset(
-                            'assets/svg/ic_ calendar - schedule.svg',
-                            height: 24,
-                            width: 24,
-                            colorFilter: const ColorFilter.mode(
-                                AppColors.base1, BlendMode.srcIn))),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MainPageTicketCst(),
+                          ),
+                        );
+                      },
+                      icon: SvgPicture.asset(
+                        'assets/svg/ic_ calendar - schedule.svg',
+                        height: 24,
+                        width: 24,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.base1,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
             Expanded(
-                child: FullWidthTabBar(tabs: const [
-              'Semua',
-              'Dokter',
-              'Ahli Gizi'
-            ], tabViews: const [
-              AllConsultation(),
-              Center(child: Text('Dokter')),
-              Center(child: Text('Ahli Gizi')),
-            ]))
+              child: FullWidthTabBar(
+                tabs: const ['Semua', 'Dokter', 'Ahli Gizi'],
+                tabViews: const [
+                  AllConsultation(),
+                  Center(child: Text('Belum ada dokter')),
+                  Center(child: Text('Belum ada ahli gizi')),
+                ],
+              ),
+            ),
           ],
         ),
       ),

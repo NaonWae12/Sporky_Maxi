@@ -10,12 +10,16 @@ class CardNotificationCmp extends StatelessWidget {
   final String desc;
   final String category;
   final Color? iconColor;
+  final String timeLabel;
+  final bool isRead;
   const CardNotificationCmp({
     super.key,
     required this.title,
     required this.desc,
     required this.category,
     this.iconColor,
+    this.timeLabel = '11.35 WIB',
+    this.isRead = true,
   });
 
   @override
@@ -32,18 +36,37 @@ class CardNotificationCmp extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: SvgPicture.asset(
-                      NotificationIconMapper.getIcon(category),
-                      width: 36,
-                      colorFilter: iconColor != null
-                          ? ColorFilter.mode(iconColor!, BlendMode.srcIn)
-                          : null,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        SvgPicture.asset(
+                          NotificationIconMapper.getIcon(category),
+                          width: 36,
+                          colorFilter: iconColor != null
+                              ? ColorFilter.mode(iconColor!, BlendMode.srcIn)
+                              : null,
+                        ),
+                        if (!isRead)
+                          const Positioned(
+                            right: -2,
+                            top: -2,
+                            child: CircleAvatar(
+                              radius: 4,
+                              backgroundColor: AppColors.secondary1,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppTextStyles.list1Bold()),
+                      Text(
+                        title,
+                        style: isRead
+                            ? AppTextStyles.list1Regular()
+                            : AppTextStyles.list1Bold(),
+                      ),
                       SizedBox(
                         width: MediaQuery.of(context).size.width / 1.5,
                         child: Text(
@@ -52,16 +75,18 @@ class CardNotificationCmp extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      )
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 5.0),
-                child: Text('11.35 WIB',
-                    style: AppTextStyles.list3SemiBold(AppColors.base3)),
-              )
+                child: Text(
+                  timeLabel,
+                  style: AppTextStyles.list3SemiBold(AppColors.base3),
+                ),
+              ),
             ],
           ),
         ),
@@ -69,7 +94,7 @@ class CardNotificationCmp extends StatelessWidget {
           color: AppColors.base3,
           height: 1,
           width: MediaQuery.of(context).size.width / 1.05,
-        )
+        ),
       ],
     );
   }

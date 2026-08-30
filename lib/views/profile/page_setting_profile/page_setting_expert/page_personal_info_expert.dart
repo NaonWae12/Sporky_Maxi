@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:sporky_maxi/components/globals/button/globals_button.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
-// import '../../../child_profile/biodata_in_expert.dart';
-import '../../../../components/expert_components/profile/child_data_cmp/biodata_cmp.dart';
-import '../../../../core/services/expert/expert_service.dart';
+import 'package:sporky_maxi/components/expert_components/profile/child_data_cmp/biodata_cmp.dart';
+import 'package:sporky_maxi/core/services/profile/profile_service.dart';
+import 'package:sporky_maxi/models/components/profile/profile_models.dart';
 
 class PagePersonalInfoExpert extends StatefulWidget {
   const PagePersonalInfoExpert({super.key});
@@ -14,21 +14,19 @@ class PagePersonalInfoExpert extends StatefulWidget {
 }
 
 class _PagePersonalInfoExpertState extends State<PagePersonalInfoExpert> {
+  static const ProfileService _profileService = ProfileService();
+
   bool _isEditing = false;
   bool _isLoading = true;
+  bool _isSaving = false;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _placeOfBirthController =
-      TextEditingController(text: 'Kota Bandung [Hdd]');
-  final TextEditingController _dobController =
-      TextEditingController(text: '14/06/1998 [Hdd]');
-  final TextEditingController _genderController =
-      TextEditingController(text: 'Laki - Laki [Hardcoded]');
-  final TextEditingController _expertiseController =
-      TextEditingController(text: 'Ahli Gizi [Hardcoded]');
-  final TextEditingController _educationController =
-      TextEditingController(text: 'Spesialis Gizi [Hardcoded]');
+  final TextEditingController _specializationController =
+      TextEditingController();
+  final TextEditingController _educationController = TextEditingController();
+
+  ExpertProfile? _profile;
 
   @override
   void initState() {
@@ -36,34 +34,98 @@ class _PagePersonalInfoExpertState extends State<PagePersonalInfoExpert> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
-    debugPrint('[PagePersonalInfoExpert] Memulai pengambilan data...');
-    try {
-      final expertData = await ExpertService().getProfileMe();
-      debugPrint('[PagePersonalInfoExpert] Data berhasil didapat: $expertData');
-      setState(() {
-        _nameController.text = expertData['name'] ?? '';
-        _phoneController.text = expertData['phone_number'] ?? '';
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('[PagePersonalInfoExpert] Gagal memuat data: $e');
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _placeOfBirthController.dispose();
-    _dobController.dispose();
-    _genderController.dispose();
-    _expertiseController.dispose();
+    _specializationController.dispose();
     _educationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final profile = await _profileService.getExpertAccountProfile();
+      if (!mounted) return;
+
+      setState(() {
+        _profile = profile;
+        _nameController.text = profile.name;
+        _phoneController.text = profile.phoneNumber;
+        _specializationController.text = profile.specialization;
+        _educationController.text = profile.education;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      _showMessage('Gagal memuat profil: $error');
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    if (_isSaving) return;
+
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    if (name.isEmpty) {
+      _showMessage('Nama lengkap wajib diisi');
+      return;
+    }
+    if (phone.isEmpty) {
+      _showMessage('Nomor HP/WhatsApp wajib diisi');
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      await _profileService.updateExpertProfile(
+        specialization: _specializationController.text,
+        experienceYears: _profile?.experienceYears,
+        availableDays: _profile?.availableDays,
+        availableTimeStart: _profile?.availableTimeStart,
+        availableTimeEnd: _profile?.availableTimeEnd,
+      );
+      final profile = await _profileService.updateExpertAccountProfile(
+        name: name,
+        phoneNumber: phone,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _profile = profile;
+        _nameController.text = profile.name;
+        _phoneController.text = profile.phoneNumber;
+        _specializationController.text = profile.specialization;
+        _educationController.text = profile.education;
+        _isEditing = false;
+      });
+      _showMessage('Profil expert berhasil disimpan');
+    } catch (error) {
+      _showMessage('Gagal menyimpan profil: $error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -85,34 +147,26 @@ class _PagePersonalInfoExpertState extends State<PagePersonalInfoExpert> {
               padding: const EdgeInsets.only(bottom: 32),
               child: Column(
                 children: [
-                  _buildField('Nama Lengkap*', _nameController,
-                      isEditable: _isEditing),
-                  _buildField('No. Hp / WhatsApp*', _phoneController,
-                      isEditable: _isEditing),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildField(
-                            'Tempat Lahir*', _placeOfBirthController,
-                            isEditable: _isEditing,
-                            margin: const EdgeInsets.only(
-                                left: 16, top: 8, right: 8, bottom: 8)),
-                      ),
-                      Expanded(
-                        child: _buildField('Tanggal Lahir*', _dobController,
-                            isEditable: _isEditing,
-                            showIcon: true,
-                            margin: const EdgeInsets.only(
-                                left: 8, top: 8, right: 16, bottom: 8)),
-                      ),
-                    ],
+                  _buildField(
+                    'Nama Lengkap*',
+                    _nameController,
+                    isEditable: _isEditing,
                   ),
-                  _buildField('Jenis Kelamin*', _genderController,
-                      isEditable: _isEditing),
-                  _buildField('Bidang Keahlian*', _expertiseController,
-                      isEditable: _isEditing),
-                  _buildField('Pendidikan Terakhir*', _educationController,
-                      isEditable: _isEditing),
+                  _buildField(
+                    'No. Hp / WhatsApp*',
+                    _phoneController,
+                    isEditable: _isEditing,
+                  ),
+                  _buildField(
+                    'Bidang Keahlian*',
+                    _specializationController,
+                    isEditable: _isEditing,
+                  ),
+                  _buildField(
+                    'Pendidikan Terakhir*',
+                    _educationController,
+                    isEditable: _isEditing,
+                  ),
                 ],
               ),
             ),
@@ -121,29 +175,41 @@ class _PagePersonalInfoExpertState extends State<PagePersonalInfoExpert> {
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: GlobalsButton(
-                text: _isEditing ? 'Simpan Data' : 'Edit Data',
+                text: _isEditing
+                    ? (_isSaving ? 'Menyimpan...' : 'Simpan Data')
+                    : 'Edit Data',
                 color: _isEditing ? AppColors.primary1 : AppColors.secondary1,
                 textColor: AppColors.base5,
-                onPressed: () {
-                  setState(() {
-                    _isEditing = !_isEditing;
-                  });
-                },
+                onPressed: _isSaving
+                    ? null
+                    : () {
+                        if (_isEditing) {
+                          _saveProfile();
+                        } else {
+                          setState(() {
+                            _isEditing = true;
+                          });
+                        }
+                      },
               ),
             ),
     );
   }
 
-  Widget _buildField(String title, TextEditingController controller,
-      {bool isEditable = false,
-      bool showIcon = false,
-      EdgeInsetsGeometry? margin}) {
+  Widget _buildField(
+    String title,
+    TextEditingController controller, {
+    bool isEditable = false,
+    bool showIcon = false,
+    EdgeInsetsGeometry? margin,
+  }) {
     if (!isEditable) {
       return CardComponents1(
         title: title,
         desc: controller.text,
         showIcon: showIcon,
-        margin: margin ??
+        margin:
+            margin ??
             const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       );
     }
@@ -159,10 +225,7 @@ class _PagePersonalInfoExpertState extends State<PagePersonalInfoExpert> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: AppTextStyles.list3SemiBold(AppColors.base2),
-          ),
+          Text(title, style: AppTextStyles.list3SemiBold(AppColors.base2)),
           Row(
             children: [
               Expanded(

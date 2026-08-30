@@ -25,8 +25,9 @@ class _MealEntry {
 
 class AllContentPage extends StatefulWidget {
   final String searchQuery;
+  final String? category;
 
-  const AllContentPage({super.key, this.searchQuery = ''});
+  const AllContentPage({super.key, this.searchQuery = '', this.category});
 
   @override
   State<AllContentPage> createState() => _AllContentPageState();
@@ -50,9 +51,11 @@ class _AllContentPageState extends State<AllContentPage> {
   String _formatTypeLabel(String rawType) {
     return rawType
         .split('_')
-        .map((word) => word.isNotEmpty
-            ? '${word[0].toUpperCase()}${word.substring(1)}'
-            : '')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1)}'
+              : '',
+        )
         .join(' ');
   }
 
@@ -65,10 +68,7 @@ class _AllContentPageState extends State<AllContentPage> {
       final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
       final response = await http.get(
         Uri.parse(ApiEndpoints.mealPlanIngredients),
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
@@ -81,7 +81,8 @@ class _AllContentPageState extends State<AllContentPage> {
 
           for (final apiCat in apiCats) {
             if (apiCat is! Map<String, dynamic>) continue;
-            final label = apiCat['category_label']?.toString() ??
+            final label =
+                apiCat['category_label']?.toString() ??
                 apiCat['category']?.toString() ??
                 '';
             final ingredientsList = apiCat['ingredients'];
@@ -94,10 +95,7 @@ class _AllContentPageState extends State<AllContentPage> {
               }
             }
             if (label.isNotEmpty && itemNames.isNotEmpty) {
-              mapped.add({
-                'title': label,
-                'items': itemNames,
-              });
+              mapped.add({'title': label, 'items': itemNames});
             }
           }
 
@@ -106,7 +104,8 @@ class _AllContentPageState extends State<AllContentPage> {
             return sum + (items is List ? items.length : 0);
           });
           debugPrint(
-              '[AllContentPage] Filter categories fetched: ${mapped.length} categories, total ingredients: $totalIngredients');
+            '[AllContentPage] Filter categories fetched: ${mapped.length} categories, total ingredients: $totalIngredients',
+          );
 
           if (mounted) {
             setState(() {
@@ -132,19 +131,19 @@ class _AllContentPageState extends State<AllContentPage> {
 
       // Build URI dengan query parameter untuk filter ingredients
       final uri = Uri.parse(ApiEndpoints.mealPlan);
-      final finalUri = uri.replace(queryParameters: {
-        ...uri.queryParameters,
-        'per_page': '9999',
-        if (_selectedFiltersFromBottomSheet.isNotEmpty)
-          'ingredient[]': _selectedFiltersFromBottomSheet,
-      });
+      final finalUri = uri.replace(
+        queryParameters: {
+          ...uri.queryParameters,
+          'per_page': '9999',
+          if (widget.category != null) 'category': widget.category!,
+          if (_selectedFiltersFromBottomSheet.isNotEmpty)
+            'ingredient[]': _selectedFiltersFromBottomSheet,
+        },
+      );
 
       final response = await http.get(
         finalUri,
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
@@ -171,20 +170,21 @@ class _AllContentPageState extends State<AllContentPage> {
             entries.add(_MealEntry(meal: meal, displayType: 'Menu'));
           } else {
             for (final rawType in meal.type) {
-              entries.add(_MealEntry(
-                meal: meal,
-                displayType: _formatTypeLabel(rawType),
-              ));
+              entries.add(
+                _MealEntry(meal: meal, displayType: _formatTypeLabel(rawType)),
+              );
             }
           }
         }
 
         debugPrint(
-            '[AllContentPage] parsed: ${parsed.length} meal plans → ${entries.length} entries (setelah expand type)');
+          '[AllContentPage] parsed: ${parsed.length} meal plans → ${entries.length} entries (setelah expand type)',
+        );
 
         // Fetch likes count per-unique meal (bukan per-entry)
-        final uniqueMeals =
-            {for (final e in entries) e.meal.uuid: e.meal}.values.toList();
+        final uniqueMeals = {
+          for (final e in entries) e.meal.uuid: e.meal,
+        }.values.toList();
         final likesList = await Future.wait(
           uniqueMeals.map((meal) => _fetchLikesCount(meal.uuid, authHeader)),
         );
@@ -215,10 +215,7 @@ class _AllContentPageState extends State<AllContentPage> {
     try {
       final response = await http.get(
         Uri.parse(ApiEndpoints.mealPlanGlobalFavoriteCount(uuid)),
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -243,9 +240,9 @@ class _AllContentPageState extends State<AllContentPage> {
   Widget build(BuildContext context) {
     final filteredEntries = _mealEntries.where((entry) {
       if (widget.searchQuery.isEmpty) return true;
-      return entry.meal.name
-          .toLowerCase()
-          .contains(widget.searchQuery.toLowerCase());
+      return entry.meal.name.toLowerCase().contains(
+        widget.searchQuery.toLowerCase(),
+      );
     }).toList();
 
     return SingleChildScrollView(
@@ -273,9 +270,12 @@ class _AllContentPageState extends State<AllContentPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.center,
                                     children: [
-                                      Text(filter,
-                                          style: AppTextStyles.list1Regular(
-                                              AppColors.base5)),
+                                      Text(
+                                        filter,
+                                        style: AppTextStyles.list1Regular(
+                                          AppColors.base5,
+                                        ),
+                                      ),
                                       const SizedBox(width: 4),
                                       GestureDetector(
                                         onTap: () {
@@ -286,8 +286,11 @@ class _AllContentPageState extends State<AllContentPage> {
                                           });
                                           _fetchMealPlans();
                                         },
-                                        child: const Icon(Icons.close,
-                                            size: 12, color: AppColors.base5),
+                                        child: const Icon(
+                                          Icons.close,
+                                          size: 12,
+                                          color: AppColors.base5,
+                                        ),
                                       ),
                                     ],
                                   ),

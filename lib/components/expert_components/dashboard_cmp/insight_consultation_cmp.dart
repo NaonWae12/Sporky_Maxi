@@ -24,32 +24,32 @@ class _InsightConsultationCmpState extends State<InsightConsultationCmp> {
       child: Column(
         children: [
           GlobalsCard(
-              margin: EdgeInsets.all(0),
-              padding: EdgeInsets.all(10),
-              hasShadow: false,
-              backgroundColor: AppColors.base5,
-              child: Row(
-                children: [
-                  SvgPicture.asset('assets/svg/ic_ growth.svg'),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Insight Konsultasi',
-                    style: AppTextStyles.heading3SemiBold(),
-                  )
-                ],
-              )),
+            margin: EdgeInsets.all(0),
+            padding: EdgeInsets.all(10),
+            hasShadow: false,
+            backgroundColor: AppColors.base5,
+            child: Row(
+              children: [
+                SvgPicture.asset('assets/svg/ic_ growth.svg'),
+                const SizedBox(width: 8),
+                Text(
+                  'Insight Konsultasi',
+                  style: AppTextStyles.heading3SemiBold(),
+                ),
+              ],
+            ),
+          ),
           SizedBox(
             height: 155,
-            child: FullWidthTabBar(tabs: const [
-              'Semua',
-              'Mingguan',
-              'Bulanan'
-            ], tabViews: const [
-              AllInsightCmp(),
-              Center(child: Text('Mingguan')),
-              Center(child: Text('Bulanan')),
-            ]),
-          )
+            child: FullWidthTabBar(
+              tabs: const ['Semua', 'Mingguan', 'Bulanan'],
+              tabViews: const [
+                AllInsightCmp(),
+                AllInsightCmp(period: 'week'),
+                AllInsightCmp(period: 'month'),
+              ],
+            ),
+          ),
         ],
       ),
     );

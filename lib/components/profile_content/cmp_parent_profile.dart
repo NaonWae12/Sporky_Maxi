@@ -20,15 +20,23 @@ import 'cmp_parent_profile/profile_child_section.dart';
 class CmpParentProfile extends StatefulWidget {
   final String name;
   final int? countNotif;
+  final String? photoUrl;
   final String badgeImg;
   final VoidCallback directToEditPage;
+  final String childName;
+  final int childAgeYear;
+  final int childAgeMonth;
 
   const CmpParentProfile({
     super.key,
     required this.directToEditPage,
     required this.name,
+    this.photoUrl,
     this.countNotif,
     required this.badgeImg,
+    required this.childName,
+    required this.childAgeYear,
+    required this.childAgeMonth,
   });
 
   @override
@@ -69,10 +77,7 @@ class _CmpParentProfileState extends State<CmpParentProfile> {
 
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
@@ -82,11 +87,12 @@ class _CmpParentProfileState extends State<CmpParentProfile> {
 
         if (mounted) {
           setState(() {
-            _totalCount = int.tryParse(progress['total']?.toString() ?? '') ??
+            _totalCount =
+                int.tryParse(progress['total']?.toString() ?? '') ??
                 tasksList.length;
             _pendingCount =
                 int.tryParse(progress['pending']?.toString() ?? '') ??
-                    tasksList.length;
+                tasksList.length;
             _tasks = tasksList.map((e) => e as Map<String, dynamic>).toList();
             _isLoading = false;
           });
@@ -109,123 +115,135 @@ class _CmpParentProfileState extends State<CmpParentProfile> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         ProfileParentSection(
-            directToEditPage: widget.directToEditPage,
-            name: widget.name,
-            countNotif: widget.countNotif),
-        // progress content
-        ProgresSection(
-          key: _progresKey,
-          badgeImg: widget.badgeImg,
+          directToEditPage: widget.directToEditPage,
+          name: widget.name,
+          photoUrl: widget.photoUrl,
+          countNotif: widget.countNotif,
         ),
+        // progress content
+        ProgresSection(key: _progresKey, badgeImg: widget.badgeImg),
         _isLoading
             ? const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
                 child: Center(
                   child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.primary1),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primary1,
+                    ),
                   ),
                 ),
               )
             : _errorMessage != null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 20, horizontal: 16),
-                    child: Center(
-                      child: Text(
-                        'Gagal memuat tugas harian',
-                        style: AppTextStyles.list1Regular(AppColors.warn1),
-                      ),
-                    ),
-                  )
-                : Builder(builder: (context) {
-                    // Buat list MissionData sekali, dipakai di profil & halaman penuh
-                    final missionDataList = _tasks.map((task) {
-                      final uuid = task['uuid']?.toString() ?? '';
-                      final title = task['title']?.toString() ?? '';
-                      final category = task['category']?.toString() ?? '';
-                      final description =
-                          task['description']?.toString() ?? '';
-                      final points = (task['point'] as num?)?.toInt() ?? 0;
-                      final status = task['status']?.toString() ?? 'pending';
-                      final iconAsset = MissionIconResolver.resolveIcon(
-                          category, title, description);
-                      final iconColor = MissionIconResolver.resolveColor(
-                          iconAsset, category, title, description);
-                      return MissionData(
-                        uuid: uuid,
-                        iconAsset: iconAsset,
-                        iconColor: iconColor,
-                        label: title,
-                        points: points,
-                        status: status,
-                      );
-                    }).toList();
-
-                    return DailyMissions(
-                      missionCount: _pendingCount,
-                      totalCount: _totalCount,
-                      missions: missionDataList,
-                      onTaskCompleted: _fetchDailyTasks,
-                      onSeeAll: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => PageDailyActivity(
-                              dailyMissions: missionDataList,
-                              dailyPending: _pendingCount,
-                              dailyTotal: _totalCount,
-                              onTaskCompleted: _fetchDailyTasks,
-                            ),
-                          ),
-                        ).then((_) => _fetchDailyTasks());
-                      },
+            ? Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 16,
+                ),
+                child: Center(
+                  child: Text(
+                    'Gagal memuat tugas harian',
+                    style: AppTextStyles.list1Regular(AppColors.warn1),
+                  ),
+                ),
+              )
+            : Builder(
+                builder: (context) {
+                  // Buat list MissionData sekali, dipakai di profil & halaman penuh
+                  final missionDataList = _tasks.map((task) {
+                    final uuid = task['uuid']?.toString() ?? '';
+                    final title = task['title']?.toString() ?? '';
+                    final category = task['category']?.toString() ?? '';
+                    final description = task['description']?.toString() ?? '';
+                    final points = (task['point'] as num?)?.toInt() ?? 0;
+                    final status = task['status']?.toString() ?? 'pending';
+                    final iconAsset = MissionIconResolver.resolveIcon(
+                      category,
+                      title,
+                      description,
                     );
-                  }),
+                    final iconColor = MissionIconResolver.resolveColor(
+                      iconAsset,
+                      category,
+                      title,
+                      description,
+                    );
+                    return MissionData(
+                      uuid: uuid,
+                      iconAsset: iconAsset,
+                      iconColor: iconColor,
+                      label: title,
+                      points: points,
+                      status: status,
+                    );
+                  }).toList();
+
+                  return DailyMissions(
+                    missionCount: _pendingCount,
+                    totalCount: _totalCount,
+                    missions: missionDataList,
+                    onTaskCompleted: _fetchDailyTasks,
+                    onSeeAll: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PageDailyActivity(
+                            dailyMissions: missionDataList,
+                            dailyPending: _pendingCount,
+                            dailyTotal: _totalCount,
+                            onTaskCompleted: _fetchDailyTasks,
+                          ),
+                        ),
+                      ).then((_) => _fetchDailyTasks());
+                    },
+                  );
+                },
+              ),
         ProfileChildSection(
-          childName: 'Kiara Alicia',
-          ageMonth: 8,
-          ageYear: 1,
+          childName: widget.childName,
+          ageMonth: widget.childAgeMonth,
+          ageYear: widget.childAgeYear,
           status: 'Normal',
           onEdit: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PageSettingChildProfile(),
-                ));
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PageSettingChildProfile(),
+              ),
+            );
           },
         ),
-        const PackagesAndCouponsList(data: [
-          {
-            'title': 'Langkah Untuk Masa Depan',
-            'name': 'Kiara Alicia',
-            'badgeImg': 'assets/svg/sun.svg',
-            'validUntil': '31 Juni 2026',
-            'expertGroup': true,
-          },
-          {
-            'title': 'Konsultasi Hebat',
-            'name': 'Rafa Pratama',
-            'badgeImg': 'assets/svg/ic_ doctor.svg',
-            'validUntil': '15 Agustus 2026',
-            'expertGroup': false,
-            'imageColor': AppColors.base1
-          },
-          {
-            'title': 'Langkah Untuk Masa Depan',
-            'name': 'Kiara Alicia',
-            'badgeImg': 'assets/svg/sun.svg',
-            'validUntil': '31 Juni 2026',
-            'expertGroup': true,
-          },
-        ]),
-        const InformationCenter()
+        const PackagesAndCouponsList(
+          data: [
+            {
+              'title': 'Langkah Untuk Masa Depan',
+              'name': 'Kiara Alicia',
+              'badgeImg': 'assets/svg/sun.svg',
+              'validUntil': '31 Juni 2026',
+              'expertGroup': true,
+            },
+            {
+              'title': 'Konsultasi Hebat',
+              'name': 'Rafa Pratama',
+              'badgeImg': 'assets/svg/ic_ doctor.svg',
+              'validUntil': '15 Agustus 2026',
+              'expertGroup': false,
+              'imageColor': AppColors.base1,
+            },
+            {
+              'title': 'Langkah Untuk Masa Depan',
+              'name': 'Kiara Alicia',
+              'badgeImg': 'assets/svg/sun.svg',
+              'validUntil': '31 Juni 2026',
+              'expertGroup': true,
+            },
+          ],
+        ),
+        const InformationCenter(),
       ],
     );
   }

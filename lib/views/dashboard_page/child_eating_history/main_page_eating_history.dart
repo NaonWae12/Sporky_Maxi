@@ -80,22 +80,23 @@ class _MainPageEatingHistoryState extends State<MainPageEatingHistory> {
       final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
 
       final dateStr = _formatDateParam(date);
-      final uri = Uri.parse(ApiEndpoints.childFoodHistory(childUuid)).replace(
-        queryParameters: {
-          'date_from': dateStr,
-          'date_to': dateStr,
-        },
-      );
+      final uri = Uri.parse(
+        ApiEndpoints.childFoodHistory(childUuid),
+      ).replace(queryParameters: {'date_from': dateStr, 'date_to': dateStr});
       debugPrint('[MainPageEatingHistory] GET $uri');
 
-      final response = await http.get(uri, headers: {
-        'Authorization': authHeader,
-        'Accept': 'application/json',
-      });
-      debugPrint('[MainPageEatingHistory] API response status: ${response.statusCode}');
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
+      );
+      debugPrint(
+        '[MainPageEatingHistory] API response status: ${response.statusCode}',
+      );
 
       if (response.statusCode != 200) {
-        debugPrint('[MainPageEatingHistory] API error — status: ${response.statusCode}, body: ${response.body}');
+        debugPrint(
+          '[MainPageEatingHistory] API error — status: ${response.statusCode}, body: ${response.body}',
+        );
         setState(() => _historyApiError = true);
         return;
       }
@@ -114,26 +115,35 @@ class _MainPageEatingHistoryState extends State<MainPageEatingHistory> {
       double fat = 0.0;
 
       final dailyTotals = dataMap['daily_totals'];
-      debugPrint('[MainPageEatingHistory] daily_totals type: ${dailyTotals.runtimeType}, count: ${dailyTotals is List ? dailyTotals.length : "n/a"}');
+      debugPrint(
+        '[MainPageEatingHistory] daily_totals type: ${dailyTotals.runtimeType}, count: ${dailyTotals is List ? dailyTotals.length : "n/a"}',
+      );
       if (dailyTotals is List && dailyTotals.isNotEmpty) {
         final entry = dailyTotals.first;
         if (entry is Map<String, dynamic>) {
           carbohydrate = _asDouble(entry['carbohydrate']);
           protein = _asDouble(entry['protein']);
           fat = _asDouble(entry['fat']);
-          debugPrint('[MainPageEatingHistory] Totals — carb: $carbohydrate, protein: $protein, fat: $fat');
+          debugPrint(
+            '[MainPageEatingHistory] Totals — carb: $carbohydrate, protein: $protein, fat: $fat',
+          );
         }
       } else {
-        debugPrint('[MainPageEatingHistory] daily_totals is empty — no food recorded for $dateStr');
+        debugPrint(
+          '[MainPageEatingHistory] daily_totals is empty — no food recorded for $dateStr',
+        );
       }
 
       // Parse intakes
       final rawIntakes = dataMap['intakes'];
-      final List<dynamic> intakesList =
-          rawIntakes is List ? rawIntakes : [];
-      debugPrint('[MainPageEatingHistory] intakes count: ${intakesList.length}');
+      final List<dynamic> intakesList = rawIntakes is List ? rawIntakes : [];
+      debugPrint(
+        '[MainPageEatingHistory] intakes count: ${intakesList.length}',
+      );
       if (intakesList.isEmpty) {
-        debugPrint('[MainPageEatingHistory] intakes list is empty — no food recorded yet');
+        debugPrint(
+          '[MainPageEatingHistory] intakes list is empty — no food recorded yet',
+        );
       }
 
       if (!mounted) return;
@@ -169,6 +179,11 @@ class _MainPageEatingHistoryState extends State<MainPageEatingHistory> {
     _fetchHistory(newDate);
   }
 
+  void _onDateSelected(DateTime date) {
+    setState(() => _selectedDate = date);
+    _fetchHistory(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,14 +193,12 @@ class _MainPageEatingHistoryState extends State<MainPageEatingHistory> {
           children: [
             const SizedBox(width: 8),
             IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.arrow_back_ios)),
-            Text(
-              'Riwayat Makan Anak',
-              style: AppTextStyles.heading2SemiBold(),
-            )
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_back_ios),
+            ),
+            Text('Riwayat Makan Anak', style: AppTextStyles.heading2SemiBold()),
           ],
         ),
       ),
@@ -197,8 +210,7 @@ class _MainPageEatingHistoryState extends State<MainPageEatingHistory> {
           }
 
           if (snapshot.hasError || !snapshot.hasData) {
-            return const Center(
-                child: Text('Gagal memuat data profil anak'));
+            return const Center(child: Text('Gagal memuat data profil anak'));
           }
 
           final screeningData = snapshot.data!;
@@ -223,12 +235,13 @@ class _MainPageEatingHistoryState extends State<MainPageEatingHistory> {
                 selectedDate: _selectedDate,
                 onPrevDay: _onPrevDay,
                 onNextDay: _onNextDay,
+                onDateSelected: _onDateSelected,
               ),
               Expanded(
                 child: _historyLoading
                     ? const Center(child: CircularProgressIndicator())
                     : PageHistoryList(intakes: _intakesList),
-              )
+              ),
             ],
           );
         },

@@ -35,9 +35,7 @@ class BottomContent extends StatelessWidget {
                   child: Container(
                     width: 19,
                     height: 19,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(shape: BoxShape.circle),
                     child: ClipOval(
                       child: SvgPicture.asset(
                         'assets/svg/compass-rounded.svg',
@@ -48,19 +46,13 @@ class BottomContent extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: AppTextStyles.heading3SemiBold(),
-                  ),
+                  child: Text(title, style: AppTextStyles.heading3SemiBold()),
                 ),
               ],
             ),
 
             const SizedBox(height: 5),
-            Text(
-              description,
-              style: AppTextStyles.list1Regular(),
-            ),
+            Text(description, style: AppTextStyles.list1Regular()),
             const SizedBox(height: 5),
             Row(
               children: [
@@ -75,10 +67,16 @@ class BottomContent extends StatelessWidget {
                         Text(
                           "Baca Artikel",
                           style: AppTextStyles.headList1Bold(),
-                        )
+                        ),
                       ],
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Fitur ini belum tersedia"),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -94,10 +92,16 @@ class BottomContent extends StatelessWidget {
                         Text(
                           "Konsultasi",
                           style: AppTextStyles.headList1Bold(),
-                        )
+                        ),
                       ],
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Fitur ini belum tersedia"),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

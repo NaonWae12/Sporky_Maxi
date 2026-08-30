@@ -30,7 +30,9 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
     "tinggi": "",
     "berat": "",
     "riwayatPenyakitAnak": "",
+    "hasDiseaseHistory": "false",
     "alergiAnak": "",
+    "hasAllergy": "false",
     "makananFavorit": "",
     "makananDihindari": "",
     "kegiatanAnak": "",
@@ -51,9 +53,7 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
   }
 
   void updateData(String key, String value) {
-    setState(() {
-      data[key] = value;
-    });
+    data[key] = value;
   }
 
   String mapGender(String? value) {
@@ -81,8 +81,9 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
           "gender": mapGender(data["jenisKelamin"]),
           "dob": () {
             try {
-              final parsed =
-                  DateFormat("dd/MM/yyyy").parse(data["tanggalLahir"] ?? "");
+              final parsed = DateFormat(
+                "dd/MM/yyyy",
+              ).parse(data["tanggalLahir"] ?? "");
               return DateFormat("yyyy-MM-dd").format(parsed);
             } catch (_) {
               return "";
@@ -118,10 +119,7 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
 
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token,
-        },
+        headers: {'Content-Type': 'application/json', 'Authorization': token},
         body: jsonEncode(payload),
       );
 
@@ -151,9 +149,9 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
       }
     } catch (e) {
       debugPrint("❌ Error submit data: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Terjadi kesalahan: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Terjadi kesalahan: $e")));
     }
   }
 
@@ -194,19 +192,9 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leadingWidth: MediaQuery.of(context).size.width,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 9),
-          child: Row(
-            children: [
-              const Icon(Icons.keyboard_arrow_left, size: 30),
-              Text(
-                'Profil si kecil',
-                style: AppTextStyles.heading1SemiBold(),
-              )
-            ],
-          ),
-        ),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text('Profil si kecil', style: AppTextStyles.heading1SemiBold()),
       ),
       body: pages[currentStep],
     );

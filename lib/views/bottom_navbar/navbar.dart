@@ -19,14 +19,19 @@ class Navbar extends StatefulWidget {
 class _NavbarState extends State<Navbar> {
   int _selectedIndex = 0;
 
-  // Contoh halaman buat setiap tab
-  static const List<Widget> _pages = [
-    ChildDashboardPage(),
-    ExplorePage(),
-    MealPlanMainPage(),
-    ChatroomPage(),
-    DashboardPage(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      ChildDashboardPage(onDashboardTap: () => _onItemTapped(4)),
+      const ExplorePage(),
+      const MealPlanMainPage(),
+      const ChatroomPage(),
+      const DashboardPage(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {

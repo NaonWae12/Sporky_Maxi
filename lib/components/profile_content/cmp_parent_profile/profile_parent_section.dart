@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sporky_maxi/components/globals/avatar/profile_avatar.dart';
 
 import '../../globals/card/globals_card.dart';
 import '../../globals/colors/colors.dart';
@@ -8,12 +9,14 @@ import '../../globals/text/text_style.dart';
 class ProfileParentSection extends StatelessWidget {
   final String name;
   final int? countNotif;
+  final String? photoUrl;
   final VoidCallback directToEditPage;
 
   const ProfileParentSection({
     super.key,
     required this.directToEditPage,
     required this.name,
+    this.photoUrl,
     this.countNotif,
   });
 
@@ -23,21 +26,14 @@ class ProfileParentSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 28,
-            backgroundColor: AppColors.primary2,
-            backgroundImage: AssetImage('assets/temp_img/kids.png'),
-          ),
+          ProfileAvatar(photoUrl: photoUrl, size: 56),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: AppTextStyles.heading2SemiBold(),
-                ),
+                Text(name, style: AppTextStyles.heading2SemiBold()),
                 GlobalsCard(
                   onTap: directToEditPage,
                   width: 55,
@@ -48,25 +44,33 @@ class ProfileParentSection extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Edit',
-                          style: AppTextStyles.list1Bold(AppColors.base5)),
+                      Text(
+                        'Edit',
+                        style: AppTextStyles.list1Bold(AppColors.base5),
+                      ),
                       const SizedBox(width: 5),
                       SvgPicture.asset(
-                          colorFilter: const ColorFilter.mode(
-                              AppColors.base5, BlendMode.srcIn),
-                          height: 16,
-                          width: 16,
-                          'assets/svg/ic_edit.svg')
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.base5,
+                          BlendMode.srcIn,
+                        ),
+                        height: 16,
+                        width: 16,
+                        'assets/svg/ic_edit.svg',
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
           Stack(
             children: [
               SvgPicture.asset(
-                  height: 33, width: 27, 'assets/svg/ic_notif.svg'),
+                height: 33,
+                width: 27,
+                'assets/svg/ic_notif.svg',
+              ),
               if (countNotif != null)
                 Positioned(
                   right: 0,
@@ -85,7 +89,7 @@ class ProfileParentSection extends StatelessWidget {
                       ),
                     ),
                   ),
-                )
+                ),
             ],
           ),
         ],
