@@ -45,53 +45,60 @@ class CmpTagAttention extends StatelessWidget {
 
     return Padding(
       padding: padding,
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: Column(
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.sizeOf(context).width;
+          final availableWidth = constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : screenWidth - padding.horizontal;
+
+          return Align(
+            alignment: Alignment.topLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                isSvg
-                    ? SvgPicture.asset(
-                        colorFilter: ColorFilter.mode(
-                          textAndImageColor ?? imageColor,
-                          BlendMode.srcIn,
-                        ),
-                        imageAsset,
-                        height: sizeImage,
-                        width: sizeImage,
-                      )
-                    : Image.asset(
-                        color: textAndImageColor ?? imageColor,
-                        imageAsset,
-                        height: sizeImage,
-                        width: sizeImage,
-                      ),
-                SizedBox(width: spacing),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / wrapText,
-                  child: text != null
-                      ? Text(
-                          text!,
-                          style: textStyle ??
-                              AppTextStyles.list1Regular(textAndImageColor),
-                          maxLines: maxLines,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      : child,
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    isSvg
+                        ? SvgPicture.asset(
+                            colorFilter: ColorFilter.mode(
+                              textAndImageColor ?? imageColor,
+                              BlendMode.srcIn,
+                            ),
+                            imageAsset,
+                            height: sizeImage,
+                            width: sizeImage,
+                          )
+                        : Image.asset(
+                            color: textAndImageColor ?? imageColor,
+                            imageAsset,
+                            height: sizeImage,
+                            width: sizeImage,
+                          ),
+                    SizedBox(width: spacing),
+                    Expanded(
+                      child: text != null
+                          ? Text(
+                              text!,
+                              style:
+                                  textStyle ??
+                                  AppTextStyles.list1Regular(textAndImageColor),
+                              maxLines: maxLines,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          : child ?? const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
+                SizedBox(height: space),
+                if (line)
+                  Container(height: 2, width: availableWidth, color: lineColor),
               ],
             ),
-            SizedBox(height: space),
-            if (line)
-              Container(
-                height: 2,
-                width: MediaQuery.of(context).size.width / 1.05,
-                color: lineColor,
-              )
-          ],
-        ),
+          );
+        },
       ),
     );
   }

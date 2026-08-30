@@ -236,6 +236,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       backgroundColor: AppColors.base5,
       appBar: AppBar(
         backgroundColor: AppColors.base5,
+        elevation: 0,
         leading: IconButton(
           onPressed: _backToLogin,
           icon: const Icon(Icons.arrow_back_ios),

@@ -65,8 +65,9 @@ class CardDoctorCmp extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(top: 4.0),
                             child: ClipRRect(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(8)),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(8),
+                              ),
                               child: _buildImage(),
                             ),
                           ),
@@ -91,7 +92,8 @@ class CardDoctorCmp extends StatelessWidget {
                                     child: Text(
                                       categoryType,
                                       style: AppTextStyles.list3SemiBold(
-                                          _getBorderColor(categoryType)),
+                                        _getBorderColor(categoryType),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -101,7 +103,8 @@ class CardDoctorCmp extends StatelessWidget {
                                     child: Container(
                                       height: 16,
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 4),
+                                        horizontal: 4,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: AppColors.base5,
                                         borderRadius: BorderRadius.circular(20),
@@ -110,10 +113,12 @@ class CardDoctorCmp extends StatelessWidget {
                                         ),
                                       ),
                                       child: SizedBox(
-                                          height: 10,
-                                          width: 12,
-                                          child: SvgPicture.asset(
-                                              'assets/svg/Crown-1.svg')),
+                                        height: 10,
+                                        width: 12,
+                                        child: SvgPicture.asset(
+                                          'assets/svg/Crown-1.svg',
+                                        ),
+                                      ),
                                     ),
                                   ),
                               ],
@@ -127,10 +132,12 @@ class CardDoctorCmp extends StatelessWidget {
                         children: [
                           SizedBox(
                             width: MediaQuery.of(context).size.width / 5,
-                            child: Text(doctorName,
-                                style: AppTextStyles.lable3SemiBold(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis),
+                            child: Text(
+                              doctorName,
+                              style: AppTextStyles.lable3SemiBold(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           GlobalsCardOutlined(
                             height: 14,
@@ -146,17 +153,20 @@ class CardDoctorCmp extends StatelessWidget {
                                 Text(
                                   starCount,
                                   style: AppTextStyles.list3SemiBold(
-                                      AppColors.warn1),
-                                )
+                                    AppColors.warn1,
+                                  ),
+                                ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
-                      Text(skill,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.list3Regular(AppColors.base2)),
+                      Text(
+                        skill,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.list3Regular(AppColors.base2),
+                      ),
                       Padding(
                         padding: const EdgeInsets.only(top: 5.0, bottom: 8),
                         child: GlobalsButton(
@@ -168,16 +178,21 @@ class CardDoctorCmp extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SvgPicture.asset(
-                                  'assets/svg/ic_coupon - ticket.svg'),
+                                'assets/svg/ic_coupon - ticket.svg',
+                              ),
                               const SizedBox(width: 5),
-                              Text(
-                                'Beli Tiket',
-                                style: AppTextStyles.list1Bold(AppColors.base5),
-                              )
+                              Flexible(
+                                child: GlobalsButtonText(
+                                  text: 'Beli Tiket',
+                                  style: AppTextStyles.list1Bold(
+                                    AppColors.base5,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -189,8 +204,10 @@ class CardDoctorCmp extends StatelessWidget {
                 left: 10,
                 right: 10,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.base5,
                     borderRadius: BorderRadius.circular(8),
@@ -199,17 +216,19 @@ class CardDoctorCmp extends StatelessWidget {
                         color: AppColors.base1.withAlpha(120),
                         blurRadius: 3,
                         offset: const Offset(0, 2),
-                      )
+                      ),
                     ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                          height: 12,
-                          width: 12,
-                          child: SvgPicture.asset(
-                              'assets/svg/ic_ calendar - schedule.svg')),
+                        height: 12,
+                        width: 12,
+                        child: SvgPicture.asset(
+                          'assets/svg/ic_ calendar - schedule.svg',
+                        ),
+                      ),
                       const SizedBox(width: 5),
                       Text(
                         "Jadwal Penuh",
@@ -234,11 +253,7 @@ class CardDoctorCmp extends StatelessWidget {
       height: height,
       color: AppColors.base3,
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.broken_image,
-        color: AppColors.base2,
-        size: 28,
-      ),
+      child: const Icon(Icons.broken_image, color: AppColors.base2, size: 28),
     );
 
     if (imagePath.startsWith('http')) {

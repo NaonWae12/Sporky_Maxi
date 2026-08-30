@@ -34,6 +34,9 @@ class GlobalsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: onTap == null
+          ? HitTestBehavior.deferToChild
+          : HitTestBehavior.opaque,
       child: Container(
         height: height,
         width: width,

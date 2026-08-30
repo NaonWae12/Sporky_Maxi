@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sporky_maxi/components/globals/button/globals_button.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
+import 'package:sporky_maxi/components/globals/dialog/globals_bottom_sheet.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/components/profile_content/cmp_parent_profile/daily_missions.dart';
 
@@ -29,17 +30,17 @@ class PageDailyActivity extends StatelessWidget {
 
   // ── Bottom sheet ──────────────────────────────────────────────────────────
   void _showMissionsSheet(BuildContext context) {
-    showModalBottomSheet(
+    showAppBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _MissionsBottomSheet(
+      child: _MissionsBottomSheet(
         dailyMissions: dailyMissions,
         dailyPending: dailyPending,
         dailyTotal: dailyTotal,
         dailyProgress: _dailyProgress,
         onTaskCompleted: onTaskCompleted,
       ),
+      padding: EdgeInsets.zero,
     );
   }
 
@@ -94,8 +95,11 @@ class PageDailyActivity extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Center(
-                          child: Icon(Icons.image_not_supported,
-                              size: 48, color: AppColors.base2),
+                          child: Icon(
+                            Icons.image_not_supported,
+                            size: 48,
+                            color: AppColors.base2,
+                          ),
                         ),
                       ),
                     ),
@@ -114,7 +118,9 @@ class PageDailyActivity extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.base4,
                       borderRadius: BorderRadius.circular(12),
@@ -134,7 +140,11 @@ class PageDailyActivity extends StatelessWidget {
           Container(
             color: AppColors.base5,
             padding: EdgeInsets.fromLTRB(
-                20, 8, 20, MediaQuery.of(context).padding.bottom + 16),
+              20,
+              8,
+              20,
+              MediaQuery.of(context).padding.bottom + 16,
+            ),
             child: GlobalsButton(
               onPressed: () => _showMissionsSheet(context),
               color: AppColors.secondary1,
@@ -143,12 +153,17 @@ class PageDailyActivity extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.rocket_launch,
-                      color: AppColors.base5, size: 18),
+                  const Icon(
+                    Icons.rocket_launch,
+                    color: AppColors.base5,
+                    size: 18,
+                  ),
                   const SizedBox(width: 10),
-                  Text(
-                    'Jelajahi Misi Seru Hari Ini',
-                    style: AppTextStyles.heading3SemiBold(AppColors.base5),
+                  Flexible(
+                    child: GlobalsButtonText(
+                      text: 'Jelajahi Misi Seru Hari Ini',
+                      style: AppTextStyles.heading3SemiBold(AppColors.base5),
+                    ),
                   ),
                 ],
               ),
@@ -191,23 +206,11 @@ class _MissionsBottomSheetState extends State<_MissionsBottomSheet> {
       maxChildSize: 0.95,
       expand: false,
       builder: (_, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.base5,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
+        return SafeArea(
+          top: false,
           child: Column(
             children: [
-              // Drag handle pill
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 4),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.base3,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              const SizedBox(height: 8),
 
               // Konten scrollable
               Expanded(
@@ -228,7 +231,9 @@ class _MissionsBottomSheetState extends State<_MissionsBottomSheet> {
                     ),
                     const SizedBox(height: 8),
                     _ProgressBar(
-                        value: widget.dailyProgress, color: AppColors.primary1),
+                      value: widget.dailyProgress,
+                      color: AppColors.primary1,
+                    ),
                     const SizedBox(height: 16),
 
                     // Daftar misi harian
@@ -395,8 +400,10 @@ class _MissionSheetItem extends StatelessWidget {
                   height: 20,
                   child: SvgPicture.asset(
                     data.iconAsset,
-                    colorFilter:
-                        ColorFilter.mode(data.iconColor, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(
+                      data.iconColor,
+                      BlendMode.srcIn,
+                    ),
                     placeholderBuilder: (_) =>
                         const SizedBox(width: 20, height: 20),
                   ),
@@ -417,8 +424,10 @@ class _MissionSheetItem extends StatelessWidget {
                 // ── XP chip ──────────────────────────────────────────
                 if (data.points > 0)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary3,
                       borderRadius: BorderRadius.circular(20),
@@ -426,12 +435,17 @@ class _MissionSheetItem extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.circle,
-                            size: 6, color: AppColors.primary1),
+                        const Icon(
+                          Icons.circle,
+                          size: 6,
+                          color: AppColors.primary1,
+                        ),
                         const SizedBox(width: 3),
                         Text(
                           '+${data.points}xp',
-                          style: AppTextStyles.list3SemiBold(AppColors.primary1),
+                          style: AppTextStyles.list3SemiBold(
+                            AppColors.primary1,
+                          ),
                         ),
                       ],
                     ),
@@ -451,7 +465,11 @@ class _MissionSheetItem extends StatelessWidget {
                         : Border.all(color: AppColors.base3, width: 1.5),
                   ),
                   child: _isDone
-                      ? const Icon(Icons.check, color: AppColors.base5, size: 12)
+                      ? const Icon(
+                          Icons.check,
+                          color: AppColors.base5,
+                          size: 12,
+                        )
                       : null,
                 ),
               ],
@@ -462,7 +480,10 @@ class _MissionSheetItem extends StatelessWidget {
         // Divider tipis antar item
         if (showDivider)
           Divider(
-              height: 1, thickness: 1, color: AppColors.base3.withAlpha(120)),
+            height: 1,
+            thickness: 1,
+            color: AppColors.base3.withAlpha(120),
+          ),
       ],
     );
   }

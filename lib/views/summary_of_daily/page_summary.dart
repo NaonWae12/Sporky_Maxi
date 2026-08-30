@@ -21,26 +21,31 @@ class PageSummary extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back_ios)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
               Text(
                 'Ringkasan Asupan  Harian',
                 style: AppTextStyles.heading2SemiBold(),
-              )
+              ),
             ],
           ),
         ),
       ),
-      body: Column(
-        children: [
-          CmpTagAttention(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(
+          children: [
+            CmpTagAttention(
               imageAsset: 'assets/svg/ic_warn.svg',
               text:
-                  'Catatan hari ini membantu kamu memahami pola makan dan pertumbuhan si kecil. '),
-          SummaryCmp(),
-        ],
+                  'Catatan hari ini membantu kamu memahami pola makan dan pertumbuhan si kecil. ',
+            ),
+            SummaryCmp(),
+          ],
+        ),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(15.0),
@@ -71,9 +76,7 @@ class PageSummary extends StatelessWidget {
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const Navbar(),
-                        ),
+                        MaterialPageRoute(builder: (context) => const Navbar()),
                       );
                     },
                   ),

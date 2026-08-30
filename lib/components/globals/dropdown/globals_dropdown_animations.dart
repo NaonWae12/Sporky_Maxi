@@ -45,7 +45,7 @@ class GlobalsDropdownAnimations<T> extends StatelessWidget {
       child: DropdownButton2<T>(
         customButton: Container(
           height: height,
-          width: width,
+          width: width ?? double.infinity,
           padding: padding,
           decoration: BoxDecoration(
             color: backgroundColor,

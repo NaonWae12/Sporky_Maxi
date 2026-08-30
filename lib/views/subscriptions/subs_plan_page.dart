@@ -42,17 +42,15 @@ class _SubsPlanPageState extends State<SubsPlanPage> {
 
     final response = await http.get(
       Uri.parse(ApiEndpoints.subscriptions),
-      headers: {
-        'Authorization': token,
-        'Accept': 'application/json',
-      },
+      headers: {'Authorization': token, 'Accept': 'application/json'},
     );
 
     debugPrint('Response Body_subs: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception(
-          'Gagal mengambil data subscription (${response.statusCode})');
+        'Gagal mengambil data subscription (${response.statusCode})',
+      );
     }
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -125,7 +123,8 @@ class _SubsPlanPageState extends State<SubsPlanPage> {
         }
       } else {
         throw Exception(
-            'Gagal melakukan checkout (${response.statusCode}): ${response.body}');
+          'Gagal melakukan checkout (${response.statusCode}): ${response.body}',
+        );
       }
     } catch (e) {
       debugPrint('Error checkout: $e');
@@ -149,6 +148,7 @@ class _SubsPlanPageState extends State<SubsPlanPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.base5,
+        elevation: 0,
         leadingWidth: MediaQuery.of(context).size.width,
         leading: Padding(
           padding: const EdgeInsets.only(left: 10),
@@ -160,10 +160,7 @@ class _SubsPlanPageState extends State<SubsPlanPage> {
                 },
                 icon: const Icon(Icons.arrow_back_ios),
               ),
-              Text(
-                'Pilih Paket Anda',
-                style: AppTextStyles.heading1SemiBold(),
-              ),
+              Text('Pilih Paket Anda', style: AppTextStyles.heading1SemiBold()),
             ],
           ),
         ),
@@ -204,26 +201,24 @@ class _SubsPlanPageState extends State<SubsPlanPage> {
                     style: AppTextStyles.heading3SemiBold(AppColors.base2),
                   ),
                 ),
-                ...plans.asMap().entries.map(
-                  (entry) {
-                    final index = entry.key;
-                    final plan = entry.value;
+                ...plans.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final plan = entry.value;
 
-                    return SubsPlanCmp(
-                      price: plan.priceInK,
-                      periodLabel: plan.periodLabel,
-                      title: plan.title,
-                      desc: plan.desc,
-                      image: plan.step.asset,
-                      step: plan.step,
-                      features: plan.features,
-                      gradient: plan.gradient,
-                      selectedBorderColor: plan.selectedBorderColor,
-                      isSelected: _selectedIndex == index,
-                      onTap: () => setState(() => _selectedIndex = index),
-                    );
-                  },
-                ),
+                  return SubsPlanCmp(
+                    price: plan.priceInK,
+                    periodLabel: plan.periodLabel,
+                    title: plan.title,
+                    desc: plan.desc,
+                    image: plan.step.asset,
+                    step: plan.step,
+                    features: plan.features,
+                    gradient: plan.gradient,
+                    selectedBorderColor: plan.selectedBorderColor,
+                    isSelected: _selectedIndex == index,
+                    onTap: () => setState(() => _selectedIndex = index),
+                  );
+                }),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: GlobalsButton(

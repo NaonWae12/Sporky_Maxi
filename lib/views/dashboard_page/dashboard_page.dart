@@ -42,12 +42,15 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.base5,
       appBar: AppBar(
+        backgroundColor: AppColors.base5,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
         automaticallyImplyLeading: false,
-        title: Text(
-          'Dashboard',
-          style: AppTextStyles.heading2SemiBold(),
-        ),
+        title: Text('Dashboard', style: AppTextStyles.heading2SemiBold()),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -82,11 +85,13 @@ class _DashboardPageState extends State<DashboardPage> {
                 // Cek jika activeChildUuid stale atau belum diset
                 if (activeChildUuid == null ||
                     !childUuids.contains(activeChildUuid)) {
-                  activeChildUuid =
-                      childUuids.isNotEmpty ? childUuids.first : null;
+                  activeChildUuid = childUuids.isNotEmpty
+                      ? childUuids.first
+                      : null;
                   if (activeChildUuid != null) {
                     SecureStorageService.saveSelectedChildUuid(
-                        activeChildUuid!);
+                      activeChildUuid!,
+                    );
                   }
                 }
 

@@ -17,6 +17,8 @@ class GlobalsForm extends StatefulWidget {
   final double? height;
   final double? width;
   final TextStyle? labelStyle;
+  final TextStyle? textStyle;
+  final TextStyle? hintStyle;
   final EdgeInsets? contentPadding;
   final Widget? suffixIcon;
   final EdgeInsets? padding;
@@ -50,6 +52,8 @@ class GlobalsForm extends StatefulWidget {
     this.height,
     this.width,
     this.labelStyle,
+    this.textStyle,
+    this.hintStyle,
     this.contentPadding =
         const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     this.suffixIcon,
@@ -123,9 +127,16 @@ class _GlobalsFormState extends State<GlobalsForm> {
         controller: widget.controller,
         keyboardType: widget.keyboardType,
         obscureText: widget.isObscure,
-        style: AppTextStyles.heading3Medium(),
+        style: widget.textStyle ?? AppTextStyles.heading3Medium(),
         decoration: InputDecoration(
-          hint: !widget.enableFloatingLabel ? Text(widget.label) : widget.hint,
+          hint: !widget.enableFloatingLabel
+              ? Text(
+                  widget.label,
+                  style: widget.hintStyle ??
+                      widget.textStyle ??
+                      AppTextStyles.heading3Medium(),
+                )
+              : widget.hint,
           suffixIcon:
               (widget.suffixIcon != null || widget.suffixSvgAsset != null)
                   ? Padding(

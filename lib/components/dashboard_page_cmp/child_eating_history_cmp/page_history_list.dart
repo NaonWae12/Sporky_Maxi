@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sporky_maxi/components/globals/dialog/globals_bottom_sheet.dart';
 
 import 'bottom_sheet_food_history.dart';
 import 'history_list_cmp.dart';
@@ -6,10 +7,7 @@ import 'history_list_cmp.dart';
 class PageHistoryList extends StatelessWidget {
   final List<dynamic> intakes;
 
-  const PageHistoryList({
-    super.key,
-    required this.intakes,
-  });
+  const PageHistoryList({super.key, required this.intakes});
 
   String _mapMealTime(String mealTimeRaw) {
     final clean = mealTimeRaw.trim();
@@ -64,37 +62,36 @@ class PageHistoryList extends StatelessWidget {
 
     // Ambil data food_waste jika tersedia
     final wasteNode = item['food_waste'];
-    final hasWaste =
-        wasteNode is Map<String, dynamic> && wasteNode.isNotEmpty;
+    final hasWaste = wasteNode is Map<String, dynamic> && wasteNode.isNotEmpty;
 
     // served = kalori yang disajikan (dari intake)
     final served = _asDouble(item['calories']).round();
     // eaten = kalori yang benar-benar dimakan (dari actual_calories jika ada waste)
-    final eaten =
-        hasWaste ? _asDouble(wasteNode['actual_calories']).round() : served;
+    final eaten = hasWaste
+        ? _asDouble(wasteNode['actual_calories']).round()
+        : served;
     // remaining = sisa kalori (gap_calories dari waste, atau 0 jika tidak ada waste)
-    final remaining =
-        hasWaste ? _asDouble(wasteNode['gap_calories']).round() : 0;
+    final remaining = hasWaste
+        ? _asDouble(wasteNode['gap_calories']).round()
+        : 0;
 
-    showModalBottomSheet(
+    showAppBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return BottomSheetFoodHistory(
-          title: title,
-          items: [
-            FoodItemData(
-              title: resolvedName.isNotEmpty ? resolvedName : title,
-              image: imageUrl,
-              served: served,
-              eaten: eaten,
-              remaining: remaining,
-              calories: eaten,
-            ),
-          ],
-        );
-      },
+      child: BottomSheetFoodHistory(
+        title: title,
+        items: [
+          FoodItemData(
+            title: resolvedName.isNotEmpty ? resolvedName : title,
+            image: imageUrl,
+            served: served,
+            eaten: eaten,
+            remaining: remaining,
+            calories: eaten,
+          ),
+        ],
+      ),
+      padding: EdgeInsets.zero,
     );
   }
 
@@ -129,8 +126,9 @@ class PageHistoryList extends StatelessWidget {
           final fat = _asDouble(item['fat']).round();
           final totalcalories = _asDouble(item['calories']).round();
 
-          final itemMap =
-              item is Map<String, dynamic> ? item : <String, dynamic>{};
+          final itemMap = item is Map<String, dynamic>
+              ? item
+              : <String, dynamic>{};
 
           return HistoryListCmp(
             onTap: () =>

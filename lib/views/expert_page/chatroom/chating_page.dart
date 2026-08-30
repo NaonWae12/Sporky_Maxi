@@ -151,9 +151,9 @@ class _ChatingPageState extends State<ChatingPage> {
       unawaited(_markIncomingMessagesAsRead(fetched, token));
     } catch (e) {
       if (!silent && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
       }
     } finally {
       _isFetchingMessages = false;
@@ -170,11 +170,13 @@ class _ChatingPageState extends State<ChatingPage> {
     String token,
   ) async {
     final pending = messages
-        .where((msg) =>
-            !msg.isMe &&
-            msg.uuid.isNotEmpty &&
-            msg.readAt == null &&
-            !_readInFlight.contains(msg.uuid))
+        .where(
+          (msg) =>
+              !msg.isMe &&
+              msg.uuid.isNotEmpty &&
+              msg.readAt == null &&
+              !_readInFlight.contains(msg.uuid),
+        )
         .toList();
 
     if (pending.isEmpty) return;
@@ -205,10 +207,7 @@ class _ChatingPageState extends State<ChatingPage> {
         Uri.parse(
           ApiEndpoints.chatRoomMessageRead(widget.roomUuid, messageUuid),
         ),
-        headers: {
-          'Authorization': token,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': token, 'Accept': 'application/json'},
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -295,14 +294,14 @@ class _ChatingPageState extends State<ChatingPage> {
       } catch (_) {}
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -327,7 +326,8 @@ class _ChatingPageState extends State<ChatingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.base5,
+        elevation: 0,
         leadingWidth: MediaQuery.of(context).size.width,
         leading: Row(
           children: [
@@ -394,20 +394,20 @@ class _ChatingPageState extends State<ChatingPage> {
             child: _isLoadingMessages && _messages.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : _messages.isEmpty
-                    ? const Center(child: Text('Belum ada pesan'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          return ChatBubble(
-                            message: msg.message,
-                            time: msg.time,
-                            isMe: msg.isMe,
-                            status: msg.status,
-                          );
-                        },
-                      ),
+                ? const Center(child: Text('Belum ada pesan'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = _messages[index];
+                      return ChatBubble(
+                        message: msg.message,
+                        time: msg.time,
+                        isMe: msg.isMe,
+                        status: msg.status,
+                      );
+                    },
+                  ),
           ),
           ChatInputBar(
             controller: _messageController,

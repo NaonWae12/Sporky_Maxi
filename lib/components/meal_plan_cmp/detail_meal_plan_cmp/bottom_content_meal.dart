@@ -11,10 +11,7 @@ import '../../../models/components/meal_plan_cmp_mdl/meal_plan_model.dart';
 import '../../../views/meal_form/add_meal_category_page.dart';
 
 class BottomContentMeal extends StatelessWidget {
-  const BottomContentMeal({
-    super.key,
-    required this.mealPlan,
-  });
+  const BottomContentMeal({super.key, required this.mealPlan});
 
   final MealPlan mealPlan;
 
@@ -23,37 +20,38 @@ class BottomContentMeal extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
-          child: GlobalsCard(
-        padding: EdgeInsets.all(8),
-        backgroundColor: AppColors.base4,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                SizedBox(
+        child: GlobalsCard(
+          padding: EdgeInsets.all(8),
+          backgroundColor: AppColors.base4,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  SizedBox(
                     height: 18,
                     width: 18,
-                    child: SvgPicture.asset('assets/svg/compass-rounded.svg')),
-                Text(
-                  'Sudah Selesai Memasak?',
-                  style: AppTextStyles.heading3SemiBold(),
-                ),
-              ],
-            ),
-            Text(
-              'Yuk catat berapa banyak yang dimakan anak hari ini!',
-              style: AppTextStyles.list1Regular(),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 16, bottom: 8),
-              child: GlobalsButton(
-                height: 32,
-                width: MediaQuery.of(context).size.width / 1.2,
-                onPressed: () {
-                  Navigator.push(
+                    child: SvgPicture.asset('assets/svg/compass-rounded.svg'),
+                  ),
+                  Text(
+                    'Sudah Selesai Memasak?',
+                    style: AppTextStyles.heading3SemiBold(),
+                  ),
+                ],
+              ),
+              Text(
+                'Yuk catat berapa banyak yang dimakan anak hari ini!',
+                style: AppTextStyles.list1Regular(),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 8),
+                child: GlobalsButton(
+                  height: 32,
+                  width: MediaQuery.of(context).size.width / 1.2,
+                  onPressed: () {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => AddMealCategoryPage(
@@ -64,31 +62,38 @@ class BottomContentMeal extends StatelessWidget {
                           mealPlanFat: mealPlan.fat,
                           mealPlanCalories: mealPlan.calories,
                         ),
-                      ));
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
+                      ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
                         height: 16,
                         width: 16,
                         child: SvgPicture.asset(
                           'assets/svg/ic_pie_chart.svg',
                           colorFilter: ColorFilter.mode(
-                              AppColors.base5, BlendMode.srcIn),
-                        )),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Catat Kalori Harian',
-                      style: AppTextStyles.list1Bold(AppColors.base5),
-                    )
-                  ],
+                            AppColors.base5,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: GlobalsButtonText(
+                          text: 'Catat Kalori Harian',
+                          style: AppTextStyles.list1Bold(AppColors.base5),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }

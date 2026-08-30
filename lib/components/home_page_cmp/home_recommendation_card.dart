@@ -10,6 +10,9 @@ class HomeRecommendationCard extends StatelessWidget {
   final IconData icon;
   final String placeholderLabel;
   final VoidCallback onTap;
+  final double width;
+  final double height;
+  final double imageHeight;
 
   const HomeRecommendationCard({
     super.key,
@@ -20,6 +23,9 @@ class HomeRecommendationCard extends StatelessWidget {
     required this.icon,
     required this.placeholderLabel,
     required this.onTap,
+    this.width = 226,
+    this.height = 188,
+    this.imageHeight = 110,
   });
 
   bool get _isNetworkImage =>
@@ -30,7 +36,8 @@ class HomeRecommendationCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 226,
+        width: width,
+        height: height,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: AppColors.base5,
@@ -52,7 +59,7 @@ class HomeRecommendationCard extends StatelessWidget {
                 top: Radius.circular(18),
               ),
               child: SizedBox(
-                height: 108,
+                height: imageHeight,
                 width: double.infinity,
                 child: Stack(
                   fit: StackFit.expand,
@@ -94,18 +101,30 @@ class HomeRecommendationCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.list1Bold(AppColors.base1),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  SizedBox(
+                    height: 32,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.list1Bold(AppColors.base1),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: AppTextStyles.list3Regular(AppColors.base2),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  SizedBox(
+                    height: 16,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.list3Regular(AppColors.base2),
+                      ),
+                    ),
                   ),
                 ],
               ),

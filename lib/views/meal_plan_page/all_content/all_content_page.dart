@@ -185,14 +185,11 @@ class _AllContentPageState extends State<AllContentPage> {
         final uniqueMeals = {
           for (final e in entries) e.meal.uuid: e.meal,
         }.values.toList();
-        final likesList = await Future.wait(
-          uniqueMeals.map((meal) => _fetchLikesCount(meal.uuid, authHeader)),
-        );
-
-        final Map<String, int> likesMap = {};
-        for (int i = 0; i < uniqueMeals.length; i++) {
-          likesMap[uniqueMeals[i].uuid] = likesList[i];
-        }
+        // Gunakan favorites_count yang sudah disertakan di response list API
+        // (backend sudah menggunakan withCount) — tidak perlu N+1 request lagi.
+        final Map<String, int> likesMap = {
+          for (final meal in uniqueMeals) meal.uuid: meal.favoritesCount,
+        };
 
         if (mounted) {
           setState(() {
@@ -209,23 +206,6 @@ class _AllContentPageState extends State<AllContentPage> {
       debugPrint('[AllContentPage] Error: $e');
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  Future<int> _fetchLikesCount(String uuid, String authHeader) async {
-    try {
-      final response = await http.get(
-        Uri.parse(ApiEndpoints.mealPlanGlobalFavoriteCount(uuid)),
-        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
-      );
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        final count = decoded['data']?['favorites_count'] ?? 0;
-        return count is int ? count : int.tryParse(count.toString()) ?? 0;
-      }
-    } catch (e) {
-      debugPrint('[AllContentPage] Error likes count for $uuid: $e');
-    }
-    return 0;
   }
 
   String _normalizeImageUrl(String url) {

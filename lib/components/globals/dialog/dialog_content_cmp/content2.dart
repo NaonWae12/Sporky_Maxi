@@ -59,19 +59,11 @@ class Content2 extends StatelessWidget {
         asset,
         height: 20,
         width: 20,
-        colorFilter: const ColorFilter.mode(
-          AppColors.base5,
-          BlendMode.srcIn,
-        ),
+        colorFilter: const ColorFilter.mode(AppColors.base5, BlendMode.srcIn),
       );
     }
 
-    return Image.asset(
-      asset,
-      height: 20,
-      width: 20,
-      color: AppColors.base5,
-    );
+    return Image.asset(asset, height: 20, width: 20, color: AppColors.base5);
   }
 
   @override
@@ -92,14 +84,8 @@ class Content2 extends StatelessWidget {
             icon: const Icon(Icons.close),
           ),
         ),
-        Text(
-          title,
-          style: titleStyle ?? AppTextStyles.headList1Bold(),
-        ),
-        Image.asset(
-          image,
-          height: 200,
-        ),
+        Text(title, style: titleStyle ?? AppTextStyles.headList1Bold()),
+        Image.asset(image, height: 200),
         Padding(
           padding: textPadding,
           child: Text(
@@ -122,13 +108,14 @@ class Content2 extends StatelessWidget {
                       _buildIcon(iconAssetLeft!),
                       const SizedBox(width: 5),
                     ],
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / texLeftWidth,
+                    Expanded(
                       child: Text(
                         textNavLeft,
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                        style: textNavStyle ??
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.visible,
+                        style:
+                            textNavStyle ??
                             AppTextStyles.headList1Bold(AppColors.base5),
                       ),
                     ),
@@ -149,13 +136,14 @@ class Content2 extends StatelessWidget {
                       _buildIcon(iconAssetRight!),
                       const SizedBox(width: 5),
                     ],
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / texRightWidth,
+                    Expanded(
                       child: Text(
                         textNavRight,
                         textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: textNavStyle ??
+                        maxLines: 2,
+                        overflow: TextOverflow.visible,
+                        style:
+                            textNavStyle ??
                             AppTextStyles.headList1Bold(AppColors.base5),
                       ),
                     ),

@@ -42,15 +42,57 @@ class GlobalsButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(radius),
           ),
           elevation: elevation,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          minimumSize: const Size(0, 48),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.standard,
         ),
         onPressed: onPressed,
-        child: child ??
-            Text(
-              text!,
+        child:
+            child ??
+            GlobalsButtonText(
+              text: text!,
               style:
                   customTextStyle ?? AppTextStyles.heading3SemiBold(textColor),
             ),
       ),
     );
+  }
+}
+
+class GlobalsButtonText extends StatelessWidget {
+  const GlobalsButtonText({
+    super.key,
+    required this.text,
+    required this.style,
+    this.textAlign = TextAlign.center,
+  });
+
+  final String text;
+  final TextStyle style;
+  final TextAlign textAlign;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Text(
+          text,
+          textAlign: textAlign,
+          maxLines: 2,
+          softWrap: true,
+          overflow: TextOverflow.visible,
+          textScaler: TextScaler.linear(_scaleForWidth(constraints.maxWidth)),
+          style: style.copyWith(height: 1.05),
+        );
+      },
+    );
+  }
+
+  double _scaleForWidth(double width) {
+    if (width >= 180 || text.length <= 14) return 1;
+    if (width >= 140 || text.length <= 20) return 0.92;
+    if (width >= 110 || text.length <= 26) return 0.84;
+    return 0.76;
   }
 }

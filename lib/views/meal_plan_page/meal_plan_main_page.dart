@@ -14,24 +14,26 @@ class MealPlanMainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.base5,
       floatingActionButton: CmpFloatingActionButton(
         imagePath: 'assets/svg/ic_pie_chart.svg',
         imageColor: AppColors.primary1,
         size: 45,
         onTap: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MealFormMainPage(),
-              ));
+            context,
+            MaterialPageRoute(builder: (context) => MealFormMainPage()),
+          );
         },
       ),
       appBar: AppBar(
+        backgroundColor: AppColors.base5,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
         automaticallyImplyLeading: false,
-        title: Text(
-          'Meal Plan',
-          style: AppTextStyles.heading2SemiBold(),
-        ),
+        title: Text('Meal Plan', style: AppTextStyles.heading2SemiBold()),
       ),
       body: const SingleChildScrollView(
         child: Column(

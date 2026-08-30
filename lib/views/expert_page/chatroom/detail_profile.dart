@@ -100,7 +100,8 @@ class _DetailProfileState extends State<DetailProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.base5,
+        elevation: 0,
         leadingWidth: MediaQuery.of(context).size.width,
         leading: Row(
           children: [

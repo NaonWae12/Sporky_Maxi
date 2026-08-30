@@ -19,30 +19,31 @@ class GlobalsDropdown<T> extends StatelessWidget {
   final double? width;
   final Color borderColor;
 
-  const GlobalsDropdown(
-      {super.key,
-      required this.hintText,
-      this.hinTextColor,
-      required this.value,
-      required this.items,
-      this.itemsColor,
-      required this.onChanged,
-      required this.itemLabelBuilder,
-      this.backgroundColor = AppColors.base5,
-      this.radius = 12.0,
-      this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      this.textStyleValue,
-      this.textStyleItems,
-      this.height = 42,
-      this.width,
-      this.borderColor = AppColors.secondary1});
+  const GlobalsDropdown({
+    super.key,
+    required this.hintText,
+    this.hinTextColor,
+    required this.value,
+    required this.items,
+    this.itemsColor,
+    required this.onChanged,
+    required this.itemLabelBuilder,
+    this.backgroundColor = AppColors.base5,
+    this.radius = 12.0,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    this.textStyleValue,
+    this.textStyleItems,
+    this.height = 42,
+    this.width,
+    this.borderColor = AppColors.secondary1,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: padding,
       height: height,
-      width: width,
+      width: width ?? double.infinity,
       decoration: BoxDecoration(
         color: backgroundColor,
         border: Border.all(color: borderColor),
@@ -61,9 +62,12 @@ class GlobalsDropdown<T> extends StatelessWidget {
           items: items.map((T item) {
             return DropdownMenuItem<T>(
               value: item,
-              child: Text(itemLabelBuilder(item),
-                  style: textStyleItems ??
-                      AppTextStyles.headList1Regular(itemsColor)),
+              child: Text(
+                itemLabelBuilder(item),
+                style:
+                    textStyleItems ??
+                    AppTextStyles.headList1Regular(itemsColor),
+              ),
             );
           }).toList(),
           onChanged: onChanged,

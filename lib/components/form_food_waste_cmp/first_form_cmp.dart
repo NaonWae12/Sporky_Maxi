@@ -78,11 +78,18 @@ class _FirstFormCmpState extends State<FirstFormCmp> {
     }
   }
 
+  void _toggleMealDropdown() {
+    setState(() {
+      isExpanded1 = !isExpanded1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         GlobalsCard(
+          onTap: _toggleMealDropdown,
           padding: const EdgeInsets.symmetric(horizontal: 10),
           backgroundColor: AppColors.base4,
           hasShadow: false,
@@ -108,22 +115,17 @@ class _FirstFormCmpState extends State<FirstFormCmp> {
                         : null,
                   ),
                   const SizedBox(width: 8),
-                  Text(_selectedMealOption?.text ?? 'Pilih Jenis Makanan',
-                      style: AppTextStyles.headList1Regular()),
+                  Text(
+                    _selectedMealOption?.text ?? 'Pilih Jenis Makanan',
+                    style: AppTextStyles.headList1Regular(),
+                  ),
                 ],
               ),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    isExpanded1 = !isExpanded1;
-                  });
-                },
-                icon: Icon(
-                  isExpanded1
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                ),
-              )
+              Icon(
+                isExpanded1
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+              ),
             ],
           ),
         ),
@@ -132,7 +134,7 @@ class _FirstFormCmpState extends State<FirstFormCmp> {
             _mealOptionItem(_mealOptions[i]),
             if (i != _mealOptions.length - 1) const SizedBox(height: 8),
           ],
-        ]
+        ],
       ],
     );
   }

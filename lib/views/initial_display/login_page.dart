@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/components/initial_display/login_cmp/bottom_content.dart';
 import 'package:sporky_maxi/components/initial_display/login_cmp/top_content.dart';
@@ -10,7 +11,8 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.base5,
+        elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
         title: Text("Masuk", style: AppTextStyles.heading2SemiBold()),

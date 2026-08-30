@@ -42,16 +42,19 @@ class ChildProfileInExpert extends StatelessWidget {
           Align(
             alignment: Alignment.topRight,
             child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'X',
-                  style: AppTextStyles.heading3SemiBold(AppColors.base1),
-                )),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'X',
+                style: AppTextStyles.heading3SemiBold(AppColors.base1),
+              ),
+            ),
           ),
-          Text('Profil Anak',
-              style: AppTextStyles.headList1Bold(AppColors.base1)),
+          Text(
+            'Profil Anak',
+            style: AppTextStyles.headList1Bold(AppColors.base1),
+          ),
           ChildProfileNoBox(
             isAsset: true,
             photoUrl: 'assets/temp_img/kids.png',
@@ -63,21 +66,25 @@ class ChildProfileInExpert extends StatelessWidget {
           ),
           Row(
             children: [
-              Expanded(child: Card(title: 'Berat Badan (Kg)*', desc: weight)),
-              Expanded(child: Card(title: 'Tinggi Badan (cm)*', desc: height)),
+              Expanded(
+                child: Card(title: 'Berat Badan (Kg)*', desc: weight),
+              ),
+              Expanded(
+                child: Card(title: 'Tinggi Badan (cm)*', desc: height),
+              ),
             ],
           ),
-          Card(
-              title: 'Riwayat Penyakit',
-              desc: medicalHistories),
+          Card(title: 'Riwayat Penyakit', desc: medicalHistories),
           Card(title: 'Alergi', desc: allergies),
           Card(
-              title: 'Kegiatan Sehari - Hari [Hardcoded]',
-              desc: 'Sekolah disertai kegiatan tambahan di dalam/luar sekolah'),
+            title: 'Kegiatan Sehari - Hari [Hardcoded]',
+            desc: 'Sekolah disertai kegiatan tambahan di dalam/luar sekolah',
+          ),
           Card(
-              title: 'Keluhan [Hardcoded]',
-              desc:
-                  'Belakangan sering batuk saat malam hari dan pagi hari, ingin memastikan apakah perlu pemeriksaan lebih lanjut'),
+            title: 'Keluhan [Hardcoded]',
+            desc:
+                'Belakangan sering batuk saat malam hari dan pagi hari, ingin memastikan apakah perlu pemeriksaan lebih lanjut',
+          ),
           GlobalsButton(
             width: MediaQuery.of(context).size.width / 1.3,
             elevation: 0,
@@ -87,17 +94,21 @@ class ChildProfileInExpert extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   'assets/svg/ic_bear_child.svg',
-                  colorFilter:
-                      ColorFilter.mode(AppColors.base5, BlendMode.srcIn),
+                  colorFilter: ColorFilter.mode(
+                    AppColors.base5,
+                    BlendMode.srcIn,
+                  ),
                 ),
-                Text(
-                  'Lihat Profil Lengkap',
-                  style: AppTextStyles.headList1Bold(AppColors.base5),
-                )
+                Flexible(
+                  child: GlobalsButtonText(
+                    text: 'Lihat Profil Lengkap',
+                    style: AppTextStyles.headList1Bold(AppColors.base5),
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 15)
+          const SizedBox(height: 15),
         ],
       ),
     );
@@ -107,11 +118,7 @@ class ChildProfileInExpert extends StatelessWidget {
 class Card extends StatelessWidget {
   final String title;
   final String desc;
-  const Card({
-    super.key,
-    required this.title,
-    required this.desc,
-  });
+  const Card({super.key, required this.title, required this.desc});
 
   @override
   Widget build(BuildContext context) {
@@ -124,14 +131,8 @@ class Card extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: AppTextStyles.list3SemiBold(AppColors.base2),
-            ),
-            Text(
-              desc,
-              style: AppTextStyles.headList1Regular(AppColors.base1),
-            ),
+            Text(title, style: AppTextStyles.list3SemiBold(AppColors.base2)),
+            Text(desc, style: AppTextStyles.headList1Regular(AppColors.base1)),
           ],
         ),
       ),

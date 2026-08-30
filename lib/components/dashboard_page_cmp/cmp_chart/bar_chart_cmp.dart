@@ -212,9 +212,11 @@ class _BarChartCmpState extends State<BarChartCmp> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Riwayat Makan Anak',
-                    style: AppTextStyles.list1Bold(AppColors.base5),
+                  Flexible(
+                    child: GlobalsButtonText(
+                      text: 'Riwayat Makan Anak',
+                      style: AppTextStyles.list1Bold(AppColors.base5),
+                    ),
                   ),
                   const Icon(Icons.keyboard_arrow_right),
                 ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sporky_maxi/components/globals/button/globals_button.dart';
-import 'package:sporky_maxi/components/globals/card/globals_card.dart';
 import 'package:sporky_maxi/components/globals/form/globals_form.dart';
 
 import '../globals/colors/colors.dart';
@@ -11,8 +10,8 @@ class MealFormItem {
   final TextEditingController portionsController;
 
   MealFormItem()
-      : mealNameController = TextEditingController(),
-        portionsController = TextEditingController();
+    : mealNameController = TextEditingController(),
+      portionsController = TextEditingController();
 }
 
 class CmpAddMealForm extends StatefulWidget {
@@ -20,6 +19,7 @@ class CmpAddMealForm extends StatefulWidget {
   final List<MealFormItem>? forms;
   final VoidCallback? onChanged;
   final ValueChanged<MealFormItem>? onItemAdded;
+  final ValueChanged<int>? onItemRemoved;
   final bool enableAutoComplete;
   final List<String> autoCompleteOptions;
   final ValueChanged<String>? onAutoCompleteSelected;
@@ -29,6 +29,7 @@ class CmpAddMealForm extends StatefulWidget {
     this.forms,
     this.onChanged,
     this.onItemAdded,
+    this.onItemRemoved,
     this.enableAutoComplete = false,
     this.autoCompleteOptions = const [],
     this.onAutoCompleteSelected,
@@ -68,49 +69,58 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-      '[CmpAddMealForm] build - enableAutoComplete=${widget.enableAutoComplete} options=${widget.autoCompleteOptions.length}',
-    );
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-      child: Column(
-        children: [
-          for (int i = 0; i < _forms.length; i++) ...[
-            _buildMealRow(_forms[i], context),
-            if (i != _forms.length - 1) const SizedBox(height: 12),
-          ],
-          if (widget.normalFill)
-            Padding(
-              padding: const EdgeInsets.only(top: 15.0),
-              child: GlobalsButton(
-                height: 44,
-                onPressed: () {
-                  setState(() {
-                    final item = MealFormItem();
-                    _forms.add(item);
-                    _attachListeners(item);
-                    widget.onItemAdded?.call(item);
-                  });
-                  widget.onChanged?.call();
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.add,
-                      color: AppColors.base5,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Menu Lain',
-                      style: AppTextStyles.headList1Bold(AppColors.base5),
-                    )
-                  ],
+      padding: EdgeInsets.zero,
+      child: GestureDetector(
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: Column(
+          children: [
+            for (int i = 0; i < _forms.length; i++) ...[
+              _buildMealRow(_forms[i], context, i),
+              if (i != _forms.length - 1) const SizedBox(height: 12),
+            ],
+            if (widget.normalFill)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: GlobalsButton(
+                  color: AppColors.primary3,
+                  height: 44,
+                  elevation: 0,
+                  textColor: AppColors.secondary1,
+                  onPressed: () {
+                    setState(() {
+                      final item = MealFormItem();
+                      _forms.add(item);
+                      _attachListeners(item);
+                      widget.onItemAdded?.call(item);
+                    });
+                    widget.onChanged?.call();
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.add,
+                        color: AppColors.secondary1,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: GlobalsButtonText(
+                          text: 'Menu Lain',
+                          style: AppTextStyles.headList1Bold(
+                            AppColors.secondary1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            )
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -118,77 +128,103 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
   /// =======================
   /// ROW FORM MAKANAN
   /// =======================
-  Widget _buildMealRow(MealFormItem item, BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width / 2,
-          child: widget.enableAutoComplete
-              ? _buildAutoCompleteNameField(item, context)
-              : GlobalsForm(
-                  hasShadow: false,
-                  controller: item.mealNameController,
-                  label: 'Nama Makanan',
-                  keyboardType: TextInputType.text,
-                ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Stack(
+  Widget _buildMealRow(MealFormItem item, BuildContext context, int index) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.base5,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.base4),
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: GlobalsForm(
-                  enableFloatingLabel: false,
-                  hasShadow: false,
-                  controller: item.portionsController,
-                  label: '1',
-                  keyboardType: TextInputType.number,
+              Expanded(
+                flex: 3,
+                child: widget.enableAutoComplete
+                    ? _buildAutoCompleteNameField(item, context)
+                    : GlobalsForm(
+                        hasShadow: false,
+                        controller: item.mealNameController,
+                        label: 'Nama Makanan',
+                        keyboardType: TextInputType.text,
+                      ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 104,
+                child: Stack(
+                  children: [
+                    GlobalsForm(
+                      enableFloatingLabel: false,
+                      hasShadow: false,
+                      controller: item.portionsController,
+                      label: '1',
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      contentPadding: const EdgeInsets.only(
+                        right: 52,
+                        left: 12,
+                        top: 16,
+                        bottom: 16,
+                      ),
+                    ),
+                    Positioned(
+                      right: 4,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 42,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary1,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Porsi',
+                          style: AppTextStyles.list1Bold(AppColors.base5),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Positioned(
-                right: 0,
-                child: GlobalsCard(
-                  backgroundColor: AppColors.primary1,
-                  width: 95,
-                  hasShadow: false,
-                  height: 55,
-                  margin: const EdgeInsets.all(0),
-                  child: Center(
-                    child: Text(
-                      'Porsi',
-                      style: AppTextStyles.heading3SemiBold(AppColors.base5),
-                    ),
-                  ),
-                ),
-              )
             ],
           ),
-        ),
-      ],
+          if (_forms.length > 1)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => _removeForm(index),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.warn4,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(40, 32),
+                ),
+                child: const Text('Hapus'),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _buildAutoCompleteNameField(
-      MealFormItem item, BuildContext context) {
+  Widget _buildAutoCompleteNameField(MealFormItem item, BuildContext context) {
     return Autocomplete<String>(
       optionsBuilder: (TextEditingValue textEditingValue) {
         final query = textEditingValue.text.trim().toLowerCase();
-        debugPrint(
-          '[CmpAddMealForm] optionsBuilder query="$query" options=${widget.autoCompleteOptions.length}',
-        );
         if (query.isEmpty) {
           return const Iterable<String>.empty();
         }
         final matched = widget.autoCompleteOptions
             .where((option) => option.toLowerCase().contains(query))
             .toList();
-        debugPrint('[CmpAddMealForm] matched options: $matched');
         return matched;
       },
       onSelected: (String selection) {
-        debugPrint('[CmpAddMealForm] onSelected: $selection');
         item.mealNameController.text = selection;
         widget.onAutoCompleteSelected?.call(selection);
         widget.onChanged?.call();
@@ -208,7 +244,6 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
           keyboardType: TextInputType.text,
           style: AppTextStyles.heading3Medium(),
           onChanged: (value) {
-            debugPrint('[CmpAddMealForm] onChanged field value="$value"');
             if (item.mealNameController.text != value) {
               item.mealNameController.value = TextEditingValue(
                 text: value,
@@ -222,28 +257,26 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
             labelStyle: AppTextStyles.heading3Medium(Colors.grey),
             filled: true,
             fillColor: AppColors.base5,
-            floatingLabelStyle:
-                AppTextStyles.heading3Medium(AppColors.primary1),
+            floatingLabelStyle: AppTextStyles.heading3Medium(
+              AppColors.primary1,
+            ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(19.5),
-              borderSide:
-                  const BorderSide(color: AppColors.primary1, width: 2),
+              borderSide: const BorderSide(color: AppColors.primary1, width: 2),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(19.5),
-              borderSide:
-                  const BorderSide(color: AppColors.base3, width: 1.2),
+              borderSide: const BorderSide(color: AppColors.base3, width: 1.2),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
           ),
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
         final optionsList = options.toList();
-        debugPrint(
-          '[CmpAddMealForm] optionsViewBuilder count=${optionsList.length}',
-        );
         return Align(
           alignment: Alignment.topLeft,
           child: Material(
@@ -261,11 +294,10 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
                     onTap: () => onSelected(option),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      child: Text(
-                        option,
-                        style: AppTextStyles.list1Regular(),
+                        horizontal: 12,
+                        vertical: 10,
                       ),
+                      child: Text(option, style: AppTextStyles.list1Regular()),
                     ),
                   );
                 },
@@ -281,5 +313,21 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
     if (widget.onChanged == null) return;
     item.mealNameController.addListener(widget.onChanged!);
     item.portionsController.addListener(widget.onChanged!);
+  }
+
+  void _removeForm(int index) {
+    if (_forms.length <= 1) return;
+    final item = _forms[index];
+    item.mealNameController.removeListener(widget.onChanged!);
+    item.portionsController.removeListener(widget.onChanged!);
+    setState(() {
+      _forms.removeAt(index);
+    });
+    if (_ownsForms) {
+      item.mealNameController.dispose();
+      item.portionsController.dispose();
+    }
+    widget.onItemRemoved?.call(index);
+    widget.onChanged?.call();
   }
 }

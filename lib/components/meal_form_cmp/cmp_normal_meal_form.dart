@@ -60,6 +60,11 @@ class CmpNormalMealForm extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           backgroundColor: AppColors.base4,
           hasShadow: false,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Form makan pagi sudah terbuka')),
+            );
+          },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -70,16 +75,7 @@ class CmpNormalMealForm extends StatelessWidget {
                   Text('Makan Pagi', style: AppTextStyles.headList1Regular()),
                 ],
               ),
-              IconButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Form makan pagi sudah terbuka'),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.keyboard_arrow_down),
-              ),
+              const Icon(Icons.keyboard_arrow_down),
             ],
           ),
         ),
@@ -87,6 +83,11 @@ class CmpNormalMealForm extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           backgroundColor: AppColors.base4,
           hasShadow: false,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Mode isi manual sudah aktif')),
+            );
+          },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -97,16 +98,7 @@ class CmpNormalMealForm extends StatelessWidget {
                   Text('Isi Manual', style: AppTextStyles.headList1Regular()),
                 ],
               ),
-              IconButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Mode isi manual sudah aktif'),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.keyboard_arrow_down),
-              ),
+              const Icon(Icons.keyboard_arrow_down),
             ],
           ),
         ),
@@ -153,9 +145,11 @@ class CmpNormalMealForm extends StatelessWidget {
               children: [
                 const Icon(Icons.add, color: AppColors.base5, size: 20),
                 const SizedBox(width: 8),
-                Text(
-                  'Simpan Kalori Makanan',
-                  style: AppTextStyles.headList1Bold(AppColors.base5),
+                Flexible(
+                  child: GlobalsButtonText(
+                    text: 'Simpan Kalori Makanan',
+                    style: AppTextStyles.headList1Bold(AppColors.base5),
+                  ),
                 ),
               ],
             ),
@@ -182,15 +176,13 @@ Widget _buildNutritionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SvgPicture.asset(iconPath),
-          Text(title, style: AppTextStyles.list1Regular()),
+          SizedBox(height: 18, width: 18, child: SvgPicture.asset(iconPath)),
+          const SizedBox(height: 4),
+          Text(title, style: AppTextStyles.list3Regular()),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                value,
-                style: AppTextStyles.heading3SemiBold(AppColors.base2),
-              ),
+              Text(value, style: AppTextStyles.heading3SemiBold()),
               GlobalsCard(
                 radius: 4,
                 margin: const EdgeInsets.symmetric(horizontal: 5),

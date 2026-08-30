@@ -49,15 +49,18 @@ class _AllChatState extends State<AllChat> {
       return cachedRooms;
     }
 
-    final freshRooms = await ChatSyncService.fetchRooms(roomTypeFilter: 'konsultasi');
+    final freshRooms = await ChatSyncService.fetchRooms(
+      roomTypeFilter: 'konsultasi',
+    );
     await ChatCacheService.saveRooms(freshRooms, scope: 'parent');
     return freshRooms;
   }
 
   Future<void> _refreshRoomsInBackground() async {
     try {
-      final freshRooms =
-          await ChatSyncService.fetchRooms(roomTypeFilter: 'konsultasi');
+      final freshRooms = await ChatSyncService.fetchRooms(
+        roomTypeFilter: 'konsultasi',
+      );
       await ChatCacheService.saveRooms(freshRooms, scope: 'parent');
       if (!mounted) return;
 
@@ -126,8 +129,9 @@ class _AllChatState extends State<AllChat> {
                           ),
                         );
                       },
-                      name:
-                          room.displayName.isEmpty ? _hardcodedName : room.displayName,
+                      name: room.displayName.isEmpty
+                          ? _hardcodedName
+                          : room.displayName,
                       message: _hardcodedMessage,
                       time: _formatTime(room.updatedAt),
                       unreadCount: room.unreadCount,
@@ -160,9 +164,11 @@ class _AllChatState extends State<AllChat> {
             children: [
               SvgPicture.asset('assets/svg/ic_coupon - ticket.svg'),
               const SizedBox(width: 8),
-              Text(
-                'Beli Tiket Konsultasi',
-                style: AppTextStyles.headList1Bold(AppColors.base5),
+              Flexible(
+                child: GlobalsButtonText(
+                  text: 'Beli Tiket Konsultasi',
+                  style: AppTextStyles.headList1Bold(AppColors.base5),
+                ),
               ),
             ],
           ),

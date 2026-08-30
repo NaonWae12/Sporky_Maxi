@@ -3,6 +3,7 @@ import '../../../components/globals/button/globals_button.dart';
 import '../../../components/globals/card/globals_card.dart';
 import '../../../components/globals/chart/syncfusion_z_score_chart.dart';
 import '../../../components/globals/colors/colors.dart';
+import '../../../components/globals/dialog/globals_bottom_sheet.dart';
 import '../../../components/globals/text/text_style.dart';
 import '../../../core/services/child/z_score_chart_service.dart';
 import '../../../models/components/child/z_score_chart_point_model.dart';
@@ -78,13 +79,15 @@ class _ZScoreLineChartCmpState extends State<ZScoreLineChartCmp> {
       // Bulanan: average per month
       Map<int, List<ZScoreChartPoint>> monthMap = {};
       for (var point in allPoints) {
-        final month =
-            DateTime.fromMillisecondsSinceEpoch(point.x.toInt()).month;
+        final month = DateTime.fromMillisecondsSinceEpoch(
+          point.x.toInt(),
+        ).month;
         monthMap.putIfAbsent(month, () => []).add(point);
       }
 
       chartData = monthMap.entries.map((entry) {
-        final avgY = entry.value.map((e) => e.y).reduce((a, b) => a + b) /
+        final avgY =
+            entry.value.map((e) => e.y).reduce((a, b) => a + b) /
             entry.value.length;
         return ChartData(entry.key.toDouble(), avgY);
       }).toList();
@@ -110,17 +113,45 @@ class _ZScoreLineChartCmpState extends State<ZScoreLineChartCmp> {
           border: Border.all(color: AppColors.primary2),
           child: InkWell(
             onTap: () async {
-              final result = await showModalBottomSheet<ChartMode>(
+              final result = await showAppBottomSheet<ChartMode>(
                 context: context,
-                builder: (_) => Column(
+                isScrollControlled: false,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ListTile(
-                      title: Text('Mingguan'),
+                      title: Text(
+                        'Mingguan',
+                        style: AppTextStyles.headList1Regular(
+                          chartMode == ChartMode.weekly
+                              ? AppColors.primary1
+                              : AppColors.base1,
+                        ),
+                      ),
+                      trailing: chartMode == ChartMode.weekly
+                          ? const Icon(
+                              Icons.check_rounded,
+                              color: AppColors.primary1,
+                            )
+                          : null,
                       onTap: () => Navigator.pop(context, ChartMode.weekly),
                     ),
                     ListTile(
-                      title: Text('Bulanan'),
+                      title: Text(
+                        'Bulanan',
+                        style: AppTextStyles.headList1Regular(
+                          chartMode == ChartMode.monthly
+                              ? AppColors.primary1
+                              : AppColors.base1,
+                        ),
+                      ),
+                      trailing: chartMode == ChartMode.monthly
+                          ? const Icon(
+                              Icons.check_rounded,
+                              color: AppColors.primary1,
+                            )
+                          : null,
                       onTap: () => Navigator.pop(context, ChartMode.monthly),
                     ),
                   ],
@@ -183,18 +214,12 @@ class _ZScoreLineChartCmpState extends State<ZScoreLineChartCmp> {
                 shape: BoxShape.circle,
                 color: AppColors.primary1,
                 boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary1,
-                    blurRadius: 5,
-                  ),
+                  BoxShadow(color: AppColors.primary1, blurRadius: 5),
                 ],
               ),
             ),
             const SizedBox(width: 5),
-            Text(
-              'Riwayat Z-Score Anak',
-              style: AppTextStyles.list1Regular(),
-            )
+            Text('Riwayat Z-Score Anak', style: AppTextStyles.list1Regular()),
           ],
         ),
 
@@ -206,10 +231,11 @@ class _ZScoreLineChartCmpState extends State<ZScoreLineChartCmp> {
               child: GlobalsButton(
                 onPressed: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PageChildGrowthUpdates(),
-                      ));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PageChildGrowthUpdates(),
+                    ),
+                  );
                 },
                 height: widget.heightButton,
                 width: MediaQuery.of(context).size.width / 1.1,
@@ -217,11 +243,13 @@ class _ZScoreLineChartCmpState extends State<ZScoreLineChartCmp> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Update Data Anak',
-                      style: AppTextStyles.list1Bold(AppColors.base5),
+                    Flexible(
+                      child: GlobalsButtonText(
+                        text: 'Update Data Anak',
+                        style: AppTextStyles.list1Bold(AppColors.base5),
+                      ),
                     ),
-                    const Icon(Icons.keyboard_arrow_right)
+                    const Icon(Icons.keyboard_arrow_right),
                   ],
                 ),
               ),

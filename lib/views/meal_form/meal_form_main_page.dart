@@ -31,52 +31,68 @@ class _MealFormMainPageState extends State<MealFormMainPage> {
           child: Row(
             children: [
               IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back_ios)),
-              Text(
-                'Form Makanan',
-                style: AppTextStyles.heading2SemiBold(),
-              )
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
+              Text('Form Makanan', style: AppTextStyles.heading2SemiBold()),
             ],
           ),
         ),
       ),
-      body: Column(
-        children: [
-          CmpTagAttention(
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            child: Text.rich(
-                TextSpan(style: AppTextStyles.list1Regular(), children: [
-              const TextSpan(text: 'Mau isi kalori '),
-              TextSpan(text: 'manual, ', style: AppTextStyles.list1SemiBold()),
-              const TextSpan(text: 'manual pengisian otomatis melalui menu '),
-              TextSpan(
-                  text: 'meal plan, ', style: AppTextStyles.list1SemiBold()),
-              const TextSpan(text: 'atau cukup '),
-              TextSpan(text: 'scan QR ', style: AppTextStyles.list1SemiBold()),
-              const TextSpan(text: 'catering Sporky? Semuanya bisa!'),
-            ])),
-          ),
-          // =============== tombol panduan porsi makan ==================
-          const FoodPortionGuideButton(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CmpTagAttention(
+              imageAsset: 'assets/svg/bento-box-rounded.svg',
+              child: Text.rich(
+                TextSpan(
+                  style: AppTextStyles.list1Regular(),
+                  children: [
+                    const TextSpan(text: 'Mau isi kalori '),
+                    TextSpan(
+                      text: 'manual, ',
+                      style: AppTextStyles.list1SemiBold(),
+                    ),
+                    const TextSpan(
+                      text: 'manual pengisian otomatis melalui menu ',
+                    ),
+                    TextSpan(
+                      text: 'meal plan, ',
+                      style: AppTextStyles.list1SemiBold(),
+                    ),
+                    const TextSpan(text: 'atau cukup '),
+                    TextSpan(
+                      text: 'scan QR ',
+                      style: AppTextStyles.list1SemiBold(),
+                    ),
+                    const TextSpan(text: 'catering Sporky? Semuanya bisa!'),
+                  ],
+                ),
+              ),
+            ),
+            // =============== tombol panduan porsi makan ==================
+            const FoodPortionGuideButton(),
 
-          CmpMealForm(
-            selectedMeal: selectedMeal,
-            selectedCalorieMethod: selectedCalorieMethod,
-            onMealChanged: (item) {
-              setState(() {
-                selectedMeal = item;
-              });
-            },
-            onCalorieMethodChanged: (item) {
-              setState(() {
-                selectedCalorieMethod = item;
-              });
-            },
-          ),
-        ],
+            CmpMealForm(
+              selectedMeal: selectedMeal,
+              selectedCalorieMethod: selectedCalorieMethod,
+              onMealChanged: (item) {
+                setState(() {
+                  selectedMeal = item;
+                });
+              },
+              onCalorieMethodChanged: (item) {
+                setState(() {
+                  selectedCalorieMethod = item;
+                });
+              },
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 50.0, left: 16.0, right: 16.0),
@@ -86,13 +102,14 @@ class _MealFormMainPageState extends State<MealFormMainPage> {
             GlobalsButton(
               onPressed: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddMealCategoryPage(
-                        selectedMeal: selectedMeal,
-                        selectedCalorieMethod: selectedCalorieMethod,
-                      ),
-                    ));
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddMealCategoryPage(
+                      selectedMeal: selectedMeal,
+                      selectedCalorieMethod: selectedCalorieMethod,
+                    ),
+                  ),
+                );
               },
               color: AppColors.secondary1,
               text: 'Hitung Kalori',
@@ -100,23 +117,27 @@ class _MealFormMainPageState extends State<MealFormMainPage> {
 
             // =============== Next to Page food waste ===============
             const SizedBox(height: 8),
-            Text.rich(TextSpan(
-              style: AppTextStyles.list1Regular(),
-              children: [
-                TextSpan(text: 'mau masukkan data sisa makanan? '),
-                TextSpan(
+            Text.rich(
+              TextSpan(
+                style: AppTextStyles.list1Regular(),
+                children: [
+                  TextSpan(text: 'mau masukkan data sisa makanan? '),
+                  TextSpan(
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PageFormFoodWaste(),
-                            ));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PageFormFoodWaste(),
+                          ),
+                        );
                       },
                     text: 'klik disini',
-                    style: AppTextStyles.list1SemiBold(AppColors.primary1))
-              ],
-            ))
+                    style: AppTextStyles.list1SemiBold(AppColors.primary1),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

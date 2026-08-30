@@ -9,6 +9,7 @@ class MealPlan {
   final double protein;
   final double fat;
   final double calories;
+  final int favoritesCount;
 
   MealPlan({
     required this.id,
@@ -21,6 +22,7 @@ class MealPlan {
     required this.protein,
     required this.fat,
     required this.calories,
+    this.favoritesCount = 0,
   });
 
   String get displayType {
@@ -28,9 +30,11 @@ class MealPlan {
     final rawType = type.first;
     return rawType
         .split('_')
-        .map((word) => word.isNotEmpty
-            ? '${word[0].toUpperCase()}${word.substring(1)}'
-            : '')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1)}'
+              : '',
+        )
         .join(' ');
   }
 
@@ -38,7 +42,8 @@ class MealPlan {
     Map<String, dynamic> nutrition = {};
     if (json['nutrition'] is Map<String, dynamic>) {
       nutrition = json['nutrition'] as Map<String, dynamic>;
-    } else if (json['nutritions'] is List && (json['nutritions'] as List).isNotEmpty) {
+    } else if (json['nutritions'] is List &&
+        (json['nutritions'] as List).isNotEmpty) {
       final firstNutrition = (json['nutritions'] as List).first;
       if (firstNutrition is Map<String, dynamic>) {
         nutrition = firstNutrition;
@@ -65,6 +70,9 @@ class MealPlan {
       protein: _toDouble(nutrition['protein']),
       fat: _toDouble(nutrition['fat']),
       calories: _toDouble(nutrition['calories']),
+      favoritesCount: _toInt(
+        json['favorites_count'] ?? json['total_favorites'],
+      ),
     );
   }
 

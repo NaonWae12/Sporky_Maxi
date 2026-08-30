@@ -134,11 +134,13 @@ class Content1 extends StatelessWidget {
                 colorFilter: ColorFilter.mode(AppColors.base5, BlendMode.srcIn),
               ),
               const SizedBox(width: 5),
-              Text(
-                textNav,
-                style:
-                    textNavStyle ??
-                    AppTextStyles.headList1Bold(AppColors.base5),
+              Flexible(
+                child: GlobalsButtonText(
+                  text: textNav,
+                  style:
+                      textNavStyle ??
+                      AppTextStyles.headList1Bold(AppColors.base5),
+                ),
               ),
             ],
           ),

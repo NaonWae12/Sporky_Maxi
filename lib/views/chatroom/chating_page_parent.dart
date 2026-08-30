@@ -92,7 +92,8 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
       if (!silent && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Token tidak ditemukan. Silakan login ulang')),
+            content: Text('Token tidak ditemukan. Silakan login ulang'),
+          ),
         );
       }
       if (!silent && mounted) {
@@ -147,9 +148,9 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
       unawaited(_markIncomingMessagesAsRead(fetched, token));
     } catch (e) {
       if (!silent && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
       }
     } finally {
       _isFetchingMessages = false;
@@ -166,11 +167,13 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
     String token,
   ) async {
     final pending = messages
-        .where((msg) =>
-            !msg.isMe &&
-            msg.uuid.isNotEmpty &&
-            msg.readAt == null &&
-            !_readInFlight.contains(msg.uuid))
+        .where(
+          (msg) =>
+              !msg.isMe &&
+              msg.uuid.isNotEmpty &&
+              msg.readAt == null &&
+              !_readInFlight.contains(msg.uuid),
+        )
         .toList();
 
     if (pending.isEmpty) return;
@@ -182,7 +185,8 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
     try {
       await Future.wait(
         pending.map(
-            (msg) => _markMessageAsRead(token: token, messageUuid: msg.uuid)),
+          (msg) => _markMessageAsRead(token: token, messageUuid: msg.uuid),
+        ),
       );
     } finally {
       for (final msg in pending) {
@@ -198,11 +202,9 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
     try {
       final response = await http.post(
         Uri.parse(
-            ApiEndpoints.chatRoomMessageRead(widget.roomUuid, messageUuid)),
-        headers: {
-          'Authorization': token,
-          'Accept': 'application/json',
-        },
+          ApiEndpoints.chatRoomMessageRead(widget.roomUuid, messageUuid),
+        ),
+        headers: {'Authorization': token, 'Accept': 'application/json'},
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -229,7 +231,8 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Token tidak ditemukan. Silakan login ulang')),
+          content: Text('Token tidak ditemukan. Silakan login ulang'),
+        ),
       );
       return;
     }
@@ -246,9 +249,7 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode({
-          'message': text,
-        }),
+        body: jsonEncode({'message': text}),
       );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -289,14 +290,14 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
       } catch (_) {}
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -321,7 +322,8 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.base5,
+        elevation: 0,
         leadingWidth: MediaQuery.of(context).size.width,
         leading: Row(
           children: [
@@ -365,20 +367,20 @@ class _ChatingPageParentState extends State<ChatingPageParent> {
             child: _isLoadingMessages && _messages.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : _messages.isEmpty
-                    ? const Center(child: Text('Belum ada pesan'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          return ChatBubble(
-                            message: msg.message,
-                            time: msg.time,
-                            isMe: msg.isMe,
-                            status: msg.status,
-                          );
-                        },
-                      ),
+                ? const Center(child: Text('Belum ada pesan'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = _messages[index];
+                      return ChatBubble(
+                        message: msg.message,
+                        time: msg.time,
+                        isMe: msg.isMe,
+                        status: msg.status,
+                      );
+                    },
+                  ),
           ),
           ChatInputBar(
             controller: _messageController,

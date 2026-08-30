@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:sporky_maxi/components/globals/button/globals_button.dart';
+import 'package:sporky_maxi/components/globals/dialog/globals_bottom_sheet.dart';
 import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
 
 import '../../core/utils/secure_storage_service.dart';
@@ -71,8 +71,12 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
   ];
   final List<String> _foodIntakeNamesCache = [];
   final List<_FoodIntakeOption> _foodIntakeOptions = [];
+  final Map<MealFormItem, _FoodIntakeOption> _foodIntakeOptionByForm = {};
   final List<MealFormItem> _foodForms = [];
   final List<double> _leftoverByForm = [];
+  ScaffoldMessengerState? _scaffoldMessenger;
+  String? _lastSliderAlertMessage;
+  DateTime? _lastSliderAlertAt;
   double _carbohydrateTotal = 0;
   double _proteinTotal = 0;
   double _fatTotal = 0;
@@ -81,17 +85,13 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
   @override
   void initState() {
     super.initState();
-    _initializeDefaultForms();
     _loadFoodIntakeNames();
   }
 
-  void _initializeDefaultForms() {
-    _clearForms();
-    final form = MealFormItem();
-    form.portionsController.text = '1';
-    _foodForms.add(form);
-    _leftoverByForm.add(0.0);
-    _attachListeners(form);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
   }
 
   void _clearForms() {
@@ -101,6 +101,7 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     }
     _foodForms.clear();
     _leftoverByForm.clear();
+    _foodIntakeOptionByForm.clear();
   }
 
   void _attachListeners(MealFormItem item) {
@@ -112,12 +113,15 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
   void didUpdateWidget(covariant AddFormWasteCmp oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedMealOption?.text != oldWidget.selectedMealOption?.text) {
+      _clearCurrentAlert();
+      _resetSliderAlertThrottle();
       _loadFoodIntakeNames();
     }
   }
 
   @override
   void dispose() {
+    _clearCurrentAlert();
     for (final form in _foodForms) {
       form.mealNameController.dispose();
       form.portionsController.dispose();
@@ -142,17 +146,66 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     }
   }
 
-  Future<void> _pickPhotoEvidence() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
+  String _todayDateString() {
+    final now = DateTime.now();
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$month-$day';
+  }
+
+  Future<void> _pickPhotoEvidence(ImageSource source) async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: source,
+        imageQuality: 80,
+      );
+
+      if (pickedFile == null || !mounted) return;
+
+      setState(() {
+        _photoEvidence = pickedFile;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal membuka kamera atau galeri.')),
+      );
+    }
+  }
+
+  Future<void> _showPhotoSourcePicker() async {
+    final source = await showAppBottomSheet<ImageSource>(
+      context: context,
+      isScrollControlled: false,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt, color: AppColors.primary1),
+            title: Text(
+              'Ambil dari Kamera',
+              style: AppTextStyles.headList1Regular(),
+            ),
+            onTap: () => Navigator.pop(context, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library, color: AppColors.primary1),
+            title: Text(
+              'Pilih dari Galeri',
+              style: AppTextStyles.headList1Regular(),
+            ),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
+        ],
+      ),
     );
 
-    if (pickedFile == null) return;
+    if (source == null) return;
+    if (!mounted) return;
 
-    setState(() {
-      _photoEvidence = pickedFile;
-    });
+    await _pickPhotoEvidence(source);
   }
 
   Future<void> _loadFoodIntakeNames() async {
@@ -162,9 +215,17 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     );
     setState(() {
       _isLoadingFoodIntakes = true;
+      _foodIntakeNamesCache.clear();
+      _foodIntakeOptions.clear();
+      _clearForms();
+      _carbohydrateTotal = 0;
+      _proteinTotal = 0;
+      _fatTotal = 0;
+      _caloriesTotal = 0;
     });
 
     try {
+      final today = _todayDateString();
       final childUuid = await SecureStorageService.getSelectedChildUuid();
       debugPrint('[AddFormWasteCmp] selected child_uuid: $childUuid');
       if (childUuid == null || childUuid.isEmpty) {
@@ -182,9 +243,14 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
       }
       final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
 
-      final uri = Uri.parse(
-        ApiEndpoints.foodIntakes,
-      ).replace(queryParameters: {'child_uuid': childUuid});
+      final uri = Uri.parse(ApiEndpoints.foodIntakes).replace(
+        queryParameters: {
+          'child_uuid': childUuid,
+          'date_from': today,
+          'date_to': today,
+          'per_page': '100',
+        },
+      );
       debugPrint('[AddFormWasteCmp] GET $uri');
 
       final response = await http.get(
@@ -203,6 +269,15 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
       final foodIntakes = _extractFoodIntakeList(decoded);
       debugPrint('[AddFormWasteCmp] parsed items count: ${foodIntakes.length}');
 
+      final recordedIntakeUuids = await _loadRecordedWasteIntakeUuids(
+        authHeader,
+        childUuid,
+        today,
+      );
+      debugPrint(
+        '[AddFormWasteCmp] recorded waste intake UUIDs count: ${recordedIntakeUuids.length}',
+      );
+
       final expectedMealTime = _selectedMealTime();
       debugPrint('[AddFormWasteCmp] expected meal_time: $expectedMealTime');
 
@@ -218,9 +293,14 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
       }
       // ==========================================================
 
+      final pendingIntakes = foodIntakes
+          .where((e) => _isSameDate(e['date'], today))
+          .where((e) => !_hasFoodWaste(e, recordedIntakeUuids))
+          .toList();
+
       final filtered = expectedMealTime == null
-          ? foodIntakes
-          : foodIntakes
+          ? pendingIntakes
+          : pendingIntakes
                 .where((e) => e['meal_time'] == expectedMealTime)
                 .toList();
       debugPrint('[AddFormWasteCmp] filtered count: ${filtered.length}');
@@ -228,23 +308,18 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
       final seen = <String>{};
       final names = <String>[];
       final options = <_FoodIntakeOption>[];
-      for (final item in foodIntakes) {
+      for (final item in filtered) {
         debugPrint('[AddFormWasteCmp] raw item: $item');
         final name = _resolveDisplayName(item);
         if (name.isEmpty) continue;
+        final option = _foodIntakeOptionFromJson(item, name);
+        if (option.intakeUuid.isEmpty) continue;
+
+        options.add(option);
+
         final normalized = name.toLowerCase();
         if (seen.add(normalized)) {
           names.add(name);
-          options.add(
-            _FoodIntakeOption(
-              intakeUuid: item['uuid']?.toString() ?? '',
-              name: name,
-              carbohydrate: _asDouble(item['carbohydrate']),
-              protein: _asDouble(item['protein']),
-              fat: _asDouble(item['fat']),
-              calories: _asDouble(item['calories']),
-            ),
-          );
         }
       }
       debugPrint('[AddFormWasteCmp] autocomplete names count: ${names.length}');
@@ -260,24 +335,13 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
           ..addAll(options);
 
         _clearForms();
-        if (filtered.isNotEmpty) {
-          for (final item in filtered) {
-            final name = _resolveDisplayName(item);
-            if (name.isEmpty) continue;
-            final form = MealFormItem();
-            form.mealNameController.text = name;
-            form.portionsController.text = '1';
-            _foodForms.add(form);
-            _leftoverByForm.add(0.0);
-            _attachListeners(form);
-          }
-        }
-
-        if (_foodForms.isEmpty) {
+        for (final option in options) {
           final form = MealFormItem();
+          form.mealNameController.text = option.name;
           form.portionsController.text = '1';
           _foodForms.add(form);
           _leftoverByForm.add(0.0);
+          _foodIntakeOptionByForm[form] = option;
           _attachListeners(form);
         }
       });
@@ -294,6 +358,47 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
         });
       }
       debugPrint('[AddFormWasteCmp] loading finished');
+    }
+  }
+
+  Future<Set<String>> _loadRecordedWasteIntakeUuids(
+    String authHeader,
+    String childUuid,
+    String date,
+  ) async {
+    try {
+      final uri = Uri.parse(ApiEndpoints.foodWaste).replace(
+        queryParameters: {
+          'child_uuid': childUuid,
+          'date_from': date,
+          'date_to': date,
+          'per_page': '100',
+        },
+      );
+      debugPrint('[AddFormWasteCmp] GET $uri');
+
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
+      );
+      debugPrint(
+        '[AddFormWasteCmp] food-waste response status: ${response.statusCode}',
+      );
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return <String>{};
+      }
+
+      final decoded = jsonDecode(response.body);
+      final wasteItems = _extractFoodWasteList(decoded);
+      return wasteItems
+          .map((item) => item['food_intake'])
+          .whereType<Map<String, dynamic>>()
+          .map((foodIntake) => foodIntake['uuid']?.toString() ?? '')
+          .where((uuid) => uuid.isNotEmpty)
+          .toSet();
+    } catch (_) {
+      return <String>{};
     }
   }
 
@@ -317,6 +422,54 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     return const <Map<String, dynamic>>[];
   }
 
+  List<Map<String, dynamic>> _extractFoodWasteList(dynamic decoded) {
+    if (decoded is! Map<String, dynamic>) {
+      return const <Map<String, dynamic>>[];
+    }
+
+    final dataNode = decoded['data'];
+    if (dataNode is List) {
+      return dataNode.whereType<Map<String, dynamic>>().toList();
+    }
+
+    if (dataNode is Map<String, dynamic>) {
+      final items = dataNode['food_waste'];
+      if (items is List) {
+        return items.whereType<Map<String, dynamic>>().toList();
+      }
+    }
+
+    return const <Map<String, dynamic>>[];
+  }
+
+  bool _isSameDate(dynamic value, String date) {
+    final rawDate = value?.toString() ?? '';
+    return rawDate.length >= 10 && rawDate.substring(0, 10) == date;
+  }
+
+  bool _hasFoodWaste(Map<String, dynamic> item, Set<String> recordedUuids) {
+    final uuid = item['uuid']?.toString() ?? '';
+    if (uuid.isNotEmpty && recordedUuids.contains(uuid)) return true;
+    if (item['has_food_waste'] == true) return true;
+
+    final foodWaste = item['food_waste'];
+    return foodWaste is Map<String, dynamic> && foodWaste.isNotEmpty;
+  }
+
+  _FoodIntakeOption _foodIntakeOptionFromJson(
+    Map<String, dynamic> item,
+    String name,
+  ) {
+    return _FoodIntakeOption(
+      intakeUuid: item['uuid']?.toString() ?? '',
+      name: name,
+      carbohydrate: _asDouble(item['carbohydrate']),
+      protein: _asDouble(item['protein']),
+      fat: _asDouble(item['fat']),
+      calories: _asDouble(item['calories']),
+    );
+  }
+
   double _asDouble(dynamic value) {
     if (value is num) return value.toDouble();
     if (value is String) return double.tryParse(value) ?? 0;
@@ -332,22 +485,21 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
   }
 
   void _recalculateNutrition() {
+    if (_lastSliderAlertMessage != null) {
+      _clearCurrentAlert();
+      _resetSliderAlertThrottle();
+    }
+
     double carb = 0;
     double protein = 0;
     double fat = 0;
     double calories = 0;
 
     for (final form in _foodForms) {
-      final selectedName = form.mealNameController.text.trim().toLowerCase();
+      final selectedName = form.mealNameController.text.trim();
       if (selectedName.isEmpty) continue;
 
-      _FoodIntakeOption? option;
-      for (final item in _foodIntakeOptions) {
-        if (item.name.toLowerCase() == selectedName) {
-          option = item;
-          break;
-        }
-      }
+      final option = _findOptionForForm(form);
       if (option == null) continue;
 
       final portion = _parsePortion(form.portionsController.text);
@@ -388,11 +540,47 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     return null;
   }
 
-  void _showAlert(String message) {
+  _FoodIntakeOption? _findOptionForForm(MealFormItem form) {
+    final mealName = form.mealNameController.text.trim();
+    final mapped = _foodIntakeOptionByForm[form];
+    if (mapped != null && _normalize(mapped.name) == _normalize(mealName)) {
+      return mapped;
+    }
+
+    return _findOptionByName(mealName);
+  }
+
+  void _clearCurrentAlert() {
+    _scaffoldMessenger?.clearSnackBars();
+  }
+
+  void _resetSliderAlertThrottle() {
+    _lastSliderAlertMessage = null;
+    _lastSliderAlertAt = null;
+  }
+
+  void _showAlert(String message, {bool throttle = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+
+    if (throttle) {
+      final now = DateTime.now();
+      final isSameMessage = _lastSliderAlertMessage == message;
+      final isTooSoon =
+          _lastSliderAlertAt != null &&
+          now.difference(_lastSliderAlertAt!) < const Duration(seconds: 2);
+
+      if (isSameMessage && isTooSoon) return;
+
+      _lastSliderAlertMessage = message;
+      _lastSliderAlertAt = now;
+    }
+
+    final messenger = _scaffoldMessenger ?? ScaffoldMessenger.maybeOf(context);
+    messenger
+      ?..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(duration: const Duration(seconds: 2), content: Text(message)),
+      );
   }
 
   bool _isMealSelected(int index) {
@@ -406,9 +594,13 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     if (!_isMealSelected(index)) {
       _showAlert(
         'Isi nama makanan form ke-${index + 1} dulu sebelum geser slider.',
+        throttle: true,
       );
       return;
     }
+
+    _clearCurrentAlert();
+    _resetSliderAlertThrottle();
 
     setState(() {
       _leftoverByForm[index] = value.clamp(0.0, 1.0);
@@ -433,13 +625,13 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     }
 
     if (selectedIndexes.isEmpty) {
-      _showAlert('Isi minimal satu nama makanan dulu.');
+      _showAlert('Tidak ada data makanan yang perlu diisi sisa makanannya.');
       return;
     }
 
     for (final i in selectedIndexes) {
       final selectedName = _foodForms[i].mealNameController.text.trim();
-      final option = _findOptionByName(selectedName);
+      final option = _findOptionForForm(_foodForms[i]);
       if (option == null || option.intakeUuid.isEmpty) {
         _showAlert(
           'Makanan "$selectedName" tidak valid. Pilih dari daftar autocomplete.',
@@ -455,7 +647,7 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     try {
       for (final i in selectedIndexes) {
         final selectedName = _foodForms[i].mealNameController.text.trim();
-        final option = _findOptionByName(selectedName);
+        final option = _findOptionForForm(_foodForms[i]);
         if (option == null || option.intakeUuid.isEmpty) {
           _showAlert(
             'Makanan "$selectedName" tidak valid. Pilih dari daftar autocomplete.',
@@ -562,6 +754,14 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     return '';
   }
 
+  void _toggleMealDropdown() {
+    if (widget.onMealOptionChanged == null) return;
+
+    setState(() {
+      _isExpanded1 = !_isExpanded1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint(
@@ -570,8 +770,10 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     return Column(
       children: [
         const FoodPortionGuideButton(slug: 'food-waste-guide'),
-        _buildPhotoEvidenceField(),
         GlobalsCard(
+          onTap: widget.onMealOptionChanged == null
+              ? null
+              : _toggleMealDropdown,
           padding: const EdgeInsets.symmetric(horizontal: 10),
           backgroundColor: AppColors.base4,
           hasShadow: false,
@@ -602,19 +804,13 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
                   ),
                 ],
               ),
-              IconButton(
-                onPressed: widget.onMealOptionChanged == null
-                    ? null
-                    : () {
-                        setState(() {
-                          _isExpanded1 = !_isExpanded1;
-                        });
-                      },
-                icon: Icon(
-                  _isExpanded1
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                ),
+              Icon(
+                _isExpanded1
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: widget.onMealOptionChanged == null
+                    ? AppColors.base3
+                    : null,
               ),
             ],
           ),
@@ -649,6 +845,15 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
               width: 18,
               height: 18,
               child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        if (!_isLoadingFoodIntakes && _foodForms.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: Text(
+              'Tidak ada data makanan yang perlu diisi sisa makanannya.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.list1Regular(AppColors.base2),
             ),
           ),
         for (int i = 0; i < _foodForms.length; i++) ...[
@@ -704,13 +909,18 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
         const SizedBox(height: 10),
         Row(
           children: [
-            const GlobalsCard(
-              margin: EdgeInsets.only(left: 16),
+            GlobalsCard(
+              onTap: _showPhotoSourcePicker,
+              margin: const EdgeInsets.only(left: 16),
               hasShadow: false,
               backgroundColor: AppColors.primary1,
               height: 44,
               width: 56,
-              child: Icon(Icons.camera_alt, size: 20, color: AppColors.base5),
+              child: Icon(
+                _photoEvidence == null ? Icons.camera_alt : Icons.check,
+                size: 20,
+                color: AppColors.base5,
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -771,46 +981,6 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildPhotoEvidenceField() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        children: [
-          GlobalsCard(
-            backgroundColor: AppColors.base4,
-            height: 180,
-            width: double.infinity,
-            hasShadow: false,
-            onTap: _pickPhotoEvidence,
-            child: _photoEvidence == null
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.camera_alt,
-                        size: 36,
-                        color: AppColors.primary1,
-                      ),
-                      Text(
-                        'Buka Galeri',
-                        style: AppTextStyles.list1Regular(AppColors.primary1),
-                      ),
-                    ],
-                  )
-                : Image.file(fit: BoxFit.cover, File(_photoEvidence!.path)),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Opsional: unggah foto sisa makanan dari atas dengan pencahayaan cukup.',
-              style: AppTextStyles.list3Regular(AppColors.base2),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

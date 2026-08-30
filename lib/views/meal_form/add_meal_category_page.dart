@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../components/globals/text/text_style.dart';
 import '../../components/meal_form_cmp/cmp_add_fix_meal_form.dart';
 import '../../components/meal_form_cmp/cmp_meal_form.dart';
+
 // import '../../components/meal_form_cmp/cmp_normal_meal_form.dart';
 
 class AddMealCategoryPage extends StatelessWidget {
@@ -36,32 +37,41 @@ class AddMealCategoryPage extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back_ios)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
               Text(
                 'Tambah Form Makanan',
                 style: AppTextStyles.heading1SemiBold(),
-              )
+              ),
             ],
           ),
         ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            CmpAddFixMealForm(
-              selectedMeal: selectedMeal,
-              selectedCalorieMethod: selectedCalorieMethod,
-              mealPlanUuid: mealPlanUuid,
-              mealPlanName: mealPlanName,
-              mealPlanCarbohydrate: mealPlanCarbohydrate,
-              mealPlanProtein: mealPlanProtein,
-              mealPlanFat: mealPlanFat,
-              mealPlanCalories: mealPlanCalories,
-            )
-          ],
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                CmpAddFixMealForm(
+                  selectedMeal: selectedMeal,
+                  selectedCalorieMethod: selectedCalorieMethod,
+                  mealPlanUuid: mealPlanUuid,
+                  mealPlanName: mealPlanName,
+                  mealPlanCarbohydrate: mealPlanCarbohydrate,
+                  mealPlanProtein: mealPlanProtein,
+                  mealPlanFat: mealPlanFat,
+                  mealPlanCalories: mealPlanCalories,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

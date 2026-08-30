@@ -141,7 +141,7 @@ class _LearningSectionState extends State<LearningSection> {
             3,
             (_) => Container(
               width: 226,
-              height: 170,
+              height: 188,
               margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 color: AppColors.base4,

@@ -328,9 +328,11 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
               children: [
                 SvgPicture.asset('assets/svg/ic_coupon - ticket.svg'),
                 const SizedBox(width: 8),
-                Text(
-                  'Beli Tiket Konsultasi',
-                  style: AppTextStyles.headList1Bold(AppColors.base5),
+                Flexible(
+                  child: GlobalsButtonText(
+                    text: 'Beli Tiket Konsultasi',
+                    style: AppTextStyles.headList1Bold(AppColors.base5),
+                  ),
                 ),
               ],
             ),

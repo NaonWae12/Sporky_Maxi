@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
 import '../../components/globals/dialog/dialog_alert.dart';
@@ -108,7 +109,8 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.base5,
+        elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
         title: Text('Profil si kecil', style: AppTextStyles.heading1SemiBold()),

@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
@@ -191,7 +192,8 @@ class _ProfilSiKecilFlowTestState extends State<ProfilSiKecilFlowTest> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.base5,
+        elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
         title: Text('Profil si kecil', style: AppTextStyles.heading1SemiBold()),

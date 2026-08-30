@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sporky_maxi/components/globals/colors/colors.dart';
+import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
 class BottomSheetFoodHistory extends StatelessWidget {
   final String title;
@@ -12,50 +14,23 @@ class BottomSheetFoodHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
+    return SafeArea(
+      top: false,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
         ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // drag handle
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-
-            // title
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // list makanan
-            ...items.map((item) => _FoodItemTile(data: item)),
-
-            // spacing bawah biar enak di iPhone
-            const SizedBox(height: 10),
-          ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppTextStyles.headList1Bold(AppColors.base1)),
+              const SizedBox(height: 12),
+              ...items.map((item) => _FoodItemTile(data: item)),
+            ],
+          ),
         ),
       ),
     );
@@ -91,12 +66,11 @@ class _FoodItemTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppColors.base4,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          // IMAGE
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: data.image != null && data.image!.isNotEmpty
@@ -111,55 +85,48 @@ class _FoodItemTile extends StatelessWidget {
                   )
                 : _imageFallback(),
           ),
-
           const SizedBox(width: 10),
-
-          // TEXT
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   data.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: AppTextStyles.list1Bold(AppColors.base1),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  'Disajikan : ${data.served} kcal',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                Text(
-                  'Dimakan : ${data.eaten} kcal',
-                  style: const TextStyle(fontSize: 12),
+                  'Disajikan: ${data.served} kcal',
+                  style: AppTextStyles.list3Regular(AppColors.base2),
                 ),
                 Text(
-                  'Tersisa : ${data.remaining} kcal',
-                  style: const TextStyle(fontSize: 12),
+                  'Dimakan: ${data.eaten} kcal',
+                  style: AppTextStyles.list3Regular(AppColors.base2),
+                ),
+                Text(
+                  'Sisa: ${data.remaining} kcal',
+                  style: AppTextStyles.list3Regular(AppColors.base2),
                 ),
               ],
             ),
           ),
-
-          // CALORIES BADGE
+          const SizedBox(width: 10),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: AppColors.base5,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               children: [
                 const Icon(
                   Icons.local_fire_department,
-                  color: Colors.red,
+                  color: AppColors.warn1,
                   size: 16,
                 ),
                 Text(
                   '${data.calories} kcal',
-                  style: const TextStyle(fontSize: 12),
+                  style: AppTextStyles.list3SemiBold(AppColors.base1),
                 ),
               ],
             ),
@@ -174,14 +141,10 @@ class _FoodItemTile extends StatelessWidget {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: AppColors.base3,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(
-        Icons.fastfood,
-        size: 20,
-        color: Colors.grey[600],
-      ),
+      child: const Icon(Icons.fastfood, size: 20, color: AppColors.base2),
     );
   }
 }

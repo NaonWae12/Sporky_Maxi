@@ -214,10 +214,18 @@ class _ActionButton extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.base5),
             ),
           )
-        : Text(
-            action.label,
-            style: AppTextStyles.heading3SemiBold(
-              action.isPrimary ? AppColors.base5 : _outlineColor,
+        : Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              action.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              softWrap: true,
+              overflow: TextOverflow.visible,
+              textScaler: TextScaler.linear(_textScale),
+              style: AppTextStyles.heading3SemiBold(
+                action.isPrimary ? AppColors.base5 : _outlineColor,
+              ).copyWith(height: 1.05),
             ),
           );
 
@@ -262,4 +270,12 @@ class _ActionButton extends StatelessWidget {
 
   Color get _outlineColor =>
       action.isDestructive ? AppColors.warn4 : AppColors.primary1;
+
+  double get _textScale {
+    final length = action.label.length;
+    if (length <= 18) return 1;
+    if (length <= 24) return 0.92;
+    if (length <= 32) return 0.84;
+    return 0.76;
+  }
 }

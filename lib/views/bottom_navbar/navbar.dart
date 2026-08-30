@@ -42,8 +42,11 @@ class _NavbarState extends State<Navbar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.base5,
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: AppColors.base5,
+        elevation: 0,
         type: BottomNavigationBarType.fixed, // Penting biar 5 item bisa muat
         items: [
           BottomNavigationBarItem(

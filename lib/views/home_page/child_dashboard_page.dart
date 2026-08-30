@@ -69,7 +69,13 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.base5,
       appBar: AppBar(
+        backgroundColor: AppColors.base5,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
         leadingWidth: MediaQuery.of(context).size.width,
         leading: TopBarParentCmp(
           onTap: () {

@@ -36,6 +36,11 @@ class CmpAutoFilledMealForm extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           backgroundColor: AppColors.base4,
           hasShadow: false,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Meal plan otomatis sudah terbuka')),
+            );
+          },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -50,16 +55,7 @@ class CmpAutoFilledMealForm extends StatelessWidget {
                   SvgPicture.asset(height: 11, width: 11, 'assets/svg/sun.svg'),
                 ],
               ),
-              IconButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Meal plan otomatis sudah terbuka'),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.keyboard_arrow_down),
-              ),
+              const Icon(Icons.keyboard_arrow_down),
             ],
           ),
         ),
@@ -106,9 +102,11 @@ class CmpAutoFilledMealForm extends StatelessWidget {
               children: [
                 const Icon(Icons.add, color: AppColors.base5, size: 20),
                 const SizedBox(width: 8),
-                Text(
-                  'Simpan Kalori Makanan',
-                  style: AppTextStyles.headList1Bold(AppColors.base5),
+                Flexible(
+                  child: GlobalsButtonText(
+                    text: 'Simpan Kalori Makanan',
+                    style: AppTextStyles.headList1Bold(AppColors.base5),
+                  ),
                 ),
               ],
             ),

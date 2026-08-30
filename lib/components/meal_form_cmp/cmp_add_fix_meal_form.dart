@@ -8,11 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
 // import 'package:sporky_maxi/components/meal_form_cmp/cmp_fix_add_meal_form.dart';
 import '../../views/form_food_waste/page_form_food_waste.dart';
-import '../globals/button/food_portion_guide_button.dart';
 import '../globals/constants/api_endpoints.dart';
 import '../globals/button/globals_button.dart';
-import '../globals/card/cmp_tag_attention.dart';
-import '../globals/card/globals_card.dart';
 import '../globals/colors/colors.dart';
 import '../globals/dialog/dialog_alert.dart';
 import '../globals/dialog/dialog_content_cmp/content2.dart';
@@ -57,7 +54,6 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
   final TextEditingController _fatController = TextEditingController();
   final TextEditingController _caloriesController = TextEditingController();
   bool _isSubmitting = false;
-  String? _mealPlanUuid;
   final List<String> _mealPlanNamesCache = [];
   final List<Map<String, dynamic>> _mealPlansCache = [];
 
@@ -65,7 +61,8 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
   void initState() {
     super.initState();
     _selectedMeal = widget.selectedMeal;
-    _selectedCalorieMethod = widget.selectedCalorieMethod ??
+    _selectedCalorieMethod =
+        widget.selectedCalorieMethod ??
         (widget.mealPlanUuid != null
             ? DropdownItem(
                 text: 'Meal Plan (Auto Filled)',
@@ -149,10 +146,100 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
     return names.join(' + ');
   }
 
+  List<MealFormItem> _activeForms() {
+    return _forms
+        .where((item) => item.mealNameController.text.trim().isNotEmpty)
+        .toList();
+  }
+
   double? _parseDouble(String value) {
     final normalized = value.replaceAll(',', '.').trim();
     if (normalized.isEmpty) return null;
     return double.tryParse(normalized);
+  }
+
+  double _parsePortion(String value) {
+    final parsed = _parseDouble(value);
+    if (parsed == null || parsed <= 0) return 1;
+    return parsed;
+  }
+
+  double _portionTotal(List<MealFormItem> forms) {
+    return forms.fold<double>(
+      0,
+      (total, item) => total + _parsePortion(item.portionsController.text),
+    );
+  }
+
+  double _splitByPortion(
+    double total,
+    MealFormItem item,
+    double portionTotal,
+    int itemCount,
+  ) {
+    if (itemCount <= 1) return total;
+    if (portionTotal <= 0) return total / itemCount;
+
+    final portion = _parsePortion(item.portionsController.text);
+    return total * (portion / portionTotal);
+  }
+
+  Map<String, dynamic> _nutritionFromMealPlan(Map<String, dynamic> mealPlan) {
+    if (mealPlan['nutrition'] is Map<String, dynamic>) {
+      return mealPlan['nutrition'] as Map<String, dynamic>;
+    }
+
+    if (mealPlan['nutritions'] is List &&
+        (mealPlan['nutritions'] as List).isNotEmpty) {
+      final firstNutrition = (mealPlan['nutritions'] as List).first;
+      if (firstNutrition is Map<String, dynamic>) {
+        return firstNutrition;
+      }
+    }
+
+    return const <String, dynamic>{};
+  }
+
+  Map<String, dynamic>? _findMealPlanByName(String name) {
+    final normalizedName = name.toLowerCase().trim();
+    for (final mealPlan in _mealPlansCache) {
+      if ((mealPlan['name']?.toString().toLowerCase().trim() ?? '') ==
+          normalizedName) {
+        return mealPlan;
+      }
+    }
+
+    if (widget.mealPlanUuid != null &&
+        widget.mealPlanName?.toLowerCase().trim() == normalizedName) {
+      return {
+        'uuid': widget.mealPlanUuid,
+        'name': widget.mealPlanName,
+        'nutrition': {
+          'carbohydrate': widget.mealPlanCarbohydrate,
+          'protein': widget.mealPlanProtein,
+          'fat': widget.mealPlanFat,
+          'calories': widget.mealPlanCalories,
+        },
+      };
+    }
+
+    return null;
+  }
+
+  Future<http.Response> _postFoodIntake(
+    String endpoint,
+    String token,
+    Map<String, dynamic> body,
+  ) {
+    return http.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
   }
 
   void _onFormChanged() {
@@ -178,7 +265,6 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
     if (!_isAutoSelected) return;
 
     if (widget.mealPlanUuid != null) {
-      _mealPlanUuid = widget.mealPlanUuid;
       final carb = widget.mealPlanCarbohydrate;
       final protein = widget.mealPlanProtein;
       final fat = widget.mealPlanFat;
@@ -262,14 +348,18 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
         totalProtein > 0 ||
         totalFat > 0 ||
         totalCalories > 0) {
-      _carbController.text =
-          totalCarb.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
-      _proteinController.text =
-          totalProtein.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
-      _fatController.text =
-          totalFat.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
-      _caloriesController.text =
-          totalCalories.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
+      _carbController.text = totalCarb
+          .toStringAsFixed(1)
+          .replaceAll(RegExp(r'\.0$'), '');
+      _proteinController.text = totalProtein
+          .toStringAsFixed(1)
+          .replaceAll(RegExp(r'\.0$'), '');
+      _fatController.text = totalFat
+          .toStringAsFixed(1)
+          .replaceAll(RegExp(r'\.0$'), '');
+      _caloriesController.text = totalCalories
+          .toStringAsFixed(1)
+          .replaceAll(RegExp(r'\.0$'), '');
     } else {
       _carbController.text = '0';
       _proteinController.text = '0';
@@ -286,9 +376,7 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
     if (mealPlan == null) return;
 
     final uuid = mealPlan['uuid']?.toString();
-    if (uuid != null) {
-      _mealPlanUuid = uuid;
-    }
+    if (uuid == null || uuid.isEmpty) return;
 
     _recalculateTotalNutritions();
 
@@ -327,10 +415,8 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
       return;
     }
 
-    final name = _combinedMealName();
-    if (name.isEmpty) {
-      return;
-    }
+    final activeForms = _activeForms();
+    if (activeForms.isEmpty) return;
 
     final carb = _parseDouble(_carbController.text);
     final protein = _parseDouble(_proteinController.text);
@@ -341,51 +427,65 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
       return;
     }
 
-    final body = {
-      "child_uuid": childUuid,
-      "name": name,
-      "type": "berat",
-      "meal_time": _mealTimeFromSelection(_selectedMeal?.text),
-      "photo": null,
-      "carbohydrate": carb,
-      "protein": protein,
-      "fat": fat,
-      "calories": calories,
-      "data_source": "manual",
-      "date": _todayDateString(),
-    };
+    final portionTotal = _portionTotal(activeForms);
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      final response = await http.post(
-        Uri.parse(ApiEndpoints.createManualFoodIntake),
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
-
-      if (!mounted) return;
-
-      debugPrint('[CreateManual] status=${response.statusCode}');
-      debugPrint('[CreateManual] body=${response.body}');
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        _resetFormAfterSuccess();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menyimpan. (${response.statusCode})',
-            ),
+      for (final item in activeForms) {
+        final body = {
+          "child_uuid": childUuid,
+          "name": item.mealNameController.text.trim(),
+          "type": "berat",
+          "meal_time": _mealTimeFromSelection(_selectedMeal?.text),
+          "photo": null,
+          "carbohydrate": _splitByPortion(
+            carb,
+            item,
+            portionTotal,
+            activeForms.length,
           ),
+          "protein": _splitByPortion(
+            protein,
+            item,
+            portionTotal,
+            activeForms.length,
+          ),
+          "fat": _splitByPortion(fat, item, portionTotal, activeForms.length),
+          "calories": _splitByPortion(
+            calories,
+            item,
+            portionTotal,
+            activeForms.length,
+          ),
+          "data_source": "manual",
+          "date": _todayDateString(),
+        };
+
+        final response = await _postFoodIntake(
+          ApiEndpoints.createManualFoodIntake,
+          token,
+          body,
         );
+
+        if (!mounted) return;
+
+        debugPrint('[CreateManual] status=${response.statusCode}');
+        debugPrint('[CreateManual] body=${response.body}');
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menyimpan. (${response.statusCode})'),
+            ),
+          );
+          return;
+        }
       }
+
+      _resetFormAfterSuccess();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -421,63 +521,81 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
       return;
     }
 
-    if (_mealPlanUuid == null) {
-      await _tryAutoFillFromMealPlan();
+    if (_mealPlansCache.isEmpty) {
+      await _loadMealPlanNames();
     }
 
-    final mealPlanUuid = _mealPlanUuid;
-    if (mealPlanUuid == null || mealPlanUuid.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Meal plan aktif tidak ditemukan.')),
-      );
-      return;
-    }
+    final activeForms = _activeForms();
+    if (activeForms.isEmpty) return;
 
-    final body = {
-      "child_uuid": childUuid,
-      "mealplan_uuid": mealPlanUuid,
-      "type": "berat",
-      "meal_time": _mealTimeFromSelection(_selectedMeal?.text),
-      "photo": null,
-      "carbohydrate": _parseDouble(_carbController.text),
-      "protein": _parseDouble(_proteinController.text),
-      "fat": _parseDouble(_fatController.text),
-      "calories": _parseDouble(_caloriesController.text),
-      "data_source": "internal",
-      "date": _todayDateString(),
-    };
+    for (final item in activeForms) {
+      final name = item.mealNameController.text.trim();
+      final mealPlan = _findMealPlanByName(name);
+      final mealPlanUuid = mealPlan?['uuid']?.toString() ?? '';
+      if (mealPlan == null || mealPlanUuid.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Meal plan "$name" tidak ditemukan.')),
+        );
+        return;
+      }
+    }
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      final response = await http.post(
-        Uri.parse(ApiEndpoints.createFoodIntakeFromMealPlan),
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
+      for (final item in activeForms) {
+        final name = item.mealNameController.text.trim();
+        final mealPlan = _findMealPlanByName(name)!;
+        final nutrition = _nutritionFromMealPlan(mealPlan);
+        final portion = _parsePortion(item.portionsController.text);
 
-      if (!mounted) return;
+        final body = {
+          "child_uuid": childUuid,
+          "mealplan_uuid": mealPlan['uuid']?.toString(),
+          "type": "berat",
+          "meal_time": _mealTimeFromSelection(_selectedMeal?.text),
+          "photo": null,
+          "carbohydrate":
+              (_parseDouble(nutrition['carbohydrate']?.toString() ?? '0') ??
+                  0) *
+              portion,
+          "protein":
+              (_parseDouble(nutrition['protein']?.toString() ?? '0') ?? 0) *
+              portion,
+          "fat":
+              (_parseDouble(nutrition['fat']?.toString() ?? '0') ?? 0) *
+              portion,
+          "calories":
+              (_parseDouble(nutrition['calories']?.toString() ?? '0') ?? 0) *
+              portion,
+          "data_source": "internal",
+          "date": _todayDateString(),
+        };
 
-      debugPrint('[CreateFromMealPlan] status=${response.statusCode}');
-      debugPrint('[CreateFromMealPlan] body=${response.body}');
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        _resetFormAfterSuccess();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menyimpan. (${response.statusCode})',
-            ),
-          ),
+        final response = await _postFoodIntake(
+          ApiEndpoints.createFoodIntakeFromMealPlan,
+          token,
+          body,
         );
+
+        if (!mounted) return;
+
+        debugPrint('[CreateFromMealPlan] status=${response.statusCode}');
+        debugPrint('[CreateFromMealPlan] body=${response.body}');
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menyimpan. (${response.statusCode})'),
+            ),
+          );
+          return;
+        }
       }
+
+      _resetFormAfterSuccess();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -501,10 +619,7 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
     try {
       final response = await http.get(
         Uri.parse(ApiEndpoints.mealPlan),
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -520,9 +635,11 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
 
       _mealPlanNamesCache
         ..clear()
-        ..addAll(_mealPlansCache
-            .map((e) => e['name']?.toString() ?? '')
-            .where((e) => e.isNotEmpty));
+        ..addAll(
+          _mealPlansCache
+              .map((e) => e['name']?.toString() ?? '')
+              .where((e) => e.isNotEmpty),
+        );
 
       if (mounted) {
         setState(() {});
@@ -531,16 +648,15 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
   }
 
   Future<Map<String, dynamic>?> _fetchMealPlanByName(
-      String token, String name) async {
+    String token,
+    String name,
+  ) async {
     final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
 
     try {
       final response = await http.get(
         Uri.parse(ApiEndpoints.mealPlan),
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': authHeader, 'Accept': 'application/json'},
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -556,9 +672,11 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
 
       _mealPlanNamesCache
         ..clear()
-        ..addAll(_mealPlansCache
-            .map((e) => e['name']?.toString() ?? '')
-            .where((e) => e.isNotEmpty));
+        ..addAll(
+          _mealPlansCache
+              .map((e) => e['name']?.toString() ?? '')
+              .where((e) => e.isNotEmpty),
+        );
 
       final normalizedName = name.toLowerCase().trim();
       for (final mealPlan in mealPlans) {
@@ -631,20 +749,18 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
         buttonCollorRight: AppColors.success2,
         onClose: (context) {
           Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const Navbar(),
-              ));
+            context,
+            MaterialPageRoute(builder: (context) => const Navbar()),
+          );
         },
         onPressedLeft: () {
           Navigator.pop(context);
         },
         onPressedRight: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PageFormFoodWaste(),
-              ));
+            context,
+            MaterialPageRoute(builder: (context) => PageFormFoodWaste()),
+          );
         },
       ),
     );
@@ -653,22 +769,22 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CmpTagAttention(
-            imageAsset: 'assets/svg/bento-box-rounded.svg',
-            child: Text.rich(
-                TextSpan(style: AppTextStyles.list1Regular(), children: [
-              const TextSpan(text: 'Mau isi kalori '),
-              TextSpan(text: 'manual', style: AppTextStyles.list1Bold()),
-              const TextSpan(text: ', pengisian otomatis melalui menu '),
-              TextSpan(text: 'meal plan', style: AppTextStyles.list1Bold()),
-              const TextSpan(text: ', atau cukup '),
-              TextSpan(text: 'scan QR ', style: AppTextStyles.list1Bold()),
-              const TextSpan(text: 'catering Sporky? Semuanya bisa!'),
-            ]))),
+        Text(
+          'Detail Makanan',
+          style: AppTextStyles.heading3SemiBold(AppColors.secondary1),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Lengkapi data makanan yang dikonsumsi hari ini',
+          style: AppTextStyles.list1Regular(
+            AppColors.base1.withValues(alpha: 0.65),
+          ),
+        ),
 
         // =============== form tambah makanan ===============
-        const FoodPortionGuideButton(),
+        const SizedBox(height: 12),
 
         CmpMealForm(
           selectedMeal: _selectedMeal,
@@ -689,102 +805,115 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
             }
           },
         ),
+        const SizedBox(height: 16),
         CmpAddMealForm(
           forms: _forms,
           onChanged: _onFormChanged,
           onItemAdded: (item) {},
+          onItemRemoved: (index) {},
           enableAutoComplete: _isAutoSelected,
           autoCompleteOptions: _mealPlanNamesCache,
           onAutoCompleteSelected: (value) async {
             await _applyMealPlanByName(value);
           },
         ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: (_isManualSelected || _isAutoSelected)
-              ? [
-                  _buildNutritionCard(
-                    iconPath: 'assets/svg/ic_nutrition.svg',
-                    title: 'Karbohidrat',
-                    unit: 'gr',
-                    controller: _carbController,
-                  ),
-                  _buildNutritionCard(
-                    iconPath: 'assets/svg/ic_fat.svg',
-                    title: 'Lemak',
-                    unit: 'gr',
-                    controller: _fatController,
-                  ),
-                  _buildNutritionCard(
-                    iconPath: 'assets/svg/ic_proteins.svg',
-                    title: 'Protein',
-                    unit: 'gr',
-                    controller: _proteinController,
-                  ),
-                  _buildNutritionCard(
-                    iconPath: 'assets/svg/ic_fire.svg',
-                    title: 'Total Kalori',
-                    unit: 'kcal',
-                    controller: _caloriesController,
-                  ),
-                ]
-              : [],
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-          child: GlobalsButton(
-            color: _isFormValid ? AppColors.secondary1 : AppColors.base2,
-            height: 44,
-            onPressed: (_isSubmitting || !_isFormValid)
-                ? null
-                : () {
-                    DialogAlert.show(
-                      context: context,
-                      customChild: Content2(
-                        title: 'Simpan Data Kalori?',
-                        message:
-                            'Pastikan semua takaran dan data sudah sesuai ya, Bun. Setelah disimpan, kamu tetap bisa mengedit kapan saja jika dibutuhkan.',
-                        textNavLeft: 'Cek Kembali',
-                        buttonCollorLeft: AppColors.warn1,
-                        textNavRight: 'Simpan',
-                        buttonCollorRight: AppColors.success2,
-                        onPressedLeft: () {
-                          Navigator.pop(context);
-                        },
-                        onPressedRight: () async {
-                          Navigator.pop(context);
-                          if (_isManualSelected) {
-                            await _submitManual();
-                          } else if (_isAutoSelected) {
-                            await _submitAutoFilled();
-                          }
-                        },
-                      ),
-                    );
-                  },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_isSubmitting)
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.base5,
-                    ),
-                  )
-                else ...[
-                  Text(
-                    'Simpan Kalori Makanan',
-                    style: AppTextStyles.headList1Bold(AppColors.base5),
-                  )
-                ]
-              ],
+        if (_isManualSelected || _isAutoSelected) ...[
+          const SizedBox(height: 16),
+          Text(
+            'Informasi Gizi',
+            style: AppTextStyles.heading3SemiBold(AppColors.secondary1),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Perbarui nilai gizi sesuai jumlah porsi yang dimakan',
+            style: AppTextStyles.list1Regular(
+              AppColors.base1.withValues(alpha: 0.65),
             ),
           ),
-        )
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildNutritionCard(
+                iconPath: 'assets/svg/ic_nutrition.svg',
+                title: 'Karbohidrat',
+                unit: 'gr',
+                controller: _carbController,
+              ),
+              _buildNutritionCard(
+                iconPath: 'assets/svg/ic_fat.svg',
+                title: 'Lemak',
+                unit: 'gr',
+                controller: _fatController,
+              ),
+              _buildNutritionCard(
+                iconPath: 'assets/svg/ic_proteins.svg',
+                title: 'Protein',
+                unit: 'gr',
+                controller: _proteinController,
+              ),
+              _buildNutritionCard(
+                iconPath: 'assets/svg/ic_fire.svg',
+                title: 'Total Kalori',
+                unit: 'kcal',
+                controller: _caloriesController,
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 20),
+        GlobalsButton(
+          color: _isFormValid ? AppColors.secondary1 : AppColors.base2,
+          height: 48,
+          onPressed: (_isSubmitting || !_isFormValid)
+              ? null
+              : () {
+                  DialogAlert.show(
+                    context: context,
+                    customChild: Content2(
+                      title: 'Simpan Data Kalori?',
+                      message:
+                          'Pastikan semua takaran dan data sudah sesuai ya, Bun. Setelah disimpan, kamu tetap bisa mengedit kapan saja jika dibutuhkan.',
+                      textNavLeft: 'Cek Kembali',
+                      buttonCollorLeft: AppColors.warn1,
+                      textNavRight: 'Simpan',
+                      buttonCollorRight: AppColors.success2,
+                      onPressedLeft: () {
+                        Navigator.pop(context);
+                      },
+                      onPressedRight: () async {
+                        Navigator.pop(context);
+                        if (_isManualSelected) {
+                          await _submitManual();
+                        } else if (_isAutoSelected) {
+                          await _submitAutoFilled();
+                        }
+                      },
+                    ),
+                  );
+                },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_isSubmitting)
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.base5,
+                  ),
+                )
+              else ...[
+                Text(
+                  'Simpan Kalori Makanan',
+                  style: AppTextStyles.headList1Bold(AppColors.base5),
+                ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -797,57 +926,75 @@ Widget _buildNutritionCard({
   required TextEditingController controller,
 }) {
   return SizedBox(
-    width: 170,
-    child: GlobalsCard(
-      width: 170,
-      margin: const EdgeInsets.all(0),
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      backgroundColor: AppColors.base5,
+    width: 168,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.base5,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.base4),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SvgPicture.asset(iconPath),
-          Text(
-            title,
-            style: AppTextStyles.list1Regular(),
-          ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IntrinsicWidth(
-                child: GlobalsForm(
-                  focusBorderColor: Colors.transparent,
-                  enableBorderColor: Colors.transparent,
-                  labelColor: Colors.grey,
-                  outlineInputBorderColor: Colors.transparent,
-                  enableFloatingLabel: false,
-                  hasShadow: false,
-                  controller: controller,
-                  label: '0',
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              SizedBox(
+                height: 18,
+                width: 18,
+                child: SvgPicture.asset(iconPath),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.list1Medium(
+                    AppColors.base1.withValues(alpha: 0.7),
+                  ),
                 ),
               ),
-              GlobalsCard(
-                radius: 4,
-                margin: const EdgeInsets.symmetric(horizontal: 0),
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                hasShadow: false,
-                backgroundColor: AppColors.base4,
-                child: Row(
-                  children: [
-                    Text(
-                      unit,
-                      style: AppTextStyles.heading3SemiBold(),
-                    ),
-                    const Icon(Icons.keyboard_arrow_down, size: 16),
-                  ],
-                ),
-              )
             ],
-          )
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: IntrinsicWidth(
+                  child: GlobalsForm(
+                    focusBorderColor: Colors.transparent,
+                    enableBorderColor: Colors.transparent,
+                    labelColor: Colors.grey,
+                    outlineInputBorderColor: Colors.transparent,
+                    enableFloatingLabel: false,
+                    hasShadow: false,
+                    controller: controller,
+                    label: '0',
+                    textStyle: AppTextStyles.heading3SemiBold(),
+                    hintStyle: AppTextStyles.heading3SemiBold(),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 0,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.base4,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  unit,
+                  style: AppTextStyles.list1Bold(AppColors.secondary1),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     ),

@@ -102,6 +102,7 @@ class _PaymentCmpState extends State<PaymentCmp> {
               ),
               const SizedBox(height: 5),
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
                   setState(() {
                     _isDetailVisible = !_isDetailVisible;
