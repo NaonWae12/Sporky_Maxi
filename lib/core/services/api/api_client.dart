@@ -154,4 +154,7 @@ class ApiClientException implements Exception {
     required this.statusCode,
     required this.body,
   });
+
+  @override
+  String toString() => message;
 }

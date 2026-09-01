@@ -4,6 +4,14 @@ import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/form/globals_form.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
+class DateDropdownDismissController {
+  static _DateDropdownFieldState? _activePicker;
+
+  static void handlePointerDown(PointerDownEvent event) {
+    _activePicker?._dismissIfTapOutside(event.position);
+  }
+}
+
 class DateDropdownField extends StatefulWidget {
   final DateTime? selectedDate;
   final ValueChanged<DateTime> onDateSelected;
@@ -28,6 +36,8 @@ class DateDropdownField extends StatefulWidget {
 
 class _DateDropdownFieldState extends State<DateDropdownField> {
   final LayerLink _layerLink = LayerLink();
+  final GlobalKey _fieldKey = GlobalKey();
+  final GlobalKey _overlayKey = GlobalKey();
   OverlayEntry? _overlayEntry;
 
   late final TextEditingController controller;
@@ -53,12 +63,43 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
 
   void _toggleOverlay() {
     if (_overlayEntry == null) {
+      DateDropdownDismissController._activePicker?._hideOverlay();
       _overlayEntry = _createOverlayEntry();
+      DateDropdownDismissController._activePicker = this;
       Overlay.of(context).insert(_overlayEntry!);
     } else {
-      _overlayEntry?.remove();
-      _overlayEntry = null;
+      _hideOverlay();
     }
+  }
+
+  void _hideOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+
+    if (DateDropdownDismissController._activePicker == this) {
+      DateDropdownDismissController._activePicker = null;
+    }
+  }
+
+  void _dismissIfTapOutside(Offset position) {
+    if (_containsGlobalPosition(_fieldKey, position) ||
+        _containsGlobalPosition(_overlayKey, position)) {
+      return;
+    }
+
+    _hideOverlay();
+  }
+
+  bool _containsGlobalPosition(GlobalKey key, Offset position) {
+    final context = key.currentContext;
+    final renderObject = context?.findRenderObject();
+
+    if (renderObject is! RenderBox || !renderObject.hasSize) {
+      return false;
+    }
+
+    final offset = renderObject.localToGlobal(Offset.zero);
+    return (offset & renderObject.size).contains(position);
   }
 
   OverlayEntry _createOverlayEntry() {
@@ -76,6 +117,7 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
           showWhenUnlinked: false,
           offset: Offset(0.0, size.height + 5),
           child: Material(
+            key: _overlayKey,
             elevation: 4.0,
             color: AppColors.base5,
             borderRadius: const BorderRadius.only(
@@ -85,8 +127,9 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
             child: Theme(
               data: Theme.of(context).copyWith(
                 datePickerTheme: DatePickerThemeData(
-                  todayBackgroundColor:
-                      const WidgetStatePropertyAll(AppColors.warn1),
+                  todayBackgroundColor: const WidgetStatePropertyAll(
+                    AppColors.warn1,
+                  ),
                   todayBorder: const BorderSide(color: AppColors.warn1),
                   dayStyle: AppTextStyles.calendar1Medium(),
                 ),
@@ -107,7 +150,7 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
 
                   // ✅ dropdown nutup HANYA kalau user klik tanggal
                   if (isDaySelected) {
-                    _toggleOverlay();
+                    _hideOverlay();
                   }
                 },
               ),
@@ -120,16 +163,19 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
 
   @override
   void dispose() {
+    _hideOverlay();
+
     if (_shouldDisposeController) {
       controller.dispose();
     }
-    _overlayEntry?.remove();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
+      key: _fieldKey,
       link: _layerLink,
       child: GestureDetector(
         onTap: _toggleOverlay,

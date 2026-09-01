@@ -172,7 +172,9 @@ class _NotificationListContentState extends State<NotificationListContent> {
       title: notification.title.isEmpty
           ? 'Notifikasi Sporky'
           : notification.title,
-      desc: _descriptionFor(notification.type),
+      desc: notification.content.isNotEmpty
+          ? notification.content
+          : _descriptionFor(notification.type),
       category: notification.type,
       iconColor: notification.isRead ? AppColors.base1 : AppColors.warn1,
       timeLabel: _formatTime(notification.createdAt),
@@ -211,15 +213,21 @@ class _NotificationListContentState extends State<NotificationListContent> {
   }
 
   String _descriptionFor(String type) {
-    return switch (type.toLowerCase()) {
-      'consultation' ||
-      'consultations' => 'Ada pembaruan konsultasi untuk Bunda.',
-      'chat' => 'Ada pesan chat terbaru untuk Bunda.',
-      'video' => 'Ada video edukasi baru yang bisa ditonton.',
-      'promo' => 'Ada promo terbaru dari Sporky & Maxi.',
-      'order' => 'Ada pembaruan pesanan atau transaksi.',
-      _ => 'Ada pembaruan terbaru dari Sporky & Maxi.',
-    };
+    final normalizedType = type.toLowerCase();
+    if (normalizedType == 'consultation' || normalizedType == 'consultations') {
+      return 'Ada pembaruan konsultasi untuk Bunda.';
+    }
+    if (normalizedType == 'chat') return 'Ada pesan chat terbaru untuk Bunda.';
+    if (normalizedType == 'video') {
+      return 'Ada video edukasi baru yang bisa ditonton.';
+    }
+    if (normalizedType == 'promo') {
+      return 'Ada promo terbaru dari Sporky & Maxi.';
+    }
+    if (normalizedType == 'order') {
+      return 'Ada pembaruan pesanan atau transaksi.';
+    }
+    return 'Ada pembaruan terbaru dari Sporky & Maxi.';
   }
 }
 

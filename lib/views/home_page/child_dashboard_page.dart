@@ -15,6 +15,7 @@ import '../../components/home_page_cmp/carousel_section.dart';
 import '../../components/meal_plan_cmp/cmp_top_meal_plan.dart';
 import '../../core/services/child/child_service.dart';
 import '../../core/utils/secure_storage_service.dart';
+import '../chatbot/qontak_mobile_chat_page.dart';
 import '../initial_display/profil_si_kecil_flow_test.dart';
 import '../profile/parent_profile.dart';
 
@@ -91,6 +92,12 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
       ),
       floatingActionButton: CmpFloatingActionButton(
         imagePath: 'assets/temp_img/parent.png',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const QontakMobileChatPage()),
+          );
+        },
       ),
       body: SingleChildScrollView(
         child: Column(

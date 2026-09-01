@@ -82,7 +82,8 @@ class _TopContentState extends State<TopContent> {
     final videoId = GlobalYoutubePlayer.extractId(widget.youtubeLink);
     if (kDebugMode) {
       debugPrint(
-          '[TopContent] youtubeLink="${widget.youtubeLink}" videoId="$videoId"');
+        '[TopContent] youtubeLink="${widget.youtubeLink}" videoId="$videoId"',
+      );
     }
     _currentVideoId = videoId;
   }
@@ -139,9 +140,9 @@ class _TopContentState extends State<TopContent> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error membuka video')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Error membuka video')));
       }
     }
   }
@@ -210,7 +211,8 @@ class _TopContentState extends State<TopContent> {
   /// Thumbnail lazy-load: tampil sebelum player di-init.
   /// Pakai YouTube thumbnail dari video ID supaya preview akurat.
   Widget _buildLazyThumbnail() {
-    final effectiveAspectRatio = widget.aspectRatio ??
+    final effectiveAspectRatio =
+        widget.aspectRatio ??
         (widget.youtubeLink?.contains('/shorts/') == true ? 9 / 16 : 16 / 9);
 
     final thumbnailUrl = _currentVideoId != null
@@ -274,10 +276,7 @@ class _TopContentState extends State<TopContent> {
       ),
       child: Stack(
         children: [
-          AspectRatio(
-            aspectRatio: inlineAspectRatio,
-            child: playerWidget,
-          ),
+          AspectRatio(aspectRatio: inlineAspectRatio, child: playerWidget),
           // "Topeng" pojokan buat simulasi rounded corners tanpa clipping
           Positioned.fill(
             child: IgnorePointer(
@@ -338,7 +337,8 @@ class _TopContentState extends State<TopContent> {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveAspectRatio = widget.aspectRatio ??
+    final effectiveAspectRatio =
+        widget.aspectRatio ??
         (widget.youtubeLink?.contains('/shorts/') == true ? 9 / 16 : 16 / 9);
 
     Widget videoWidget;
@@ -370,8 +370,9 @@ class _TopContentState extends State<TopContent> {
   }
 
   Widget _buildMainLayout(BuildContext context, Widget videoWidget) {
-    final categories =
-        widget.categories.isNotEmpty ? widget.categories : ['Video'];
+    final categories = widget.categories.isNotEmpty
+        ? widget.categories
+        : ['Video'];
 
     final subtitle = widget.subtitle.trim().isEmpty
         ? 'Sporky & Maxi'
@@ -392,41 +393,25 @@ class _TopContentState extends State<TopContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: categories
-                          .map((cat) => GlobalsCardOutlined(
-                                text: cat,
-                                textStyle: AppTextStyles.lable4SemiRegular(
-                                    AppColors.primary1),
-                                backgroundColor: AppColors.base5,
-                                borderColor: AppColors.primary1,
-                                textColor: AppColors.primary1,
-                                height: 16,
-                              ))
-                          .toList(),
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.remove_red_eye_outlined,
-                            size: 13, color: AppColors.base1),
-                        const SizedBox(width: 4),
-                        Text('${widget.views} views',
-                            style: AppTextStyles.list3Regular(AppColors.base1)),
-                        const SizedBox(width: 5),
-                        const Icon(Icons.favorite,
-                            size: 13, color: AppColors.warn1),
-                        const SizedBox(width: 4),
-                        Text('${widget.likes} likes',
-                            style: AppTextStyles.list3Regular(AppColors.base1)),
-                      ],
-                    ),
-                  ],
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: categories
+                      .map(
+                        (cat) => GlobalsCardOutlined(
+                          text: cat,
+                          textStyle: AppTextStyles.lable3SemiBold(
+                            AppColors.primary1,
+                          ),
+                          backgroundColor: AppColors.base5,
+                          borderColor: AppColors.primary1,
+                          textColor: AppColors.primary1,
+                          height: 26,
+                        ),
+                      )
+                      .toList(),
                 ),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -438,7 +423,7 @@ class _TopContentState extends State<TopContent> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const _FavoriteButton()
+                    const _FavoriteButton(),
                   ],
                 ),
                 Row(
@@ -457,17 +442,40 @@ class _TopContentState extends State<TopContent> {
                       ),
                     ),
                     const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        subtitle,
+                        style: AppTextStyles.list1SemiBold(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.remove_red_eye_outlined,
+                      size: 14,
+                      color: AppColors.base1,
+                    ),
+                    const SizedBox(width: 3),
                     Text(
-                      subtitle,
-                      style: AppTextStyles.list1SemiBold(),
+                      '${widget.views} views',
+                      style: AppTextStyles.list1Regular(AppColors.base1),
+                    ),
+                    const SizedBox(width: 10),
+                    const Icon(
+                      Icons.favorite,
+                      size: 14,
+                      color: AppColors.warn1,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${widget.likes} likes',
+                      style: AppTextStyles.list1Regular(AppColors.base1),
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  widget.description,
-                  style: AppTextStyles.list1Regular(),
-                ),
+                const SizedBox(height: 6),
+                Text(widget.description, style: AppTextStyles.list1Regular()),
                 const SizedBox(height: 5),
               ],
             ),
@@ -525,8 +533,11 @@ class _CornerMaskPainter extends CustomPainter {
       Path()
         ..moveTo(0, 0)
         ..lineTo(radius, 0)
-        ..arcToPoint(Offset(0, radius),
-            radius: Radius.circular(radius), clockwise: false)
+        ..arcToPoint(
+          Offset(0, radius),
+          radius: Radius.circular(radius),
+          clockwise: false,
+        )
         ..close(),
       paint,
     );
@@ -536,8 +547,11 @@ class _CornerMaskPainter extends CustomPainter {
       Path()
         ..moveTo(size.width, 0)
         ..lineTo(size.width - radius, 0)
-        ..arcToPoint(Offset(size.width, radius),
-            radius: Radius.circular(radius), clockwise: true)
+        ..arcToPoint(
+          Offset(size.width, radius),
+          radius: Radius.circular(radius),
+          clockwise: true,
+        )
         ..close(),
       paint,
     );
@@ -547,8 +561,11 @@ class _CornerMaskPainter extends CustomPainter {
       Path()
         ..moveTo(0, size.height)
         ..lineTo(radius, size.height)
-        ..arcToPoint(Offset(0, size.height - radius),
-            radius: Radius.circular(radius), clockwise: true)
+        ..arcToPoint(
+          Offset(0, size.height - radius),
+          radius: Radius.circular(radius),
+          clockwise: true,
+        )
         ..close(),
       paint,
     );
@@ -558,8 +575,11 @@ class _CornerMaskPainter extends CustomPainter {
       Path()
         ..moveTo(size.width, size.height)
         ..lineTo(size.width - radius, size.height)
-        ..arcToPoint(Offset(size.width, size.height - radius),
-            radius: Radius.circular(radius), clockwise: false)
+        ..arcToPoint(
+          Offset(size.width, size.height - radius),
+          radius: Radius.circular(radius),
+          clockwise: false,
+        )
         ..close(),
       paint,
     );

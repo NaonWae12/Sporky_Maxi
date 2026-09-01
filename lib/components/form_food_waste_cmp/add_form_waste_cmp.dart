@@ -9,6 +9,7 @@ import 'package:sporky_maxi/components/globals/dialog/globals_bottom_sheet.dart'
 import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
 
 import '../../core/utils/secure_storage_service.dart';
+import '../../core/utils/app_clock.dart';
 import '../../views/summary_of_daily/page_summary.dart';
 import '../globals/button/food_portion_guide_button.dart';
 import '../globals/dialog/dialog_alert.dart';
@@ -147,10 +148,7 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
   }
 
   String _todayDateString() {
-    final now = DateTime.now();
-    final month = now.month.toString().padLeft(2, '0');
-    final day = now.day.toString().padLeft(2, '0');
-    return '${now.year}-$month-$day';
+    return AppClock.todayDateString();
   }
 
   Future<void> _pickPhotoEvidence(ImageSource source) async {

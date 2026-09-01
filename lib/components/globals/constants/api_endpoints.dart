@@ -204,6 +204,10 @@ class ApiEndpoints {
   static String get dailyTasks => "${ApiBaseUrl.baseUrl}/api/v1/daily-tasks";
   static String get dailyTasksProgress =>
       "${ApiBaseUrl.baseUrl}/api/v1/daily-tasks/progress";
+  static String get qontakMobileChatSession =>
+      "${ApiBaseUrl.baseUrl}/api/v1/qontak/mobile-chat/session";
+  static String get qontakMobileChatMessages =>
+      "${ApiBaseUrl.baseUrl}/api/v1/qontak/mobile-chat/messages";
   static String completeTask(String uuid) =>
       "${ApiBaseUrl.baseUrl}/api/v1/daily-tasks/$uuid/complete";
   static String claimTask(String uuid) =>

@@ -72,6 +72,7 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
     return Padding(
       padding: EdgeInsets.zero,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
           FocusManager.instance.primaryFocus?.unfocus();
         },
@@ -138,61 +139,66 @@ class _CmpAddMealFormState extends State<CmpAddMealForm> {
       ),
       child: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: widget.enableAutoComplete
-                    ? _buildAutoCompleteNameField(item, context)
-                    : GlobalsForm(
-                        hasShadow: false,
-                        controller: item.mealNameController,
-                        label: 'Nama Makanan',
-                        keyboardType: TextInputType.text,
-                      ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 104,
-                child: Stack(
-                  children: [
-                    GlobalsForm(
-                      enableFloatingLabel: false,
-                      hasShadow: false,
-                      controller: item.portionsController,
-                      label: '1',
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      contentPadding: const EdgeInsets.only(
-                        right: 52,
-                        left: 12,
-                        top: 16,
-                        bottom: 16,
-                      ),
-                    ),
-                    Positioned(
-                      right: 4,
-                      top: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 42,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary1,
-                          borderRadius: BorderRadius.circular(12),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: widget.enableAutoComplete
+                      ? _buildAutoCompleteNameField(item, context)
+                      : GlobalsForm(
+                          hasShadow: false,
+                          controller: item.mealNameController,
+                          label: 'Nama Makanan',
+                          keyboardType: TextInputType.text,
                         ),
-                        child: Text(
-                          'Porsi',
-                          style: AppTextStyles.list1Bold(AppColors.base5),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 112,
+                  child: Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      SizedBox(
+                        height: 52,
+                        child: GlobalsForm(
+                          enableFloatingLabel: false,
+                          hasShadow: false,
+                          controller: item.portionsController,
+                          label: '1',
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          contentPadding: const EdgeInsets.only(
+                            right: 48,
+                            left: 12,
+                            top: 16,
+                            bottom: 16,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 4,
+                        child: Container(
+                          height: 44,
+                          width: 42,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary1,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Porsi',
+                            style: AppTextStyles.list1Bold(AppColors.base5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           if (_forms.length > 1)
             Align(

@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    _timer = Timer(const Duration(milliseconds: 5200), _openNextPage);
+    _timer = Timer(const Duration(seconds: 2), _openNextPage);
   }
 
   Future<void> _openNextPage() async {
@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/welcome');
   }
 
   @override
@@ -49,9 +49,9 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Image.asset(
-          'assets/giff/logo_animate.gif',
-          height: 250,
-          width: 250,
+          'assets/logo_dummy.png',
+          height: 200,
+          width: 200,
           fit: BoxFit.contain,
         ),
       ),

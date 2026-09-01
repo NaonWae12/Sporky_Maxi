@@ -4,6 +4,7 @@ import 'package:sporky_maxi/models/api/pagination_meta.dart';
 class AppNotification {
   final String uuid;
   final String title;
+  final String content;
   final String type;
   final bool isRead;
   final DateTime? createdAt;
@@ -11,6 +12,7 @@ class AppNotification {
   const AppNotification({
     required this.uuid,
     required this.title,
+    required this.content,
     required this.type,
     required this.isRead,
     required this.createdAt,
@@ -20,6 +22,7 @@ class AppNotification {
     return AppNotification(
       uuid: ApiParser.string(json['uuid']),
       title: ApiParser.string(json['title']),
+      content: ApiParser.string(json['content']),
       type: ApiParser.string(json['type']),
       isRead: ApiParser.boolean(json['is_read']),
       createdAt: ApiParser.dateTime(json['created_at']),

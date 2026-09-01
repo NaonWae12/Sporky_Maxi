@@ -5,6 +5,7 @@ import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/core/services/api/api_client.dart';
+import 'package:sporky_maxi/core/utils/app_clock.dart';
 import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
 import 'package:sporky_maxi/models/api/api_parser.dart';
 
@@ -53,7 +54,7 @@ class _SummaryCmpFormState extends State<SummaryCmp> {
       final childUuid = await SecureStorageService.getSelectedChildUuid();
       if (childUuid == null || childUuid.isEmpty) return;
 
-      final today = _formatDate(DateTime.now());
+      final today = AppClock.todayDateString();
       final listUri = Uri.parse(ApiEndpoints.foodWaste).replace(
         queryParameters: {
           'child_uuid': childUuid,
@@ -94,13 +95,6 @@ class _SummaryCmpFormState extends State<SummaryCmp> {
         });
       }
     }
-  }
-
-  String _formatDate(DateTime date) {
-    final year = date.year.toString().padLeft(4, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
   }
 
   String get _summaryContent =>

@@ -13,16 +13,20 @@ import 'package:sporky_maxi/components/profile_content/cmp_parent_profile/daily_
 // ===========================================================================
 class PageDailyActivity extends StatelessWidget {
   final List<MissionData> dailyMissions;
+  final List<MissionData> milestoneMissions;
   final int dailyPending; // jumlah tugas yang belum selesai
   final int dailyTotal;
-  final VoidCallback? onTaskCompleted;
+  final String serverDate;
+  final String timezone;
 
   const PageDailyActivity({
     super.key,
     required this.dailyMissions,
+    this.milestoneMissions = const [],
     required this.dailyPending,
     required this.dailyTotal,
-    this.onTaskCompleted,
+    this.serverDate = '',
+    this.timezone = '',
   });
 
   double get _dailyProgress =>
@@ -35,10 +39,10 @@ class PageDailyActivity extends StatelessWidget {
       isScrollControlled: true,
       child: _MissionsBottomSheet(
         dailyMissions: dailyMissions,
+        milestoneMissions: milestoneMissions,
         dailyPending: dailyPending,
         dailyTotal: dailyTotal,
         dailyProgress: _dailyProgress,
-        onTaskCompleted: onTaskCompleted,
       ),
       padding: EdgeInsets.zero,
     );
@@ -131,6 +135,14 @@ class PageDailyActivity extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
+                  if (serverDate.isNotEmpty || timezone.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      'Reset harian: ${serverDate.isEmpty ? '-' : serverDate} ${timezone.isEmpty ? '' : '($timezone)'}',
+                      style: AppTextStyles.list3Regular(AppColors.base2),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -146,8 +158,10 @@ class PageDailyActivity extends StatelessWidget {
               MediaQuery.of(context).padding.bottom + 16,
             ),
             child: GlobalsButton(
-              onPressed: () => _showMissionsSheet(context),
-              color: AppColors.secondary1,
+              onPressed: dailyPending > 0
+                  ? null
+                  : () => _showMissionsSheet(context),
+              color: dailyPending > 0 ? AppColors.base3 : AppColors.secondary1,
               height: 52,
               radius: 14,
               child: Row(
@@ -161,7 +175,9 @@ class PageDailyActivity extends StatelessWidget {
                   const SizedBox(width: 10),
                   Flexible(
                     child: GlobalsButtonText(
-                      text: 'Jelajahi Misi Seru Hari Ini',
+                      text: dailyPending > 0
+                          ? 'Selesaikan $dailyPending Misi Dulu'
+                          : 'Lihat Reward Misi Hari Ini',
                       style: AppTextStyles.heading3SemiBold(AppColors.base5),
                     ),
                   ),
@@ -180,17 +196,17 @@ class PageDailyActivity extends StatelessWidget {
 // ===========================================================================
 class _MissionsBottomSheet extends StatefulWidget {
   final List<MissionData> dailyMissions;
+  final List<MissionData> milestoneMissions;
   final int dailyPending;
   final int dailyTotal;
   final double dailyProgress;
-  final VoidCallback? onTaskCompleted;
 
   const _MissionsBottomSheet({
     required this.dailyMissions,
+    required this.milestoneMissions,
     required this.dailyPending,
     required this.dailyTotal,
     required this.dailyProgress,
-    this.onTaskCompleted,
   });
 
   @override
@@ -200,6 +216,14 @@ class _MissionsBottomSheet extends StatefulWidget {
 class _MissionsBottomSheetState extends State<_MissionsBottomSheet> {
   @override
   Widget build(BuildContext context) {
+    final milestoneTotal = widget.milestoneMissions.length;
+    final milestoneClaimed = widget.milestoneMissions
+        .where((mission) => mission.isClaimed)
+        .length;
+    final milestoneProgress = milestoneTotal > 0
+        ? milestoneClaimed / milestoneTotal
+        : 0.0;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
@@ -242,18 +266,10 @@ class _MissionsBottomSheetState extends State<_MissionsBottomSheet> {
                       return _MissionSheetItem(
                         data: e.value,
                         showDivider: !isLast,
-                        onTap: () {
-                          if (!e.value.isDone) {
-                            DailyTaskHandler.completeAndClaim(
-                              context: context,
-                              mission: e.value,
-                              onSuccess: () {
-                                if (mounted) setState(() {});
-                                widget.onTaskCompleted?.call();
-                              },
-                            );
-                          }
-                        },
+                        onTap: () => DailyTaskHandler.showActionHint(
+                          context: context,
+                          mission: e.value,
+                        ),
                       );
                     }),
 
@@ -267,24 +283,41 @@ class _MissionsBottomSheetState extends State<_MissionsBottomSheet> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Segera hadir',
+                      '$milestoneClaimed/$milestoneTotal Milestone Tercapai',
                       style: AppTextStyles.list1Regular(AppColors.base2),
                     ),
                     const SizedBox(height: 8),
-                    _ProgressBar(value: 0, color: AppColors.secondary1),
+                    _ProgressBar(
+                      value: milestoneProgress,
+                      color: AppColors.secondary1,
+                    ),
                     const SizedBox(height: 20),
 
-                    // Placeholder kosong
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Text(
-                          'Misi level-up akan tersedia segera 🚀',
-                          style: AppTextStyles.list1Regular(AppColors.base2),
-                          textAlign: TextAlign.center,
+                    if (widget.milestoneMissions.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                            'Belum ada milestone aktif dari server.',
+                            style: AppTextStyles.list1Regular(AppColors.base2),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                      ),
-                    ),
+                      )
+                    else
+                      ...widget.milestoneMissions.asMap().entries.map((e) {
+                        final isLast =
+                            e.key == widget.milestoneMissions.length - 1;
+                        return _MissionSheetItem(
+                          data: e.value,
+                          showDivider: !isLast,
+                          showProgress: true,
+                          onTap: () => DailyTaskHandler.showActionHint(
+                            context: context,
+                            mission: e.value,
+                          ),
+                        );
+                      }),
                   ],
                 ),
               ),
@@ -372,15 +405,18 @@ class _ProgressBar extends StatelessWidget {
 class _MissionSheetItem extends StatelessWidget {
   final MissionData data;
   final bool showDivider;
+  final bool showProgress;
   final VoidCallback? onTap;
 
   const _MissionSheetItem({
     required this.data,
     this.showDivider = true,
+    this.showProgress = false,
     this.onTap,
   });
 
-  bool get _isDone => data.isDone;
+  bool get _isClaimed => data.isClaimed;
+  bool get _isCompleted => data.isCompleted;
 
   @override
   Widget build(BuildContext context) {
@@ -412,11 +448,38 @@ class _MissionSheetItem extends StatelessWidget {
 
                 // ── Label misi ────────────────────────────────────────
                 Expanded(
-                  child: Text(
-                    data.label,
-                    style: AppTextStyles.list1Regular(AppColors.base1),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.label,
+                        style: AppTextStyles.list1Regular(AppColors.base1),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (showProgress && data.target > 0) ...[
+                        const SizedBox(height: 6),
+                        _ProgressBar(
+                          value: data.percentage / 100,
+                          color: data.isClaimed
+                              ? AppColors.success2
+                              : AppColors.secondary1,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${data.current}/${data.target} • ${data.statusLabel}',
+                          style: AppTextStyles.list3Regular(AppColors.base2),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ] else if (!data.isClaimed && data.actionHint.isNotEmpty)
+                        Text(
+                          data.actionHint,
+                          style: AppTextStyles.list3Regular(AppColors.base2),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -459,17 +522,23 @@ class _MissionSheetItem extends StatelessWidget {
                   height: 20,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _isDone ? AppColors.success2 : Colors.transparent,
-                    border: _isDone
+                    color: _isClaimed
+                        ? AppColors.success2
+                        : _isCompleted
+                        ? AppColors.primary1
+                        : Colors.transparent,
+                    border: _isClaimed || _isCompleted
                         ? null
                         : Border.all(color: AppColors.base3, width: 1.5),
                   ),
-                  child: _isDone
+                  child: _isClaimed
                       ? const Icon(
                           Icons.check,
                           color: AppColors.base5,
                           size: 12,
                         )
+                      : _isCompleted
+                      ? const Icon(Icons.sync, color: AppColors.base5, size: 11)
                       : null,
                 ),
               ],

@@ -50,26 +50,30 @@ class AddMealCategoryPage extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                CmpAddFixMealForm(
-                  selectedMeal: selectedMeal,
-                  selectedCalorieMethod: selectedCalorieMethod,
-                  mealPlanUuid: mealPlanUuid,
-                  mealPlanName: mealPlanName,
-                  mealPlanCarbohydrate: mealPlanCarbohydrate,
-                  mealPlanProtein: mealPlanProtein,
-                  mealPlanFat: mealPlanFat,
-                  mealPlanCalories: mealPlanCalories,
-                ),
-              ],
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CmpAddFixMealForm(
+                    selectedMeal: selectedMeal,
+                    selectedCalorieMethod: selectedCalorieMethod,
+                    mealPlanUuid: mealPlanUuid,
+                    mealPlanName: mealPlanName,
+                    mealPlanCarbohydrate: mealPlanCarbohydrate,
+                    mealPlanProtein: mealPlanProtein,
+                    mealPlanFat: mealPlanFat,
+                    mealPlanCalories: mealPlanCalories,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

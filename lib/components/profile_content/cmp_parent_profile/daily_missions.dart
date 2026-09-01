@@ -1,184 +1,72 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart' as http;
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
-import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
-import 'package:sporky_maxi/components/globals/dialog/dialog_alert.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
-import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
 
 // ---------------------------------------------------------------------------
 // Model data misi — dipakai di profil & halaman aktivitas
 // ---------------------------------------------------------------------------
 class MissionData {
   final String uuid;
+  final String taskUuid;
+  final String category;
+  final String categoryLabel;
+  final String description;
   final String iconAsset;
   final Color iconColor;
   final String label;
   final int points;
+  final int current;
+  final int target;
+  final double percentage;
+  final String statusLabel;
+  final String actionHint;
+  final bool isMilestone;
   String status; // 'pending' | 'completed' | 'claimed'
 
   MissionData({
     this.uuid = '',
+    this.taskUuid = '',
+    this.category = '',
+    this.categoryLabel = '',
+    this.description = '',
     required this.iconAsset,
     required this.iconColor,
     required this.label,
     this.points = 0,
+    this.current = 0,
+    this.target = 0,
+    this.percentage = 0,
+    this.statusLabel = '',
+    this.actionHint = '',
+    this.isMilestone = false,
     this.status = 'pending',
   });
 
-  bool get isDone => status == 'completed' || status == 'claimed';
+  bool get isClaimed => status == 'claimed';
+  bool get isCompleted => status == 'completed';
+  bool get isDone => isClaimed;
 }
 
 // ---------------------------------------------------------------------------
 // Helper untuk memproses penyelesaian dan klaim task
 // ---------------------------------------------------------------------------
 class DailyTaskHandler {
-  static Future<void> completeAndClaim({
+  static void showActionHint({
     required BuildContext context,
     required MissionData mission,
-    VoidCallback? onSuccess,
-  }) async {
-    if (mission.status == 'claimed') {
-      return;
-    }
+  }) {
+    final message = mission.isClaimed
+        ? 'Misi ini sudah diklaim otomatis dari aktivitas nyata.'
+        : mission.isCompleted
+        ? 'Misi sudah selesai dan akan tersinkron otomatis.'
+        : mission.actionHint.isNotEmpty
+        ? mission.actionHint
+        : 'Selesaikan aktivitas terkait agar misi diklaim otomatis.';
 
-    if (mission.uuid.isEmpty) {
-      debugPrint('[DailyTaskHandler] ERROR: mission.uuid is empty!');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ID Misi tidak valid')),
-      );
-      return;
-    }
-
-    // Tampilkan loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: AppColors.primary1),
-      ),
-    );
-
-    try {
-      final token = await SecureStorageService.getToken() ?? '';
-      final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
-      final headers = {
-        'Authorization': authHeader,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
-
-      // debugPrint('[DailyTaskHandler] Starting flow for task UUID: ${mission.uuid}');
-      // debugPrint('[DailyTaskHandler] Mission status: ${mission.status}');
-
-      bool completeSuccess = true;
-      String completeErrorMessage = '';
-
-      if (mission.status == 'pending') {
-        final completeUrl = ApiEndpoints.completeTask(mission.uuid);
-        debugPrint('[DailyTaskHandler] POST Complete URL: $completeUrl');
-
-        final completeRes = await http.post(
-          Uri.parse(completeUrl),
-          headers: headers,
-          body: jsonEncode({}),
-        );
-
-        // debugPrint('[DailyTaskHandler] Complete Response Status: ${completeRes.statusCode}');
-        // debugPrint('[DailyTaskHandler] Complete Response Body: ${completeRes.body}');
-
-        dynamic completeData;
-        try {
-          completeData = jsonDecode(completeRes.body);
-        } catch (_) {}
-
-        completeSuccess = completeRes.statusCode == 200 ||
-            completeRes.statusCode == 201 ||
-            (completeData is Map && completeData['success'] == true);
-
-        if (!completeSuccess) {
-          completeErrorMessage =
-              (completeData is Map ? completeData['message'] : null) ??
-                  'HTTP ${completeRes.statusCode}: Gagal menyelesaikan tugas';
-        }
-      }
-
-      if (completeSuccess) {
-        final claimUrl = ApiEndpoints.claimTask(mission.uuid);
-        // debugPrint('[DailyTaskHandler] POST Claim URL: $claimUrl');
-
-        final claimRes = await http.post(
-          Uri.parse(claimUrl),
-          headers: headers,
-          body: jsonEncode({}),
-        );
-
-        // debugPrint('[DailyTaskHandler] Claim Response Status: ${claimRes.statusCode}');
-        // debugPrint('[DailyTaskHandler] Claim Response Body: ${claimRes.body}');
-
-        dynamic claimData;
-        try {
-          claimData = jsonDecode(claimRes.body);
-        } catch (_) {}
-
-        if (context.mounted) Navigator.pop(context); // Tutup loading dialog
-
-        final claimSuccess = claimRes.statusCode == 200 ||
-            claimRes.statusCode == 201 ||
-            (claimData is Map && claimData['success'] == true);
-
-        if (claimSuccess) {
-          mission.status = 'claimed';
-          final pointsEarned = (claimData is Map && claimData['data'] is Map)
-              ? claimData['data']['points_earned'] ?? mission.points
-              : mission.points;
-          if (context.mounted) {
-            DialogAlert.show(
-              context: context,
-              barrierDismissible: true,
-              child: Content1(
-                title: 'Misi Berhasil!',
-                message:
-                    'Selamat! Kamu berhasil menyelesaikan misi dan mendapatkan +$pointsEarned XP!',
-                image: 'assets/giff/gif1.gif',
-                iconAsset: 'assets/svg/ic_success.svg',
-                textNav: 'Lanjutkan',
-                onPressed: () {
-                  Navigator.pop(context);
-                  if (onSuccess != null) onSuccess();
-                },
-              ),
-            );
-          }
-        } else {
-          final errStr = (claimData is Map ? claimData['message'] : null) ??
-              'HTTP ${claimRes.statusCode}: Gagal mengklaim poin misi';
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(errStr)),
-            );
-          }
-        }
-      } else {
-        if (context.mounted) Navigator.pop(context); // Tutup loading dialog
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(completeErrorMessage)),
-          );
-        }
-      }
-    } catch (e, stack) {
-      debugPrint('[DailyTaskHandler] EXCEPTION: $e');
-      debugPrint('[DailyTaskHandler] STACK: $stack');
-      if (context.mounted) Navigator.pop(context); // Tutup loading dialog
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
-        );
-      }
-    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -191,7 +79,7 @@ class DailyMissions extends StatefulWidget {
   final int totalCount;
   final List<MissionData> missions;
   final VoidCallback? onSeeAll;
-  final VoidCallback? onTaskCompleted;
+  final VoidCallback? onAllMissionsCompleted;
 
   const DailyMissions({
     super.key,
@@ -199,7 +87,7 @@ class DailyMissions extends StatefulWidget {
     this.totalCount = 0,
     required this.missions,
     this.onSeeAll,
-    this.onTaskCompleted,
+    this.onAllMissionsCompleted,
   });
 
   @override
@@ -207,6 +95,22 @@ class DailyMissions extends StatefulWidget {
 }
 
 class _DailyMissionsState extends State<DailyMissions> {
+  @override
+  void didUpdateWidget(covariant DailyMissions oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final missionsJustCompleted =
+        widget.totalCount > 0 &&
+        widget.missionCount == 0 &&
+        oldWidget.missionCount > 0;
+
+    if (missionsJustCompleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onAllMissionsCompleted?.call();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final displayedMissions = widget.missions.take(5).toList();
@@ -241,18 +145,10 @@ class _DailyMissionsState extends State<DailyMissions> {
           ...displayedMissions.map(
             (data) => MissionListItem(
               data: data,
-              onTap: () {
-                if (!data.isDone) {
-                  DailyTaskHandler.completeAndClaim(
-                    context: context,
-                    mission: data,
-                    onSuccess: () {
-                      if (mounted) setState(() {});
-                      widget.onTaskCompleted?.call();
-                    },
-                  );
-                }
-              },
+              onTap: () => DailyTaskHandler.showActionHint(
+                context: context,
+                mission: data,
+              ),
             ),
           ),
 
@@ -260,10 +156,18 @@ class _DailyMissionsState extends State<DailyMissions> {
           if (hasMore)
             Center(
               child: TextButton(
-                onPressed: widget.onSeeAll,
+                onPressed: widget.totalCount > 0 && widget.missionCount == 0
+                    ? null
+                    : widget.onSeeAll,
                 child: Text(
-                  'Lihat Selengkapnya',
-                  style: AppTextStyles.list1Bold(AppColors.primary1),
+                  widget.totalCount > 0 && widget.missionCount == 0
+                      ? 'Semua Misi Selesai'
+                      : 'Lihat Selengkapnya',
+                  style: AppTextStyles.list1Bold(
+                    widget.totalCount > 0 && widget.missionCount == 0
+                        ? AppColors.base2
+                        : AppColors.primary1,
+                  ),
                 ),
               ),
             ),
@@ -280,11 +184,7 @@ class MissionListItem extends StatelessWidget {
   final MissionData data;
   final VoidCallback? onTap;
 
-  const MissionListItem({
-    super.key,
-    required this.data,
-    this.onTap,
-  });
+  const MissionListItem({super.key, required this.data, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -303,8 +203,10 @@ class MissionListItem extends StatelessWidget {
                   height: 16,
                   child: SvgPicture.asset(
                     data.iconAsset,
-                    colorFilter:
-                        ColorFilter.mode(data.iconColor, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(
+                      data.iconColor,
+                      BlendMode.srcIn,
+                    ),
                     placeholderBuilder: (_) =>
                         const SizedBox(width: 16, height: 16),
                   ),
@@ -313,11 +215,23 @@ class MissionListItem extends StatelessWidget {
 
                 // Label misi
                 Expanded(
-                  child: Text(
-                    data.label,
-                    style: AppTextStyles.list1Regular(AppColors.base1),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.label,
+                        style: AppTextStyles.list1Regular(AppColors.base1),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (!data.isClaimed && data.actionHint.isNotEmpty)
+                        Text(
+                          data.actionHint,
+                          style: AppTextStyles.list3Regular(AppColors.base2),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -325,8 +239,10 @@ class MissionListItem extends StatelessWidget {
                 // XP Chip
                 if (data.points > 0)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary3,
                       borderRadius: BorderRadius.circular(20),
@@ -334,13 +250,17 @@ class MissionListItem extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.circle,
-                            size: 6, color: AppColors.primary1),
+                        const Icon(
+                          Icons.circle,
+                          size: 6,
+                          color: AppColors.primary1,
+                        ),
                         const SizedBox(width: 3),
                         Text(
                           '+${data.points}xp',
-                          style:
-                              AppTextStyles.list3SemiBold(AppColors.primary1),
+                          style: AppTextStyles.list3SemiBold(
+                            AppColors.primary1,
+                          ),
                         ),
                       ],
                     ),
@@ -353,15 +273,23 @@ class MissionListItem extends StatelessWidget {
                   height: 18,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color:
-                        data.isDone ? AppColors.success2 : Colors.transparent,
-                    border: data.isDone
+                    color: data.isClaimed
+                        ? AppColors.success2
+                        : data.isCompleted
+                        ? AppColors.primary1
+                        : Colors.transparent,
+                    border: data.isClaimed || data.isCompleted
                         ? null
                         : Border.all(color: AppColors.base3, width: 1.5),
                   ),
-                  child: data.isDone
-                      ? const Icon(Icons.check,
-                          color: AppColors.base5, size: 11)
+                  child: data.isClaimed
+                      ? const Icon(
+                          Icons.check,
+                          color: AppColors.base5,
+                          size: 11,
+                        )
+                      : data.isCompleted
+                      ? const Icon(Icons.sync, color: AppColors.base5, size: 10)
                       : null,
                 ),
               ],

@@ -17,6 +17,7 @@ import '../globals/form/globals_form.dart';
 import '../globals/text/text_style.dart';
 import 'cmp_add_meal_form.dart';
 import 'cmp_meal_form.dart';
+import '../../core/utils/app_clock.dart';
 import '../../core/utils/secure_storage_service.dart';
 
 class CmpAddFixMealForm extends StatefulWidget {
@@ -132,10 +133,7 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
   }
 
   String _todayDateString() {
-    final now = DateTime.now();
-    final month = now.month.toString().padLeft(2, '0');
-    final day = now.day.toString().padLeft(2, '0');
-    return '${now.year}-$month-$day';
+    return AppClock.todayDateString();
   }
 
   String _combinedMealName() {

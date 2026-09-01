@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sporky_maxi/components/profile_content/cmp_parent_profile.dart';
+import 'package:sporky_maxi/core/services/foundation/api_foundation_service.dart';
 import 'package:sporky_maxi/core/services/profile/profile_service.dart';
 import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
 
@@ -15,12 +16,14 @@ class ParentProfile extends StatefulWidget {
 
 class _ParentProfileState extends State<ParentProfile> {
   static const ProfileService _profileService = ProfileService();
+  static const ApiFoundationService _foundationService = ApiFoundationService();
 
-  String _name = 'Orangtua Sporky';
+  String _name = '';
   String? _avatar;
-  String _childName = 'Anak Sporky';
+  String _childName = '';
   int _ageYear = 0;
   int _ageMonth = 0;
+  int _unreadNotificationCount = 0;
   bool _isLoading = true;
 
   @override
@@ -32,9 +35,15 @@ class _ParentProfileState extends State<ParentProfile> {
   Future<void> _loadProfile() async {
     try {
       final profile = await _profileService.getParentProfile();
+      final notifications = await _foundationService.getNotifications(
+        perPage: 100,
+      );
+      final unreadNotificationCount = notifications.notifications
+          .where((notification) => !notification.isRead)
+          .length;
       final childUuid =
           (await SecureStorageService.getSelectedChildUuid() ?? '').trim();
-      var childName = _childName;
+      var childName = '';
       var ageYear = 0;
       var ageMonth = 0;
 
@@ -58,6 +67,7 @@ class _ParentProfileState extends State<ParentProfile> {
         _name = profile.name;
         _avatar = profile.avatar;
         _childName = childName;
+        _unreadNotificationCount = unreadNotificationCount;
         _ageYear = ageYear;
         _ageMonth = ageMonth;
         _isLoading = false;
@@ -105,8 +115,8 @@ class _ParentProfileState extends State<ParentProfile> {
                     },
                     name: _name,
                     photoUrl: _avatar,
-                    countNotif: 5,
-                    badgeImg: 'assets/health_badge.png',
+                    countNotif: _unreadNotificationCount,
+                    badgeImg: '',
                     childName: _childName,
                     childAgeYear: _ageYear,
                     childAgeMonth: _ageMonth,
