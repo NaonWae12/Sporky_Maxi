@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -34,17 +35,75 @@ class AllContentPage extends StatefulWidget {
 }
 
 class _AllContentPageState extends State<AllContentPage> {
+  static const int _perPage = 10;
+  static const Duration _searchDebounceDuration = Duration(milliseconds: 350);
+
+  final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounce;
+
   List<String> _selectedFiltersFromBottomSheet = [];
   List<_MealEntry> _mealEntries = [];
   Map<String, int> _mealPlanLikes = {};
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  Object? _error;
+  int _currentPage = 0;
+  int _lastPage = 1;
   List<Map<String, dynamic>> _structuredCategories = [];
+
+  bool get _hasMore => _currentPage < _lastPage;
 
   @override
   void initState() {
     super.initState();
-    _fetchMealPlans();
+    _scrollController.addListener(_onScroll);
+    _fetchMealPlans(reset: true);
     _fetchIngredients();
+  }
+
+  @override
+  void didUpdateWidget(covariant AllContentPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchQuery != widget.searchQuery ||
+        oldWidget.category != widget.category) {
+      _searchDebounce?.cancel();
+      _searchDebounce = Timer(_searchDebounceDuration, () {
+        if (mounted) _reloadMealPlans();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.extentAfter > 240) return;
+    if (_isLoading || _isLoadingMore || !_hasMore) return;
+    _loadMoreMealPlans();
+  }
+
+  void _reloadMealPlans() {
+    setState(() {
+      _isLoading = true;
+      _isLoadingMore = false;
+      _error = null;
+    });
+    _fetchMealPlans(reset: true);
+  }
+
+  void _loadMoreMealPlans() {
+    setState(() {
+      _isLoadingMore = true;
+      _error = null;
+    });
+    _fetchMealPlans(reset: false);
   }
 
   /// Mengubah raw type string "makan_pagi" → "Makan Pagi"
@@ -119,22 +178,32 @@ class _AllContentPageState extends State<AllContentPage> {
     }
   }
 
-  Future<void> _fetchMealPlans() async {
+  Future<void> _fetchMealPlans({required bool reset}) async {
+    final page = reset ? 1 : _currentPage + 1;
+
     try {
       final token = await SecureStorageService.getToken();
       if (token == null || token.isEmpty) {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _isLoadingMore = false;
+          });
+        }
         return;
       }
 
       final authHeader = token.startsWith('Bearer ') ? token : 'Bearer $token';
 
-      // Build URI dengan query parameter untuk filter ingredients
+      // Load dibatasi per halaman; backend sudah menyediakan pagination.
       final uri = Uri.parse(ApiEndpoints.mealPlan);
+      final search = widget.searchQuery.trim();
       final finalUri = uri.replace(
         queryParameters: {
           ...uri.queryParameters,
-          'per_page': '9999',
+          'page': page.toString(),
+          'per_page': _perPage.toString(),
+          if (search.isNotEmpty) 'search': search,
           if (widget.category != null) 'category': widget.category!,
           if (_selectedFiltersFromBottomSheet.isNotEmpty)
             'ingredient[]': _selectedFiltersFromBottomSheet,
@@ -150,10 +219,18 @@ class _AllContentPageState extends State<AllContentPage> {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
         final dataNode = decoded['data'];
         List<dynamic> mealsRaw = [];
+        var currentPage = page;
+        var lastPage = reset ? 1 : _lastPage;
 
         if (dataNode is Map<String, dynamic>) {
           final mealPlansNode = dataNode['meal_plans'];
           if (mealPlansNode is List) mealsRaw = mealPlansNode;
+
+          final paginationNode = dataNode['pagination'];
+          if (paginationNode is Map<String, dynamic>) {
+            currentPage = _toInt(paginationNode['current_page'], page);
+            lastPage = _toInt(paginationNode['last_page'], currentPage);
+          }
         } else if (dataNode is List) {
           mealsRaw = dataNode;
         }
@@ -162,50 +239,74 @@ class _AllContentPageState extends State<AllContentPage> {
             .whereType<Map<String, dynamic>>()
             .map(MealPlan.fromJson)
             .toList();
-
-        // ===== EXPAND: 1 MealPlan multi-type → beberapa _MealEntry =====
-        final List<_MealEntry> entries = [];
-        for (final meal in parsed) {
-          if (meal.type.isEmpty) {
-            entries.add(_MealEntry(meal: meal, displayType: 'Menu'));
-          } else {
-            for (final rawType in meal.type) {
-              entries.add(
-                _MealEntry(meal: meal, displayType: _formatTypeLabel(rawType)),
-              );
-            }
-          }
-        }
+        final entries = _expandMealEntries(parsed);
 
         debugPrint(
-          '[AllContentPage] parsed: ${parsed.length} meal plans → ${entries.length} entries (setelah expand type)',
+          '[AllContentPage] page $currentPage/$lastPage: ${parsed.length} meal plans → ${entries.length} entries',
         );
 
-        // Fetch likes count per-unique meal (bukan per-entry)
         final uniqueMeals = {
           for (final e in entries) e.meal.uuid: e.meal,
         }.values.toList();
-        // Gunakan favorites_count yang sudah disertakan di response list API
-        // (backend sudah menggunakan withCount) — tidak perlu N+1 request lagi.
         final Map<String, int> likesMap = {
           for (final meal in uniqueMeals) meal.uuid: meal.favoritesCount,
         };
 
         if (mounted) {
           setState(() {
-            _mealEntries = entries;
-            _mealPlanLikes = likesMap;
+            _mealEntries = reset ? entries : [..._mealEntries, ...entries];
+            _mealPlanLikes = reset
+                ? likesMap
+                : {..._mealPlanLikes, ...likesMap};
+            _currentPage = currentPage;
+            _lastPage = lastPage;
             _isLoading = false;
+            _isLoadingMore = false;
+            _error = null;
           });
         }
       } else {
         debugPrint('[AllContentPage] Gagal fetch (${response.statusCode})');
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _isLoadingMore = false;
+            _error = response.statusCode;
+          });
+        }
       }
     } catch (e) {
       debugPrint('[AllContentPage] Error: $e');
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+          _error = e;
+        });
+      }
     }
+  }
+
+  List<_MealEntry> _expandMealEntries(List<MealPlan> meals) {
+    final List<_MealEntry> entries = [];
+    for (final meal in meals) {
+      if (meal.type.isEmpty) {
+        entries.add(_MealEntry(meal: meal, displayType: 'Menu'));
+      } else {
+        for (final rawType in meal.type) {
+          entries.add(
+            _MealEntry(meal: meal, displayType: _formatTypeLabel(rawType)),
+          );
+        }
+      }
+    }
+    return entries;
+  }
+
+  int _toInt(dynamic value, int fallback) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
   }
 
   String _normalizeImageUrl(String url) {
@@ -218,136 +319,148 @@ class _AllContentPageState extends State<AllContentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredEntries = _mealEntries.where((entry) {
-      if (widget.searchQuery.isEmpty) return true;
-      return entry.meal.name.toLowerCase().contains(
-        widget.searchQuery.toLowerCase(),
-      );
-    }).toList();
+    return Column(
+      children: [
+        _buildFilterHeader(),
+        Expanded(child: _buildMealPlanBody()),
+      ],
+    );
+  }
 
-    return SingleChildScrollView(
-      child: Column(
+  Widget _buildFilterHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _selectedFiltersFromBottomSheet.isNotEmpty
-                      ? Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: _selectedFiltersFromBottomSheet
-                              .map(
-                                (filter) => GlobalsCardOutlined(
-                                  height: 24,
-                                  borderColor: Colors.transparent,
-                                  backgroundColor: AppColors.secondary2,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        filter,
-                                        style: AppTextStyles.list1Regular(
-                                          AppColors.base5,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedFiltersFromBottomSheet
-                                                .remove(filter);
-                                            _isLoading = true;
-                                          });
-                                          _fetchMealPlans();
-                                        },
-                                        child: const Icon(
-                                          Icons.close,
-                                          size: 12,
-                                          color: AppColors.base5,
-                                        ),
-                                      ),
-                                    ],
+          Expanded(
+            child: _selectedFiltersFromBottomSheet.isNotEmpty
+                ? Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: _selectedFiltersFromBottomSheet
+                        .map(
+                          (filter) => GlobalsCardOutlined(
+                            height: 24,
+                            borderColor: Colors.transparent,
+                            backgroundColor: AppColors.secondary2,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  filter,
+                                  style: AppTextStyles.list1Regular(
+                                    AppColors.base5,
                                   ),
                                 ),
-                              )
-                              .toList(),
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedFiltersFromBottomSheet.remove(
+                                        filter,
+                                      );
+                                      _isLoading = true;
+                                    });
+                                    _fetchMealPlans(reset: true);
+                                  },
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 12,
+                                    color: AppColors.base5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         )
-                      : const SizedBox(),
-                ),
-                const SizedBox(width: 8),
-                FilterContentButton(
-                  categories: const [],
-                  structuredCategories: _structuredCategories,
-                  initialSelected: _selectedFiltersFromBottomSheet,
-                  title: 'Filter Bahan Makanan',
-                  onFilterApplied: (selected) {
-                    setState(() {
-                      _selectedFiltersFromBottomSheet = selected;
-                      _isLoading = true;
-                    });
-                    _fetchMealPlans();
-                  },
-                ),
-              ],
-            ),
+                        .toList(),
+                  )
+                : const SizedBox(),
           ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_mealEntries.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Center(
-                child: Text(
-                  'Belum ada menu tersedia.',
-                  style: AppTextStyles.list1Regular(AppColors.base2),
-                ),
-              ),
-            )
-          else if (filteredEntries.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Center(
-                child: Text(
-                  'Tidak ada menu yang cocok dengan pencarian.',
-                  style: AppTextStyles.list1Regular(AppColors.base2),
-                ),
-              ),
-            )
-          else
-            ...filteredEntries.map((entry) {
-              final imageUrl = _normalizeImageUrl(entry.meal.imageUrl);
-              return CmpCardListArticle(
-                imageAsset: imageUrl.isNotEmpty ? imageUrl : null,
-                meal: entry.displayType,
-                kal: entry.meal.calories.round(),
-                title: entry.meal.name,
-                description: entry.meal.subtitle.isNotEmpty
-                    ? entry.meal.subtitle
-                    : 'Menu pilihan bergizi untuk tumbuh kembang si kecil.',
-                views: 0,
-                likes: _mealPlanLikes[entry.meal.uuid] ?? 0,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          DetailMealPlan(mealPlan: entry.meal),
-                    ),
-                  );
-                },
-              );
-            }),
+          const SizedBox(width: 8),
+          FilterContentButton(
+            categories: const [],
+            structuredCategories: _structuredCategories,
+            initialSelected: _selectedFiltersFromBottomSheet,
+            title: 'Filter Bahan Makanan',
+            onFilterApplied: (selected) {
+              setState(() {
+                _selectedFiltersFromBottomSheet = selected;
+                _isLoading = true;
+              });
+              _fetchMealPlans(reset: true);
+            },
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMealPlanBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null && _mealEntries.isEmpty) {
+      return Center(
+        child: TextButton(
+          onPressed: _reloadMealPlans,
+          child: const Text('Gagal memuat menu. Coba lagi'),
+        ),
+      );
+    }
+
+    if (_mealEntries.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Text(
+            widget.searchQuery.trim().isEmpty
+                ? 'Belum ada menu tersedia.'
+                : 'Tidak ada menu yang cocok dengan pencarian.',
+            style: AppTextStyles.list1Regular(AppColors.base2),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: _mealEntries.length + (_hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= _mealEntries.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final entry = _mealEntries[index];
+        final imageUrl = _normalizeImageUrl(entry.meal.imageUrl);
+        return CmpCardListArticle(
+          imageAsset: imageUrl.isNotEmpty ? imageUrl : null,
+          meal: entry.displayType,
+          kal: entry.meal.calories.round(),
+          title: entry.meal.name,
+          description: entry.meal.subtitle.isNotEmpty
+              ? entry.meal.subtitle
+              : 'Menu pilihan bergizi untuk tumbuh kembang si kecil.',
+          views: 0,
+          likes: _mealPlanLikes[entry.meal.uuid] ?? 0,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DetailMealPlan(mealPlan: entry.meal),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
