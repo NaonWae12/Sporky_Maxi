@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
+import 'package:sporky_maxi/components/profile_content/cmp_parent_profile/mission_icon_resolver.dart';
 
 // ---------------------------------------------------------------------------
 // Model data misi — dipakai di profil & halaman aktivitas
@@ -22,6 +23,8 @@ class MissionData {
   final String statusLabel;
   final String actionHint;
   final bool isMilestone;
+  final String period; // 'daily' | 'weekly' | 'monthly' | 'once'
+  final String periodLabel; // 'Harian' | 'Mingguan' | 'Bulanan' | 'Sekali'
   String status; // 'pending' | 'completed' | 'claimed'
 
   MissionData({
@@ -40,12 +43,72 @@ class MissionData {
     this.statusLabel = '',
     this.actionHint = '',
     this.isMilestone = false,
+    this.period = 'daily',
+    this.periodLabel = '',
     this.status = 'pending',
   });
 
   bool get isClaimed => status == 'claimed';
   bool get isCompleted => status == 'completed';
   bool get isDone => isClaimed;
+
+  factory MissionData.fromJson(
+    Map<String, dynamic> json, {
+    bool isMilestone = false,
+  }) {
+    final uuid = json['uuid']?.toString() ?? '';
+    final taskUuid = json['task_uuid']?.toString() ?? '';
+    final title = json['title']?.toString() ?? '';
+    final category = json['category']?.toString() ?? '';
+    final categoryLabel = json['category_label']?.toString() ?? category;
+    final description = json['description']?.toString() ?? '';
+    final points = int.tryParse(json['point']?.toString() ?? '') ?? 0;
+    final status = json['status']?.toString() ?? 'pending';
+    final statusLabel = json['status_label']?.toString() ?? status;
+    final actionHint = json['action_hint']?.toString() ?? '';
+    final period = json['period']?.toString() ?? 'daily';
+    final periodLabel = json['period_label']?.toString() ?? '';
+    final current = int.tryParse(json['current']?.toString() ?? '') ?? 0;
+    final target =
+        int.tryParse(
+          json['target']?.toString() ?? json['milestone']?.toString() ?? '',
+        ) ??
+        0;
+    final percentage =
+        double.tryParse(json['percentage']?.toString() ?? '') ?? 0;
+    final iconAsset = MissionIconResolver.resolveIcon(
+      categoryLabel,
+      title,
+      description,
+    );
+    final iconColor = MissionIconResolver.resolveColor(
+      iconAsset,
+      categoryLabel,
+      title,
+      description,
+    );
+
+    return MissionData(
+      uuid: uuid,
+      taskUuid: taskUuid,
+      category: category,
+      categoryLabel: categoryLabel,
+      description: description,
+      iconAsset: iconAsset,
+      iconColor: iconColor,
+      label: title,
+      points: points,
+      current: current,
+      target: target,
+      percentage: percentage,
+      status: status,
+      statusLabel: statusLabel,
+      actionHint: actionHint,
+      isMilestone: isMilestone,
+      period: period,
+      periodLabel: periodLabel,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

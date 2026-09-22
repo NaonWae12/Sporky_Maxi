@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../components/explore_cmp/article_cmp/more_article_cmp.dart';
-import '../../../components/globals/card/globals_card_outlined.dart';
-import '../../../components/globals/colors/colors.dart';
 import '../../../components/globals/filter/category_filter_chips_horizontal.dart';
 import '../../../components/globals/filter/filter_content_button.dart';
 import '../../../components/globals/form/search_input.dart';
-import '../../../components/globals/text/text_style.dart';
 import '../../../core/services/explore/explore_content_service.dart';
 import '../../../models/components/explore/explore_content_model.dart';
 import 'article_fav.dart';
@@ -22,7 +19,7 @@ class MorePageAricle extends StatefulWidget {
 
 class _MorePageAricleState extends State<MorePageAricle> {
   int selectedIndex = 0;
-  List<String> _selectedFiltersFromBottomSheet = [];
+  bool _sortByLikes = false;
   List<ExploreTopic> _topics = const [ExploreTopic(id: null, name: 'Semua')];
   bool _topicsLoading = true;
   static const ExploreContentService _service = ExploreContentService();
@@ -84,63 +81,17 @@ class _MorePageAricleState extends State<MorePageAricle> {
                   },
                 ),
           const SizedBox(height: 10),
-          // Text('Filter aktif: ${filters[selectedIndex]}'),
 
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: _selectedFiltersFromBottomSheet.isNotEmpty
-                      ? Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: _selectedFiltersFromBottomSheet
-                              .map(
-                                (filter) => GlobalsCardOutlined(
-                                  height: 24,
-                                  borderColor: Colors.transparent,
-                                  backgroundColor: AppColors.secondary2,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        filter,
-                                        style: AppTextStyles.list1Regular(
-                                          AppColors.base5,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.close,
-                                          size: 15,
-                                          color: AppColors.base5,
-                                        ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {
-                                          setState(() {
-                                            _selectedFiltersFromBottomSheet
-                                                .remove(filter);
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        )
-                      : const SizedBox(), // biar gak ganggu kalau kosong
-                ),
-                const SizedBox(width: 8),
-                FilterContentButton(
-                  categories: const ['sdfg', 'adfads'],
-                  title: 'Urutkan Berdasarkan',
-                  onFilterApplied: (selected) {
+                SortContentButton(
+                  sortByLikes: _sortByLikes,
+                  onChanged: (value) {
                     setState(() {
-                      _selectedFiltersFromBottomSheet = selected;
+                      _sortByLikes = value;
                     });
                   },
                 ),
@@ -151,6 +102,7 @@ class _MorePageAricleState extends State<MorePageAricle> {
           MoreArticleCmp(
             searchQuery: widget.searchQuery,
             selectedTopicId: _selectedTopicId,
+            sortByLikes: _sortByLikes,
           ),
         ],
       ),

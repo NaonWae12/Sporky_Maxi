@@ -23,6 +23,9 @@ class _PhotoCmpState extends State<PhotoCmp> {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
+      // Batasi dimensi agar hasil re-encode tetap di bawah batas 2MB server.
+      maxWidth: 1600,
+      maxHeight: 1600,
     );
 
     if (pickedFile == null) return;

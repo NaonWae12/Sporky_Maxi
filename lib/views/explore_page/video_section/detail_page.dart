@@ -8,6 +8,8 @@ import 'package:sporky_maxi/components/globals/constants/api_base_url.dart';
 import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
+import 'package:sporky_maxi/views/consultation/main_page_consultation.dart';
+import 'package:sporky_maxi/views/explore_page/article_section/detail_article.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../../../components/globals/video/global_youtube_player.dart';
 
@@ -33,6 +35,9 @@ class _DetailPageState extends State<DetailPage> {
   static const List<String> _fallbackTags = ['Video Edukasi'];
 
   late Future<_VideoDetailData> _videoFuture;
+  bool _isSaved = false;
+  bool _saving = false;
+  int _likes = 0;
 
   @override
   void initState() {
@@ -61,7 +66,9 @@ class _DetailPageState extends State<DetailPage> {
     final token = await SecureStorageService.getToken();
     final headers = <String, String>{'Accept': 'application/json'};
     if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = token;
+      headers['Authorization'] = token.startsWith('Bearer ')
+          ? token
+          : 'Bearer $token';
     }
 
     final response = await http.get(
@@ -79,7 +86,77 @@ class _DetailPageState extends State<DetailPage> {
       throw Exception('Format respons detail video tidak valid');
     }
 
-    return _mapVideoDetailData(videoNode);
+    final data = _mapVideoDetailData(videoNode);
+    if (mounted) {
+      setState(() {
+        _isSaved = data.isSaved;
+        _likes = data.likes;
+      });
+    }
+    return data;
+  }
+
+  Future<void> _toggleSave(_VideoDetailData video) async {
+    if (_saving || video.uuid.isEmpty) return;
+
+    final originalSaved = _isSaved;
+    // Optimistic UI update (pola sama seperti favorit meal plan)
+    setState(() {
+      _isSaved = !_isSaved;
+      _saving = true;
+    });
+
+    try {
+      final token = await SecureStorageService.getToken();
+      if (token == null || token.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _isSaved = originalSaved;
+            _saving = false;
+          });
+        }
+        return;
+      }
+
+      final headers = <String, String>{'Accept': 'application/json'};
+      headers['Authorization'] = token.startsWith('Bearer ')
+          ? token
+          : 'Bearer $token';
+
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.videoSave(video.uuid)),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final dataNode = body['data'];
+        final nowSaved = dataNode is Map ? dataNode['is_saved'] == true : false;
+        final nowLikes = dataNode is Map
+            ? _toInt(dataNode['total_likes'])
+            : null;
+        if (mounted) {
+          setState(() {
+            _isSaved = nowSaved;
+            if (nowLikes != null) {
+              _likes = nowLikes;
+            }
+            _saving = false;
+          });
+        }
+        return;
+      }
+    } catch (e) {
+      debugPrint('[DetailPage] save toggle error: $e');
+    }
+
+    // Revert jika API gagal
+    if (mounted) {
+      setState(() {
+        _isSaved = originalSaved;
+        _saving = false;
+      });
+    }
   }
 
   _VideoDetailData _fallbackVideoData() {
@@ -108,11 +185,26 @@ class _DetailPageState extends State<DetailPage> {
 
     final finalYoutubeLink = _resolveYoutubeLink(youtubeLink);
 
+    final linkedArticles =
+        (video['linked_articles'] is List
+                ? video['linked_articles'] as List
+                : const [])
+            .whereType<Map>()
+            .map(
+              (a) => _LinkedContent(
+                uuid: a['uuid']?.toString() ?? '',
+                title: a['title']?.toString().trim() ?? '',
+              ),
+            )
+            .where((a) => a.uuid.isNotEmpty)
+            .toList();
+
     return _VideoDetailData(
       uuid: video['uuid']?.toString() ?? '',
       title: (title == null || title.isEmpty) ? _fallbackTitle : title,
-      subtitle:
-          (subtitle == null || subtitle.isEmpty) ? _fallbackSubtitle : subtitle,
+      subtitle: (subtitle == null || subtitle.isEmpty)
+          ? _fallbackSubtitle
+          : subtitle,
       description: (description == null || description.isEmpty)
           ? _fallbackDescription
           : description,
@@ -121,6 +213,8 @@ class _DetailPageState extends State<DetailPage> {
       views: _toInt(video['total_views']),
       likes: _toInt(video['total_likes']),
       tags: tags.isNotEmpty ? tags : _fallbackTags,
+      isSaved: video['is_saved'] == true,
+      linkedArticles: linkedArticles,
     );
   }
 
@@ -196,8 +290,9 @@ class _DetailPageState extends State<DetailPage> {
         // TopContent akan menampilkan thumbnail dulu,
         // lalu baru init player saat user tap play.
 
-        final effectiveAspectRatio =
-            video.youtubeLink.contains('/shorts/') ? 9 / 16 : 16 / 9;
+        final effectiveAspectRatio = video.youtubeLink.contains('/shorts/')
+            ? 9 / 16
+            : 16 / 9;
 
         return GlobalYoutubeScaffold(
           controller: _youtubeController,
@@ -234,7 +329,11 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   Widget _buildMainScaffold(
-      BuildContext context, _VideoDetailData video, Widget? playerWidget, String? videoId) {
+    BuildContext context,
+    _VideoDetailData video,
+    Widget? playerWidget,
+    String? videoId,
+  ) {
     final isFullScreen = _youtubeController?.value.isFullScreen ?? false;
 
     return Scaffold(
@@ -253,12 +352,16 @@ class _DetailPageState extends State<DetailPage> {
               imageAsset: video.mediaUrl,
               youtubeLink: video.youtubeLink,
               categories: video.tags,
-              likes: video.likes,
+              likes: _likes > 0 ? _likes : video.likes,
               views: video.views,
               title: video.title,
               subtitle: video.subtitle,
               description: video.description,
               tags: video.tags,
+              isFavorited: video.isSaved || _isSaved,
+              onFavoriteTap: video.uuid.isEmpty || _saving
+                  ? null
+                  : () => _toggleSave(video),
               externalController: _youtubeController,
               externalPlayer: _youtubeController == null ? null : playerWidget,
               onPlay: () {
@@ -277,12 +380,31 @@ class _DetailPageState extends State<DetailPage> {
                 }
               },
             ),
-            const BottomContent(
-              title:
-                  "Ingin lebih paham lebih lanjut terkait Picky Eater pada Anak?",
-              description:
-                  "Baca artikel edukatif kami atau konsultasikan langsung dengan dokter pilihan Bunda. Yuk, kenali bantu kenali si Kecil agar tetap sehat!",
-            ),
+            if (video.linkedArticles.isNotEmpty)
+              ...video.linkedArticles.map((article) {
+                return BottomContent(
+                  title: article.title,
+                  description:
+                      "Baca artikel edukatif terkait dari kami, atau konsultasikan langsung dengan dokter pilihan Bunda.",
+                  onPrimaryAction: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            DetailArticle(articleUuid: article.uuid),
+                      ),
+                    );
+                  },
+                  onConsultation: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MainPageConsultation(),
+                      ),
+                    );
+                  },
+                );
+              }),
           ],
         ),
       ),
@@ -300,6 +422,8 @@ class _VideoDetailData {
   final int views;
   final int likes;
   final List<String> tags;
+  final bool isSaved;
+  final List<_LinkedContent> linkedArticles;
 
   const _VideoDetailData({
     required this.uuid,
@@ -311,5 +435,14 @@ class _VideoDetailData {
     required this.views,
     required this.likes,
     required this.tags,
+    this.isSaved = false,
+    this.linkedArticles = const [],
   });
+}
+
+class _LinkedContent {
+  final String uuid;
+  final String title;
+
+  const _LinkedContent({required this.uuid, required this.title});
 }

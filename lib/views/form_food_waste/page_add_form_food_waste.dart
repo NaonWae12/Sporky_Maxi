@@ -7,10 +7,7 @@ import '../../components/globals/colors/colors.dart';
 import '../../components/globals/text/text_style.dart';
 
 class PageAddFormFoodWaste extends StatefulWidget {
-  const PageAddFormFoodWaste({
-    super.key,
-    this.selectedMealOption,
-  });
+  const PageAddFormFoodWaste({super.key, this.selectedMealOption});
 
   final FoodWasteMealOption? selectedMealOption;
 
@@ -37,39 +34,49 @@ class _PageAddFormFoodWasteState extends State<PageAddFormFoodWaste> {
           child: Row(
             children: [
               IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back_ios)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
               Text(
                 'Form Sisa Makanan',
                 style: AppTextStyles.heading2SemiBold(),
-              )
+              ),
             ],
           ),
         ),
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         child: Column(
           children: [
             CmpTagAttention(
-                imageAsset: 'assets/ic_food_waste1.png',
-                lineColor: AppColors.warn1,
-                imageColor: AppColors.warn1,
-                child: Text.rich(
-                    TextSpan(style: AppTextStyles.list1Regular(), children: [
-                  const TextSpan(text: 'Dengan mencatat '),
-                  TextSpan(
+              imageAsset: 'assets/ic_food_waste1.png',
+              lineColor: AppColors.warn1,
+              imageColor: AppColors.warn1,
+              child: Text.rich(
+                TextSpan(
+                  style: AppTextStyles.list1Regular(),
+                  children: [
+                    const TextSpan(text: 'Dengan mencatat '),
+                    TextSpan(
                       text: 'makanan yang tidak habis',
-                      style: AppTextStyles.list1Bold()),
-                  const TextSpan(
+                      style: AppTextStyles.list1Bold(),
+                    ),
+                    const TextSpan(
                       text:
-                          ', kamu bisa membantu memantau pertumbuhan si kecil. Yuk, isi '),
-                  TextSpan(
+                          ', kamu bisa membantu memantau pertumbuhan si kecil. Yuk, isi ',
+                    ),
+                    TextSpan(
                       text: 'form sisa makanan ',
-                      style: AppTextStyles.list1Bold()),
-                  const TextSpan(text: 'hari ini!'),
-                ]))),
+                      style: AppTextStyles.list1Bold(),
+                    ),
+                    const TextSpan(text: 'hari ini!'),
+                  ],
+                ),
+              ),
+            ),
             AddFormWasteCmp(
               selectedMealOption: _selectedMealOption,
               onMealOptionChanged: (option) {
@@ -77,7 +84,7 @@ class _PageAddFormFoodWasteState extends State<PageAddFormFoodWaste> {
                   _selectedMealOption = option;
                 });
               },
-            )
+            ),
           ],
         ),
       ),

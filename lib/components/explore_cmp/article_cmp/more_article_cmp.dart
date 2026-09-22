@@ -8,11 +8,13 @@ import 'package:sporky_maxi/views/explore_page/article_section/detail_article.da
 class MoreArticleCmp extends StatefulWidget {
   final String searchQuery;
   final int? selectedTopicId;
+  final bool sortByLikes;
 
   const MoreArticleCmp({
     super.key,
     this.searchQuery = '',
     this.selectedTopicId,
+    this.sortByLikes = false,
   });
 
   @override
@@ -42,7 +44,8 @@ class _MoreArticleCmpState extends State<MoreArticleCmp> {
   void didUpdateWidget(covariant MoreArticleCmp oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.searchQuery != widget.searchQuery ||
-        oldWidget.selectedTopicId != widget.selectedTopicId) {
+        oldWidget.selectedTopicId != widget.selectedTopicId ||
+        oldWidget.sortByLikes != widget.sortByLikes) {
       _loadInitial();
     }
   }
@@ -69,6 +72,7 @@ class _MoreArticleCmpState extends State<MoreArticleCmp> {
         page: page,
         perPage: _perPage,
         filterTopicId: widget.selectedTopicId,
+        sortByLikes: widget.sortByLikes,
       );
     }
 
@@ -76,6 +80,7 @@ class _MoreArticleCmpState extends State<MoreArticleCmp> {
       page: page,
       perPage: _perPage,
       filterTopicId: widget.selectedTopicId,
+      sortByLikes: widget.sortByLikes,
     );
   }
 

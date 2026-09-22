@@ -29,47 +29,59 @@ class _PageFormFoodWasteState extends State<PageFormFoodWaste> {
           child: Row(
             children: [
               IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_back_ios)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+              ),
               Text(
                 'Form Sisa Makanan',
                 style: AppTextStyles.heading2SemiBold(),
-              )
+              ),
             ],
           ),
         ),
       ),
-      body: Column(
-        children: [
-          CmpTagAttention(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          children: [
+            CmpTagAttention(
               imageAsset: 'assets/ic_food_waste1.png',
               lineColor: AppColors.warn1,
               imageColor: AppColors.warn1,
               child: Text.rich(
-                  TextSpan(style: AppTextStyles.list1Regular(), children: [
-                const TextSpan(text: 'Dengan mencatat '),
                 TextSpan(
-                    text: 'makanan yang tidak habis',
-                    style: AppTextStyles.list1Bold()),
-                const TextSpan(
-                    text:
-                        ', kamu bisa membantu memantau pertumbuhan si kecil. Yuk, isi '),
-                TextSpan(
-                    text: 'form sisa makanan ',
-                    style: AppTextStyles.list1Bold()),
-                const TextSpan(text: 'hari ini!'),
-              ]))),
-          FirstFormCmp(
-            selectedMealOption: _selectedMealOption,
-            onMealOptionChanged: (option) {
-              setState(() {
-                _selectedMealOption = option;
-              });
-            },
-          ),
-        ],
+                  style: AppTextStyles.list1Regular(),
+                  children: [
+                    const TextSpan(text: 'Dengan mencatat '),
+                    TextSpan(
+                      text: 'makanan yang tidak habis',
+                      style: AppTextStyles.list1Bold(),
+                    ),
+                    const TextSpan(
+                      text:
+                          ', kamu bisa membantu memantau pertumbuhan si kecil. Yuk, isi ',
+                    ),
+                    TextSpan(
+                      text: 'form sisa makanan ',
+                      style: AppTextStyles.list1Bold(),
+                    ),
+                    const TextSpan(text: 'hari ini!'),
+                  ],
+                ),
+              ),
+            ),
+            FirstFormCmp(
+              selectedMealOption: _selectedMealOption,
+              onMealOptionChanged: (option) {
+                setState(() {
+                  _selectedMealOption = option;
+                });
+              },
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 70),
@@ -81,11 +93,13 @@ class _PageFormFoodWasteState extends State<PageFormFoodWaste> {
                   ? null
                   : () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => PageAddFormFoodWaste(
-                                    selectedMealOption: _selectedMealOption,
-                                  )));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PageAddFormFoodWaste(
+                            selectedMealOption: _selectedMealOption,
+                          ),
+                        ),
+                      );
                     },
               color: _selectedMealOption == null
                   ? AppColors.base2
@@ -94,23 +108,27 @@ class _PageFormFoodWasteState extends State<PageFormFoodWaste> {
             ),
             // =============== Next to Page Summary ===============
             const SizedBox(height: 8),
-            Text.rich(TextSpan(
-              style: AppTextStyles.list1Regular(),
-              children: [
-                TextSpan(text: 'Mau Lihat Data Ringkasan Anak? '),
-                TextSpan(
+            Text.rich(
+              TextSpan(
+                style: AppTextStyles.list1Regular(),
+                children: [
+                  TextSpan(text: 'Mau Lihat Data Ringkasan Anak? '),
+                  TextSpan(
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PageSummary(),
-                            ));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PageSummary(),
+                          ),
+                        );
                       },
                     text: 'klik disini',
-                    style: AppTextStyles.list1SemiBold(AppColors.primary1))
-              ],
-            ))
+                    style: AppTextStyles.list1SemiBold(AppColors.primary1),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

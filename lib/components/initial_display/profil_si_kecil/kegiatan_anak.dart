@@ -122,7 +122,7 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
           ),
           const SizedBox(height: 20),
           Text(
-            "Yuk bantu kami buatkan menu yang bikin si kecil semangat makan tiap hari",
+            "Ceritakan kegiatan Anak sehari-hari...",
             style: AppTextStyles.heading3SemiBold(const Color(0xFFBCBCBC)),
           ),
           const SizedBox(height: 20),
@@ -133,13 +133,13 @@ class _KegiatanAnakState extends State<KegiatanAnak> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    "Apa Kegiatan Keseharian Anak Bunda?",
-                    style: AppTextStyles.desc1Regular(AppColors.base1),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.only(bottom: 8),
+                //   child: Text(
+                //     "Ceritakan kegiatan Anak sehari-hari...",
+                //     style: AppTextStyles.desc1Regular(AppColors.base1),
+                //   ),
+                // ),
                 if (isLoading)
                   const Padding(
                     padding: EdgeInsets.all(20),

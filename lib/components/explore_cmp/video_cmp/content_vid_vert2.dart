@@ -9,8 +9,14 @@ import '../../globals/card/video_card_item.dart';
 class ContentVidVert2 extends StatefulWidget {
   final String searchQuery;
   final Map<String, dynamic>? selectedTopic;
+  final bool sortByLikes;
 
-  const ContentVidVert2({super.key, this.searchQuery = '', this.selectedTopic});
+  const ContentVidVert2({
+    super.key,
+    this.searchQuery = '',
+    this.selectedTopic,
+    this.sortByLikes = false,
+  });
 
   @override
   State<ContentVidVert2> createState() => _ContentVidVert2State();
@@ -39,7 +45,8 @@ class _ContentVidVert2State extends State<ContentVidVert2> {
   void didUpdateWidget(covariant ContentVidVert2 oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedTopic?['id'] != widget.selectedTopic?['id'] ||
-        oldWidget.searchQuery != widget.searchQuery) {
+        oldWidget.searchQuery != widget.searchQuery ||
+        oldWidget.sortByLikes != widget.sortByLikes) {
       _loadInitial();
     }
   }
@@ -68,6 +75,7 @@ class _ContentVidVert2State extends State<ContentVidVert2> {
         page: page,
         perPage: _perPage,
         filterTopicId: topicId,
+        sortByLikes: widget.sortByLikes,
       );
     }
 
@@ -75,6 +83,7 @@ class _ContentVidVert2State extends State<ContentVidVert2> {
       page: page,
       perPage: _perPage,
       filterTopicId: topicId,
+      sortByLikes: widget.sortByLikes,
     );
   }
 

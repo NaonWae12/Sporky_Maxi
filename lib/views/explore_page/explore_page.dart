@@ -36,8 +36,9 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   void _syncSearchFieldWithActiveTab() {
-    final activeQuery =
-        selectedIndex == 0 ? _videoSearchQuery : _articleSearchQuery;
+    final activeQuery = selectedIndex == 0
+        ? _videoSearchQuery
+        : _articleSearchQuery;
     if (searchController.text == activeQuery) return;
     searchController.value = TextEditingValue(
       text: activeQuery,
@@ -66,11 +67,15 @@ class _ExplorePageState extends State<ExplorePage> {
               },
               onHeartPressed: () {
                 if (selectedIndex == 0) {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const VideoFav()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const VideoFav()),
+                  );
                 } else {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const ArticleFav()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ArticleFav()),
+                  );
                 }
               },
             ),

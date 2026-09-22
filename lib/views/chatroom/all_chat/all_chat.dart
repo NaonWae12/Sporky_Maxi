@@ -11,6 +11,7 @@ import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
 import '../../../components/chatroom_cmp/cmp_list_chat.dart';
 import '../../../components/globals/button/cmp_floating_button.dart';
+import '../../chatbot/qontak_mobile_chat_page.dart';
 import '../../consultation/main_page_consultation.dart';
 import '../chating_page_parent.dart';
 
@@ -86,6 +87,12 @@ class _AllChatState extends State<AllChat> {
     return Scaffold(
       floatingActionButton: CmpFloatingActionButton(
         imagePath: 'assets/temp_img/parent.png',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const QontakMobileChatPage()),
+          );
+        },
       ),
       body: FutureBuilder<List<ChatRoomCacheItem>>(
         future: _roomsFuture,
@@ -166,7 +173,7 @@ class _AllChatState extends State<AllChat> {
               const SizedBox(width: 8),
               Flexible(
                 child: GlobalsButtonText(
-                  text: 'Beli Tiket Konsultasi',
+                  text: 'Tanya Expert, Yuk?',
                   style: AppTextStyles.headList1Bold(AppColors.base5),
                 ),
               ),

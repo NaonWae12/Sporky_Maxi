@@ -20,12 +20,14 @@ class ExploreContentService {
     int page = 1,
     int perPage = 50,
     int? filterTopicId,
+    bool sortByLikes = false,
   }) async {
     final response = await _apiClient.get(
       _withQuery(ApiEndpoints.articles, {
         'page': page.toString(),
         'per_page': perPage.toString(),
         'filter_topic': filterTopicId?.toString(),
+        'sort': sortByLikes ? 'likes' : null,
       }),
     );
     final data = ApiParser.map(response['data']);
@@ -55,6 +57,7 @@ class ExploreContentService {
     int page = 1,
     int perPage = 50,
     int? filterTopicId,
+    bool sortByLikes = false,
   }) async {
     final response = await _apiClient.get(
       _withQuery(ApiEndpoints.search, {
@@ -63,6 +66,7 @@ class ExploreContentService {
         'page': page.toString(),
         'per_page': perPage.toString(),
         'filter_topic': filterTopicId?.toString(),
+        'sort': sortByLikes ? 'likes' : null,
       }),
     );
     final data = ApiParser.map(response['data']);
@@ -79,12 +83,14 @@ class ExploreContentService {
     int page = 1,
     int perPage = 50,
     int? filterTopicId,
+    bool sortByLikes = false,
   }) async {
     final response = await _apiClient.get(
       _withQuery(ApiEndpoints.videos(), {
         'page': page.toString(),
         'per_page': perPage.toString(),
         'filter_topic': filterTopicId?.toString(),
+        'sort': sortByLikes ? 'likes' : null,
       }),
     );
     final data = ApiParser.map(response['data']);
@@ -111,6 +117,7 @@ class ExploreContentService {
     int page = 1,
     int perPage = 50,
     int? filterTopicId,
+    bool sortByLikes = false,
   }) async {
     final response = await _apiClient.get(
       _withQuery(ApiEndpoints.search, {
@@ -119,6 +126,7 @@ class ExploreContentService {
         'page': page.toString(),
         'per_page': perPage.toString(),
         'filter_topic': filterTopicId?.toString(),
+        'sort': sortByLikes ? 'likes' : null,
       }),
     );
     final data = ApiParser.map(response['data']);

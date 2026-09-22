@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/form/globals_form.dart';
 
-class CmpFormSettingProfile extends StatefulWidget {
+class CmpFormSettingProfile extends StatelessWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final String lable;
@@ -23,45 +23,21 @@ class CmpFormSettingProfile extends StatefulWidget {
   });
 
   @override
-  State<CmpFormSettingProfile> createState() => _CmpFormSettingProfileState();
-}
-
-class _CmpFormSettingProfileState extends State<CmpFormSettingProfile> {
-  late Color currentFillColor;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Default fillColor saat kosong
-    currentFillColor = AppColors.base3;
-
-    // Listen ke perubahan teks
-    widget.controller.addListener(() {
-      final isFilled = widget.controller.text.trim().isNotEmpty;
-
-      setState(() {
-        currentFillColor = isFilled ? AppColors.base5 : AppColors.base3;
-      });
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GlobalsForm(
       hasShadow: false,
-      fillColor: currentFillColor,
+      fillColor: AppColors.base5,
       radius: 16,
       cursorHeight: 20,
       margin: const EdgeInsets.symmetric(vertical: 4),
-      label: widget.lable,
-      labelStyle: widget.labelStyle,
+      label: lable,
+      labelStyle: labelStyle,
       labelColor: AppColors.base2,
-      controller: widget.controller,
-      keyboardType: widget.keyboardType,
-      focusBorderColor: widget.focusBorderColor,
-      enableBorderColor: widget.enableBorderColor,
-      isObscure: widget.isObscure,
+      controller: controller,
+      keyboardType: keyboardType,
+      focusBorderColor: focusBorderColor,
+      enableBorderColor: enableBorderColor,
+      isObscure: isObscure,
     );
   }
 }

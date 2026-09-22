@@ -23,6 +23,8 @@ class TopContent extends StatefulWidget {
   final YoutubePlayerController? externalController;
   final Widget? externalPlayer;
   final double? aspectRatio;
+  final bool isFavorited;
+  final VoidCallback? onFavoriteTap;
 
   const TopContent({
     super.key,
@@ -40,6 +42,8 @@ class TopContent extends StatefulWidget {
     this.externalPlayer,
     this.aspectRatio,
     this.onPlay,
+    this.isFavorited = false,
+    this.onFavoriteTap,
   });
 
   final VoidCallback? onPlay;
@@ -423,7 +427,10 @@ class _TopContentState extends State<TopContent> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const _FavoriteButton(),
+                    _FavoriteButton(
+                      isFavorited: widget.isFavorited,
+                      onTap: widget.onFavoriteTap,
+                    ),
                   ],
                 ),
                 Row(
@@ -489,23 +496,46 @@ class _TopContentState extends State<TopContent> {
 /// Favorite button yang di-isolasi ke widget sendiri.
 /// setState di sini TIDAK akan rebuild TopContent (dan YoutubePlayer-nya).
 class _FavoriteButton extends StatefulWidget {
-  const _FavoriteButton();
+  const _FavoriteButton({required this.isFavorited, this.onTap});
+
+  final bool isFavorited;
+  final VoidCallback? onTap;
 
   @override
   State<_FavoriteButton> createState() => _FavoriteButtonState();
 }
 
 class _FavoriteButtonState extends State<_FavoriteButton> {
-  bool _isFavorited = false;
+  late bool _isFavorited;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorited = widget.isFavorited;
+  }
+
+  @override
+  void didUpdateWidget(covariant _FavoriteButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFavorited != widget.isFavorited) {
+      _isFavorited = widget.isFavorited;
+    }
+  }
+
+  void _handleTap() {
+    if (widget.onTap != null) {
+      widget.onTap!();
+      return;
+    }
+    setState(() {
+      _isFavorited = !_isFavorited;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      onPressed: () {
-        setState(() {
-          _isFavorited = !_isFavorited;
-        });
-      },
+      onPressed: _handleTap,
       icon: Icon(
         _isFavorited ? Icons.favorite : Icons.favorite_border,
         color: AppColors.warn1,

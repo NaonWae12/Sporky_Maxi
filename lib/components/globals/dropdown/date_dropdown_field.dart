@@ -19,6 +19,7 @@ class DateDropdownField extends StatefulWidget {
   final double height;
   final TextEditingController? controller;
   final Widget? hint;
+  final DateTime? lastDate;
 
   const DateDropdownField({
     super.key,
@@ -28,6 +29,7 @@ class DateDropdownField extends StatefulWidget {
     this.height = 48,
     this.controller,
     this.hint,
+    this.lastDate,
   });
 
   @override
@@ -137,7 +139,7 @@ class _DateDropdownFieldState extends State<DateDropdownField> {
               child: CalendarDatePicker(
                 initialDate: _activeDate,
                 firstDate: DateTime(1900),
-                lastDate: DateTime(DateTime.now().year + 5),
+                lastDate: widget.lastDate ?? DateTime(DateTime.now().year + 5),
                 onDateChanged: (date) {
                   final bool isDaySelected = date.day != _activeDate.day;
 

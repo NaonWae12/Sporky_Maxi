@@ -9,6 +9,8 @@ import 'package:sporky_maxi/components/globals/constants/api_base_url.dart';
 import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
 import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
+import 'package:sporky_maxi/views/consultation/main_page_consultation.dart';
+import 'package:sporky_maxi/views/explore_page/video_section/detail_page.dart';
 
 class DetailArticle extends StatefulWidget {
   final String? articleUuid;
@@ -28,6 +30,9 @@ class _DetailArticleState extends State<DetailArticle> {
   static const List<String> _fallbackTags = ['Artikel Edukasi'];
 
   late Future<_ArticleDetailData> _articleFuture;
+  bool _isSaved = false;
+  bool _saving = false;
+  int _likes = 0;
 
   @override
   void initState() {
@@ -48,7 +53,9 @@ class _DetailArticleState extends State<DetailArticle> {
     final token = await SecureStorageService.getToken();
     final headers = <String, String>{'Accept': 'application/json'};
     if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = token;
+      headers['Authorization'] = token.startsWith('Bearer ')
+          ? token
+          : 'Bearer $token';
     }
 
     final response = await http.get(
@@ -68,7 +75,77 @@ class _DetailArticleState extends State<DetailArticle> {
       throw Exception('Format respons detail artikel tidak valid');
     }
 
-    return _mapArticleDetailData(articleNode);
+    final data = _mapArticleDetailData(articleNode);
+    if (mounted) {
+      setState(() {
+        _isSaved = data.isSaved;
+        _likes = data.likes;
+      });
+    }
+    return data;
+  }
+
+  Future<void> _toggleSave(_ArticleDetailData article) async {
+    if (_saving || article.uuid.isEmpty) return;
+
+    final originalSaved = _isSaved;
+    // Optimistic UI update (pola sama seperti favorit meal plan)
+    setState(() {
+      _isSaved = !_isSaved;
+      _saving = true;
+    });
+
+    try {
+      final token = await SecureStorageService.getToken();
+      if (token == null || token.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _isSaved = originalSaved;
+            _saving = false;
+          });
+        }
+        return;
+      }
+
+      final headers = <String, String>{'Accept': 'application/json'};
+      headers['Authorization'] = token.startsWith('Bearer ')
+          ? token
+          : 'Bearer $token';
+
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.articleSave(article.uuid)),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final dataNode = body['data'];
+        final nowSaved = dataNode is Map ? dataNode['is_saved'] == true : false;
+        final nowLikes = dataNode is Map
+            ? _toInt(dataNode['total_likes'])
+            : null;
+        if (mounted) {
+          setState(() {
+            _isSaved = nowSaved;
+            if (nowLikes != null) {
+              _likes = nowLikes;
+            }
+            _saving = false;
+          });
+        }
+        return;
+      }
+    } catch (e) {
+      debugPrint('[DetailArticle] save toggle error: $e');
+    }
+
+    // Revert jika API gagal
+    if (mounted) {
+      setState(() {
+        _isSaved = originalSaved;
+        _saving = false;
+      });
+    }
   }
 
   _ArticleDetailData _fallbackArticleData() {
@@ -89,7 +166,7 @@ class _DetailArticleState extends State<DetailArticle> {
     final title = article['title']?.toString().trim();
     final subtitle = article['subtitle']?.toString().trim();
     final content = article['content']?.toString().trim();
-    
+
     String? authorName;
     final authorNode = article['author'];
     if (authorNode is Map) {
@@ -103,16 +180,36 @@ class _DetailArticleState extends State<DetailArticle> {
         .where((tag) => tag.isNotEmpty)
         .toList();
 
+    final linkedVideos =
+        (article['linked_videos'] is List
+                ? article['linked_videos'] as List
+                : const [])
+            .whereType<Map>()
+            .map(
+              (v) => _LinkedContent(
+                uuid: v['uuid']?.toString() ?? '',
+                title: v['title']?.toString().trim() ?? '',
+              ),
+            )
+            .where((v) => v.uuid.isNotEmpty)
+            .toList();
+
     return _ArticleDetailData(
       uuid: article['uuid']?.toString() ?? '',
       title: (title == null || title.isEmpty) ? _fallbackTitle : title,
       subtitle: subtitle ?? '',
       imageUrl: _normalizeImageUrl(article['thumbnail'] as String?),
-      author: (authorName == null || authorName.isEmpty) ? _fallbackAuthor : authorName,
+      author: (authorName == null || authorName.isEmpty)
+          ? _fallbackAuthor
+          : authorName,
       tags: tags.isNotEmpty ? tags : _fallbackTags,
       views: _toInt(article['total_views']),
       likes: _toInt(article['total_likes']),
-      content: (content == null || content.isEmpty) ? _fallbackContent : content,
+      content: (content == null || content.isEmpty)
+          ? _fallbackContent
+          : content,
+      isSaved: article['is_saved'] == true,
+      linkedVideos: linkedVideos,
     );
   }
 
@@ -141,10 +238,7 @@ class _DetailArticleState extends State<DetailArticle> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Detail Artikel',
-          style: AppTextStyles.heading2SemiBold(),
-        ),
+        title: Text('Detail Artikel', style: AppTextStyles.heading2SemiBold()),
       ),
       body: FutureBuilder<_ArticleDetailData>(
         future: _articleFuture,
@@ -174,16 +268,38 @@ class _DetailArticleState extends State<DetailArticle> {
                   doctor: article.author,
                   title: article.title,
                   views: article.views,
-                  likes: article.likes,
+                  likes: _likes > 0 ? _likes : article.likes,
                   categories: article.tags,
+                  isFavorited: article.isSaved || _isSaved,
+                  onFavoriteTap: article.uuid.isEmpty || _saving
+                      ? null
+                      : () => _toggleSave(article),
                 ),
                 TeksArticleCmp(content: article.content),
-                const BottomContent(
-                  title:
-                      "Ingin lebih paham lebih lanjut terkait Alergi Anak?",
-                  description:
-                      "Tonton video edukatif kami atau konsultasikan langsung dengan dokter pilihan Bunda. Yuk, kenali tanda alergi sejak dini agar si Kecil tetap nyaman dan sehat!",
-                ),
+                if (article.linkedVideos.isNotEmpty)
+                  ...article.linkedVideos.map((video) {
+                    return BottomContent(
+                      title: video.title,
+                      description:
+                          "Tonton video edukatif terkait dari kami, atau konsultasikan langsung dengan dokter pilihan Bunda.",
+                      onPrimaryAction: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DetailPage(videoUuid: video.uuid),
+                          ),
+                        );
+                      },
+                      onConsultation: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MainPageConsultation(),
+                          ),
+                        );
+                      },
+                    );
+                  }),
               ],
             ),
           );
@@ -203,6 +319,8 @@ class _ArticleDetailData {
   final int views;
   final int likes;
   final String content;
+  final bool isSaved;
+  final List<_LinkedContent> linkedVideos;
 
   const _ArticleDetailData({
     required this.uuid,
@@ -214,5 +332,14 @@ class _ArticleDetailData {
     required this.views,
     required this.likes,
     required this.content,
+    this.isSaved = false,
+    this.linkedVideos = const [],
   });
+}
+
+class _LinkedContent {
+  final String uuid;
+  final String title;
+
+  const _LinkedContent({required this.uuid, required this.title});
 }

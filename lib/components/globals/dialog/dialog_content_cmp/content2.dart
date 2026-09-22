@@ -26,6 +26,7 @@ class Content2 extends StatelessWidget {
   final String? iconAssetLeft;
   final double texRightWidth;
   final double texLeftWidth;
+  final Key? leftButtonKey;
 
   const Content2({
     super.key,
@@ -48,6 +49,7 @@ class Content2 extends StatelessWidget {
     this.iconAssetLeft,
     this.texRightWidth = 4.8,
     this.texLeftWidth = 4.8,
+    this.leftButtonKey,
   });
 
   /// 🔥 Helper icon builder (SVG / PNG / JPG)
@@ -97,29 +99,32 @@ class Content2 extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: GlobalsButton(
-                color: buttonCollorLeft,
-                onPressed: onPressedLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (iconAssetLeft != null) ...[
-                      _buildIcon(iconAssetLeft!),
-                      const SizedBox(width: 5),
-                    ],
-                    Expanded(
-                      child: Text(
-                        textNavLeft,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.visible,
-                        style:
-                            textNavStyle ??
-                            AppTextStyles.headList1Bold(AppColors.base5),
+              child: KeyedSubtree(
+                key: leftButtonKey,
+                child: GlobalsButton(
+                  color: buttonCollorLeft,
+                  onPressed: onPressedLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (iconAssetLeft != null) ...[
+                        _buildIcon(iconAssetLeft!),
+                        const SizedBox(width: 5),
+                      ],
+                      Expanded(
+                        child: Text(
+                          textNavLeft,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.visible,
+                          style:
+                              textNavStyle ??
+                              AppTextStyles.headList1Bold(AppColors.base5),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

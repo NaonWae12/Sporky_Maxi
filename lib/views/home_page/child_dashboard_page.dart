@@ -13,6 +13,7 @@ import 'package:sporky_maxi/components/home_page_cmp/promo_section.dart';
 import '../../components/dashboard_page_cmp/child_profile/child_profile.dart';
 import '../../components/home_page_cmp/carousel_section.dart';
 import '../../components/meal_plan_cmp/cmp_top_meal_plan.dart';
+import '../../components/profile_content/cmp_parent_profile/daily_tasks_popup.dart';
 import '../../core/services/child/child_service.dart';
 import '../../core/utils/secure_storage_service.dart';
 import '../chatbot/qontak_mobile_chat_page.dart';
@@ -40,6 +41,16 @@ class _ChildDashboardPageState extends State<ChildDashboardPage> {
     _childUuidsFuture = ChildService().getChildUuids();
     _loadParentProfileCache();
     _loadSelectedChildUuid();
+    _showDailyTasksPopup();
+  }
+
+  /// Popup daily task sekali per session aplikasi (bukan per login).
+  /// Session = aplikasi tetap berjalan; popup tidak muncul lagi sampai restart.
+  void _showDailyTasksPopup() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      DailyTasksPopup.showOncePerSession(context);
+    });
   }
 
   Future<void> _loadParentProfileCache() async {

@@ -2,10 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sporky_maxi/components/globals/card/globals_card_outlined.dart';
-import 'package:sporky_maxi/components/globals/colors/colors.dart';
 import 'package:sporky_maxi/components/globals/constants/api_endpoints.dart';
-import 'package:sporky_maxi/components/globals/text/text_style.dart';
 import 'package:sporky_maxi/core/utils/secure_storage_service.dart';
 
 import '../../../views/explore_page/video_section/video_fav.dart';
@@ -25,7 +22,7 @@ class MoreVidPageCmp extends StatefulWidget {
 
 class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
   int _selectedIndex = 0;
-  List<String> _selectedFiltersFromBottomSheet = [];
+  bool _sortByLikes = false;
 
   // Topics dari API: index 0 selalu 'Semua'
   List<Map<String, dynamic>> _topics = [
@@ -133,58 +130,13 @@ class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: _selectedFiltersFromBottomSheet.isNotEmpty
-                      ? Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: _selectedFiltersFromBottomSheet
-                              .map(
-                                (filter) => GlobalsCardOutlined(
-                                  height: 24,
-                                  borderColor: Colors.transparent,
-                                  backgroundColor: AppColors.secondary2,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        filter,
-                                        style: AppTextStyles.list1Regular(
-                                          AppColors.base5,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.close,
-                                          size: 15,
-                                          color: AppColors.base5,
-                                        ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {
-                                          setState(() {
-                                            _selectedFiltersFromBottomSheet
-                                                .remove(filter);
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        )
-                      : const SizedBox(),
-                ),
-                const SizedBox(width: 8),
-                FilterContentButton(
-                  categories: const ['sdfg', 'adfads'],
-                  title: 'Urutkan Berdasarkan',
-                  onFilterApplied: (selected) {
+                SortContentButton(
+                  sortByLikes: _sortByLikes,
+                  onChanged: (value) {
                     setState(() {
-                      _selectedFiltersFromBottomSheet = selected;
+                      _sortByLikes = value;
                     });
                   },
                 ),
@@ -195,6 +147,7 @@ class _MoreVidPageCmpState extends State<MoreVidPageCmp> {
           ContentVidVert2(
             searchQuery: widget.searchQuery,
             selectedTopic: _selectedTopic,
+            sortByLikes: _sortByLikes,
           ),
         ],
       ),

@@ -149,7 +149,7 @@ class _SummaryCmpFormState extends State<SummaryCmp> {
     return GlobalsCard(
       onTap: onTap,
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
       backgroundColor: AppColors.base4,
       hasShadow: false,
       borderRadius: BorderRadius.only(

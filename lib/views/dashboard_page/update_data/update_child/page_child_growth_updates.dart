@@ -24,6 +24,7 @@ class PageChildGrowthUpdates extends StatefulWidget {
 class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
   String? selectedChildUuid;
   DateTime? selectedDate;
+  bool _isSaving = false;
   late TextEditingController tinggi;
   late TextEditingController berat;
   late Future<List<ChildGrowthUpdatesModel>> _childrenFuture;
@@ -44,14 +45,18 @@ class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
   }
 
   Future<void> _submitUpdate() async {
+    if (_isSaving) return;
+
     if (selectedChildUuid == null ||
         tinggi.text.isEmpty ||
         berat.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Semua data wajib diisi")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Semua data wajib diisi")));
       return;
     }
+
+    setState(() => _isSaving = true);
 
     try {
       await PutChildGrowthUpdatesService().updateGrowthData(
@@ -68,10 +73,9 @@ class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
               'Informasi tumbuh kembang si kecil sudah tercatat. Terima kasih sudah memantau perkembangan buah hati, Bunda! 💛',
           onPressed: () {
             Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Navbar(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => Navbar()),
+            );
           },
           textNav: 'Akses Beranda',
           colorButton: AppColors.secondary1,
@@ -79,9 +83,13 @@ class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal update data: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Gagal update data: $e")));
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -94,14 +102,15 @@ class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
           children: [
             const SizedBox(width: 8),
             IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.arrow_back_ios)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_back_ios),
+            ),
             Text(
               'Update Pertumbuhan Anak',
               style: AppTextStyles.heading2SemiBold(),
-            )
+            ),
           ],
         ),
       ),
@@ -143,6 +152,7 @@ class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
             const SizedBox(height: 20),
             DateDropdownField(
               label: 'Tanggal',
+              lastDate: DateTime.now(),
               selectedDate: selectedDate,
               onDateSelected: (date) {
                 setState(() {
@@ -154,16 +164,20 @@ class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
             Row(
               children: [
                 Expanded(
-                    child: GlobalsForm(
-                        label: "Tinggi Badan (cm)*",
-                        controller: tinggi,
-                        keyboardType: TextInputType.number)),
+                  child: GlobalsForm(
+                    label: "Tinggi Badan (cm)*",
+                    controller: tinggi,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
-                    child: GlobalsForm(
-                        label: "Berat Badan (kg)*",
-                        controller: berat,
-                        keyboardType: TextInputType.number)),
+                  child: GlobalsForm(
+                    label: "Berat Badan (kg)*",
+                    controller: berat,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
               ],
             ),
           ],
@@ -172,9 +186,21 @@ class _PageChildGrowthUpdatesState extends State<PageChildGrowthUpdates> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 50.0, left: 16.0, right: 16.0),
         child: GlobalsButton(
-          onPressed: _submitUpdate,
+          onPressed: _isSaving ? null : _submitUpdate,
           color: AppColors.secondary1,
-          text: 'Update Data Anak',
+          child: _isSaving
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: AppColors.base5,
+                  ),
+                )
+              : GlobalsButtonText(
+                  text: 'Update Data Anak',
+                  style: AppTextStyles.heading3SemiBold(AppColors.base5),
+                ),
         ),
       ),
     );

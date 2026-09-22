@@ -15,7 +15,6 @@ import '../globals/button/food_portion_guide_button.dart';
 import '../globals/dialog/dialog_alert.dart';
 import '../globals/dialog/dialog_content_cmp/content2.dart';
 import 'first_form_cmp.dart';
-import '../globals/card/cmp_tag_attention.dart';
 import '../globals/card/globals_card.dart';
 import '../globals/colors/colors.dart';
 import '../globals/constants/api_endpoints.dart';
@@ -156,6 +155,10 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
       final pickedFile = await ImagePicker().pickImage(
         source: source,
         imageQuality: 80,
+        // Batasi dimensi agar hasil re-encode tetap di bawah batas 2MB
+        // server (max:2048). Foto 12MP+ mentah dengan q80 tetap bisa >2MB.
+        maxWidth: 1600,
+        maxHeight: 1600,
       );
 
       if (pickedFile == null || !mounted) return;
@@ -760,6 +763,91 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     });
   }
 
+  Widget _buildMealDropdownCard() {
+    final selected = widget.selectedMealOption;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.base5,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: selected == null ? AppColors.base3 : AppColors.primary1,
+          width: selected == null ? 1.2 : 1.5,
+        ),
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onMealOptionChanged == null ? null : _toggleMealDropdown,
+        child: SizedBox(
+          height: 52,
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                selected?.iconAsset ?? 'assets/svg/bento-box-rounded.svg',
+                colorFilter: selected == null
+                    ? null
+                    : ColorFilter.mode(selected.iconColor, BlendMode.srcIn),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  selected?.text ?? 'Pilih Jenis Makanan',
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.heading3Medium(
+                    selected == null ? AppColors.base2 : AppColors.base1,
+                  ),
+                ),
+              ),
+              Icon(
+                _isExpanded1
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: widget.onMealOptionChanged == null
+                    ? AppColors.base3
+                    : AppColors.secondary1,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _mealOptionItem(FoodWasteMealOption option) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded1 = false;
+        });
+        widget.onMealOptionChanged!.call(option);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.base4,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              option.iconAsset,
+              colorFilter: ColorFilter.mode(option.iconColor, BlendMode.srcIn),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                option.text,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.heading3Medium(AppColors.base1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint(
@@ -768,70 +856,11 @@ class _AddFormWasteCmpState extends State<AddFormWasteCmp> {
     return Column(
       children: [
         const FoodPortionGuideButton(slug: 'food-waste-guide'),
-        GlobalsCard(
-          onTap: widget.onMealOptionChanged == null
-              ? null
-              : _toggleMealDropdown,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          backgroundColor: AppColors.base4,
-          hasShadow: false,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: _isExpanded1 ? Radius.zero : const Radius.circular(12),
-            bottomRight: _isExpanded1 ? Radius.zero : const Radius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    widget.selectedMealOption?.iconAsset ??
-                        'assets/svg/bento-box-rounded.svg',
-                    colorFilter: ColorFilter.mode(
-                      widget.selectedMealOption?.iconColor ??
-                          AppColors.primary1,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.selectedMealOption?.text ?? 'Makan Pagi',
-                    style: AppTextStyles.headList1Regular(),
-                  ),
-                ],
-              ),
-              Icon(
-                _isExpanded1
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                color: widget.onMealOptionChanged == null
-                    ? AppColors.base3
-                    : null,
-              ),
-            ],
-          ),
-        ),
+        _buildMealDropdownCard(),
         if (_isExpanded1 && widget.onMealOptionChanged != null) ...[
           const SizedBox(height: 8),
           for (var i = 0; i < _mealOptions.length; i++) ...[
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isExpanded1 = false;
-                });
-                widget.onMealOptionChanged!.call(_mealOptions[i]);
-              },
-              child: CmpTagAttention(
-                space: 8,
-                textStyle: AppTextStyles.headList1Regular(),
-                imageAsset: _mealOptions[i].iconAsset,
-                text: _mealOptions[i].text,
-                lineColor: AppColors.base4,
-                imageColor: _mealOptions[i].iconColor,
-              ),
-            ),
+            _mealOptionItem(_mealOptions[i]),
             if (i != _mealOptions.length - 1) const SizedBox(height: 8),
           ],
         ],

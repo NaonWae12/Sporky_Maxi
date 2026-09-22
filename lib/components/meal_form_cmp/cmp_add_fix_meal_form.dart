@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 import 'package:sporky_maxi/views/bottom_navbar/navbar.dart';
 // import 'package:sporky_maxi/components/meal_form_cmp/cmp_fix_add_meal_form.dart';
 import '../../views/form_food_waste/page_form_food_waste.dart';
@@ -55,6 +56,7 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
   final TextEditingController _fatController = TextEditingController();
   final TextEditingController _caloriesController = TextEditingController();
   bool _isSubmitting = false;
+  final GlobalKey _bagikanKey = GlobalKey();
   final List<String> _mealPlanNamesCache = [];
   final List<Map<String, dynamic>> _mealPlansCache = [];
 
@@ -751,9 +753,8 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
             MaterialPageRoute(builder: (context) => const Navbar()),
           );
         },
-        onPressedLeft: () {
-          Navigator.pop(context);
-        },
+        onPressedLeft: _shareSummary,
+        leftButtonKey: _bagikanKey,
         onPressedRight: () {
           Navigator.push(
             context,
@@ -762,6 +763,27 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
         },
       ),
     );
+  }
+
+  Future<void> _shareSummary() async {
+    Rect? origin;
+    final renderObject =
+        _bagikanKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderObject != null && renderObject.hasSize) {
+      origin = renderObject.localToGlobal(Offset.zero) & renderObject.size;
+    }
+
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          title: 'Ringkasan Asupan Harian Sporky',
+          text: 'Data kalori hari ini berhasil disimpan di Sporky Maxi! 🍽️',
+          sharePositionOrigin: origin,
+        ),
+      );
+    } catch (e) {
+      debugPrint('[Share] failed: $e');
+    }
   }
 
   @override
@@ -806,6 +828,7 @@ class _CmpAddFixMealFormState extends State<CmpAddFixMealForm> {
         const SizedBox(height: 16),
         CmpAddMealForm(
           forms: _forms,
+          normalFill: !_isAutoSelected,
           onChanged: _onFormChanged,
           onItemAdded: (item) {},
           onItemRemoved: (index) {},

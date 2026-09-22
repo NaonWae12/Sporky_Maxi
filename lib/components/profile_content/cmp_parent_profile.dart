@@ -139,6 +139,8 @@ class _CmpParentProfileState extends State<CmpParentProfile> {
     final status = task['status']?.toString() ?? 'pending';
     final statusLabel = task['status_label']?.toString() ?? status;
     final actionHint = task['action_hint']?.toString() ?? '';
+    final period = task['period']?.toString() ?? 'daily';
+    final periodLabel = task['period_label']?.toString() ?? '';
     final current = int.tryParse(task['current']?.toString() ?? '') ?? 0;
     final target =
         int.tryParse(
@@ -176,6 +178,8 @@ class _CmpParentProfileState extends State<CmpParentProfile> {
       statusLabel: statusLabel,
       actionHint: actionHint,
       isMilestone: isMilestone,
+      period: period,
+      periodLabel: periodLabel,
     );
   }
 

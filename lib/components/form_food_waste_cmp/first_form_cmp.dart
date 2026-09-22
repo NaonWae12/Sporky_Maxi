@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../globals/card/cmp_tag_attention.dart';
-import '../globals/card/globals_card.dart';
 import '../globals/colors/colors.dart';
 import '../globals/text/text_style.dart';
 
@@ -86,56 +84,69 @@ class _FirstFormCmpState extends State<FirstFormCmp> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GlobalsCard(
-          onTap: _toggleMealDropdown,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          backgroundColor: AppColors.base4,
-          hasShadow: false,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: isExpanded1 ? Radius.zero : const Radius.circular(12),
-            bottomRight: isExpanded1 ? Radius.zero : const Radius.circular(12),
-          ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Column(
+        children: [
+          _buildDropdownCard(),
+          if (isExpanded1) ...[
+            const SizedBox(height: 8),
+            for (var i = 0; i < _mealOptions.length; i++) ...[
+              _mealOptionItem(_mealOptions[i]),
+              if (i != _mealOptions.length - 1) const SizedBox(height: 8),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownCard() {
+    final selected = _selectedMealOption;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.base5,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: selected == null ? AppColors.base3 : AppColors.primary1,
+          width: selected == null ? 1.2 : 1.5,
+        ),
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _toggleMealDropdown,
+        child: SizedBox(
+          height: 52,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    _selectedMealOption?.iconAsset ??
-                        'assets/svg/bento-box-rounded.svg',
-                    colorFilter: _selectedMealOption != null
-                        ? ColorFilter.mode(
-                            _selectedMealOption!.iconColor,
-                            BlendMode.srcIn,
-                          )
-                        : null,
+              SvgPicture.asset(
+                selected?.iconAsset ?? 'assets/svg/bento-box-rounded.svg',
+                colorFilter: selected == null
+                    ? null
+                    : ColorFilter.mode(selected.iconColor, BlendMode.srcIn),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  selected?.text ?? 'Pilih Jenis Makanan',
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.heading3Medium(
+                    selected == null ? AppColors.base2 : AppColors.base1,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _selectedMealOption?.text ?? 'Pilih Jenis Makanan',
-                    style: AppTextStyles.headList1Regular(),
-                  ),
-                ],
+                ),
               ),
               Icon(
                 isExpanded1
                     ? Icons.keyboard_arrow_up
                     : Icons.keyboard_arrow_down,
+                color: AppColors.secondary1,
               ),
             ],
           ),
         ),
-        if (isExpanded1) ...[
-          for (var i = 0; i < _mealOptions.length; i++) ...[
-            _mealOptionItem(_mealOptions[i]),
-            if (i != _mealOptions.length - 1) const SizedBox(height: 8),
-          ],
-        ],
-      ],
+      ),
     );
   }
 
@@ -148,13 +159,28 @@ class _FirstFormCmpState extends State<FirstFormCmp> {
         });
         widget.onMealOptionChanged?.call(option);
       },
-      child: CmpTagAttention(
-        space: 8,
-        textStyle: AppTextStyles.headList1Regular(),
-        imageAsset: option.iconAsset,
-        text: option.text,
-        lineColor: AppColors.base4,
-        imageColor: option.iconColor,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.base4,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              option.iconAsset,
+              colorFilter: ColorFilter.mode(option.iconColor, BlendMode.srcIn),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                option.text,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.heading3Medium(AppColors.base1),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

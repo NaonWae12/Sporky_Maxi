@@ -47,9 +47,13 @@ class ApiEndpoints {
       : "${ApiBaseUrl.baseUrl}/api/v1/videos";
   static String videoDetail(String videoUuid) =>
       "${ApiBaseUrl.baseUrl}/api/v1/videos/$videoUuid";
+  static String videoSave(String videoUuid) =>
+      "${ApiBaseUrl.baseUrl}/api/v1/videos/$videoUuid/save";
   static String get articles => "${ApiBaseUrl.baseUrl}/api/v1/articles";
   static String articleDetail(String articleUuid) =>
       "${ApiBaseUrl.baseUrl}/api/v1/articles/$articleUuid";
+  static String articleSave(String articleUuid) =>
+      "${ApiBaseUrl.baseUrl}/api/v1/articles/$articleUuid/save";
   // static String get profile => "${ApiBaseUrl.baseUrl}/api/v1/user/profile";
   // Users
   static String get currentUser => "${ApiBaseUrl.baseUrl}/api/v1/users/me";

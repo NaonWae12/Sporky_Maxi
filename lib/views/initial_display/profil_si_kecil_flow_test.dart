@@ -133,7 +133,7 @@ class _ProfilSiKecilFlowTestState extends State<ProfilSiKecilFlowTest> {
           customChild: Content1(
             title: 'Data Anak Tersimpan!',
             message:
-                'Data si kecil berhasil dicatat. Informasi ini akan membantu rekomendasi nutrisi lebih tepat.',
+                'Terima kasih Parents! Data Anak sudah berhasil dicatat, ini akan membantu untuk memberikan rekomendasi yang sesuai untuk kebutuhan Anak.',
             onPressed: () {
               Navigator.pushReplacement(
                 context,

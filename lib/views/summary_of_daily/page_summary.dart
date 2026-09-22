@@ -72,7 +72,7 @@ class PageSummary extends StatelessWidget {
                 Expanded(
                   child: GlobalsButton(
                     text: "Home",
-                    color: AppColors.primary2,
+                    color: AppColors.primary1,
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,

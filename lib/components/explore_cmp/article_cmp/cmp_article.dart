@@ -77,81 +77,99 @@ class CmpArticle extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       child: GlobalsCard(
-          hasShadow: false,
-          onTap: onTap,
-          backgroundColor: Colors.transparent,
-          child: Row(
-            children: [
-              // Gambar/video placeholder
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: _buildImage(),
-              ),
-              const SizedBox(width: 5),
-              Column(
+        hasShadow: false,
+        onTap: onTap,
+        backgroundColor: Colors.transparent,
+        child: Row(
+          children: [
+            // Gambar/video placeholder
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: _buildImage(),
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Kategori
+                  // Kategori — lebar dibatasi Expanded sehingga saat tags
+                  // banyak akan membungkus, tidak meluber keluar kartu.
                   Wrap(
                     spacing: 6,
                     runSpacing: 4,
                     children: categories
-                        .map((cat) => GlobalsCardOutlined(
-                              text: cat,
-                              textStyle: AppTextStyles.lable4SemiRegular(
-                                  AppColors.primary1),
-                              backgroundColor: AppColors.base5,
-                              borderColor: AppColors.primary1,
-                              textColor: AppColors.primary1,
-                              height: 16,
-                            ))
+                        .map(
+                          (cat) => GlobalsCardOutlined(
+                            text: cat,
+                            textStyle: AppTextStyles.lable4SemiRegular(
+                              AppColors.primary1,
+                            ),
+                            backgroundColor: AppColors.base5,
+                            borderColor: AppColors.primary1,
+                            textColor: AppColors.primary1,
+                            height: 16,
+                          ),
+                        )
                         .toList(),
                   ),
-
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.58,
-                    child: Text(
-                      title,
-                      style: AppTextStyles.list1Bold(AppColors.base1),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Text(
+                    title,
+                    style: AppTextStyles.list1Bold(AppColors.base1),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Row(
                     children: [
-                      const Icon(Icons.circle,
-                          size: 13, color: AppColors.base2),
+                      const Icon(
+                        Icons.circle,
+                        size: 13,
+                        color: AppColors.base2,
+                      ),
                       const SizedBox(width: 4),
-                      Text('${doctor.toString()} ',
-                          style: AppTextStyles.list3Regular(AppColors.base2)),
+                      Flexible(
+                        child: Text(
+                          '${doctor.toString()} ',
+                          style: AppTextStyles.list3Regular(AppColors.base2),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       const SizedBox(width: 5),
-                      const Icon(Icons.remove_red_eye_outlined,
-                          size: 13, color: AppColors.base2),
+                      const Icon(
+                        Icons.remove_red_eye_outlined,
+                        size: 13,
+                        color: AppColors.base2,
+                      ),
                       const SizedBox(width: 4),
-                      Text('${views.toString()} views',
-                          style: AppTextStyles.list3Regular(AppColors.base2)),
+                      Text(
+                        '${views.toString()} views',
+                        style: AppTextStyles.list3Regular(AppColors.base2),
+                      ),
                       const SizedBox(width: 5),
-                      const Icon(Icons.favorite,
-                          size: 13, color: AppColors.warn1),
+                      const Icon(
+                        Icons.favorite,
+                        size: 13,
+                        color: AppColors.warn1,
+                      ),
                       const SizedBox(width: 4),
-                      Text('${likes.toString()} likes',
-                          style: AppTextStyles.list3Regular(AppColors.base2)),
+                      Text(
+                        '${likes.toString()} likes',
+                        style: AppTextStyles.list3Regular(AppColors.base2),
+                      ),
                     ],
                   ),
                   // Deskripsi
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.58,
-                    child: Text(
-                      description,
-                      style: AppTextStyles.list3Regular(AppColors.base2),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Text(
+                    description,
+                    style: AppTextStyles.list3Regular(AppColors.base2),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
-              )
-            ],
-          )),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

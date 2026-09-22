@@ -61,7 +61,7 @@ class _ProfilSiKecilFlowState extends State<ProfilSiKecilFlow> {
       customChild: Content1(
         title: 'Data Anak Tersimpan!',
         message:
-            'Data si kecil sudah berhasil dicatat. Informasi ini akan membantu kami menyesuaikan saran nutrisi dan rekomendasi yang lebih tepat untuk anak Bunda.',
+            'Terima kasih Parents! Data Anak sudah berhasil dicatat, ini akan membantu untuk memberikan rekomendasi yang sesuai untuk kebutuhan Anak.',
         onPressed: () {
           Navigator.push(
             context,

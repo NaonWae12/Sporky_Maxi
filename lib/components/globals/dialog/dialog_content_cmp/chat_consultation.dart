@@ -273,7 +273,7 @@ class _ChatConsultationState extends State<ChatConsultation> {
                 const SizedBox(width: 8),
                 Flexible(
                   child: GlobalsButtonText(
-                    text: 'Beli Tiket Konsultasi',
+                    text: 'Tanya Expert, Yuk?',
                     style: AppTextStyles.headList1Bold(AppColors.base5),
                   ),
                 ),

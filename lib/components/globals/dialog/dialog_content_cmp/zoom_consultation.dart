@@ -330,7 +330,7 @@ class _ZoomConsultationState extends State<ZoomConsultation> {
                 const SizedBox(width: 8),
                 Flexible(
                   child: GlobalsButtonText(
-                    text: 'Beli Tiket Konsultasi',
+                    text: 'Tanya Expert, Yuk?',
                     style: AppTextStyles.headList1Bold(AppColors.base5),
                   ),
                 ),

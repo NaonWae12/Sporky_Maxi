@@ -59,7 +59,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
             ),
             Expanded(
               child: FullWidthTabBar(
-                tabs: const ['Semua', 'Menu Utama', 'Cemilan'],
+                tabs: const ['Semua', 'Makan Berat', 'Snack'],
                 tabViews: [
                   AllContentPage(searchQuery: searchController.text),
                   MainMenuContentPage(searchQuery: searchController.text),

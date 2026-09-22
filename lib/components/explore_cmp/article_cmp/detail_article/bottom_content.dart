@@ -9,11 +9,15 @@ import '../../../globals/text/text_style.dart';
 class BottomContent extends StatelessWidget {
   final String title;
   final String description;
+  final VoidCallback? onPrimaryAction;
+  final VoidCallback? onConsultation;
 
   const BottomContent({
     super.key,
     required this.title,
     required this.description,
+    this.onPrimaryAction,
+    this.onConsultation,
   });
 
   @override
@@ -61,6 +65,7 @@ class BottomContent extends StatelessWidget {
                     elevation: 0,
                     height: 35,
                     color: AppColors.primary1,
+                    onPressed: onPrimaryAction,
                     child: Row(
                       children: [
                         SvgPicture.asset("assets/svg/ic_ play.svg"),
@@ -70,13 +75,6 @@ class BottomContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Fitur ini belum tersedia"),
-                        ),
-                      );
-                    },
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -85,6 +83,7 @@ class BottomContent extends StatelessWidget {
                     elevation: 0,
                     height: 35,
                     color: AppColors.secondary1,
+                    onPressed: onConsultation,
                     child: Row(
                       children: [
                         SvgPicture.asset("assets/svg/ic_ doctor.svg"),
@@ -95,13 +94,6 @@ class BottomContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Fitur ini belum tersedia"),
-                        ),
-                      );
-                    },
                   ),
                 ),
               ],

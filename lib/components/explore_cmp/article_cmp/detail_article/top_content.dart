@@ -14,6 +14,8 @@ class TopContent extends StatefulWidget {
   final int views;
   final int likes;
   final List<String> categories;
+  final bool isFavorited;
+  final VoidCallback? onFavoriteTap;
 
   const TopContent({
     super.key,
@@ -25,6 +27,8 @@ class TopContent extends StatefulWidget {
     required this.views,
     required this.likes,
     required this.categories,
+    this.isFavorited = false,
+    this.onFavoriteTap,
   });
 
   @override
@@ -32,7 +36,31 @@ class TopContent extends StatefulWidget {
 }
 
 class _TopContentState extends State<TopContent> {
-  bool isFavorited = false;
+  bool _isFavorited = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorited = widget.isFavorited;
+  }
+
+  @override
+  void didUpdateWidget(covariant TopContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFavorited != widget.isFavorited) {
+      _isFavorited = widget.isFavorited;
+    }
+  }
+
+  void _handleFavoriteTap() {
+    if (widget.onFavoriteTap != null) {
+      widget.onFavoriteTap!();
+      return;
+    }
+    setState(() {
+      _isFavorited = !_isFavorited;
+    });
+  }
 
   bool _isNetworkImage(String imagePath) {
     return imagePath.startsWith('http://') || imagePath.startsWith('https://');
@@ -110,8 +138,9 @@ class _TopContentState extends State<TopContent> {
     final doctorName = (widget.doctor?.trim().isNotEmpty ?? false)
         ? widget.doctor!.trim()
         : 'Tim Sporky';
-    final categories =
-        widget.categories.isNotEmpty ? widget.categories : const ['Artikel'];
+    final categories = widget.categories.isNotEmpty
+        ? widget.categories
+        : const ['Artikel'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,106 +154,107 @@ class _TopContentState extends State<TopContent> {
           ),
         ),
 
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 80,
-          child: GlobalsCard(
-              backgroundColor: AppColors.base4,
-              hasShadow: false,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        GlobalsCard(
+          backgroundColor: AppColors.base4,
+          hasShadow: false,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Kategori — Wrap selebar kartu (bukan di dalam Row) sehingga
+                // saat tags banyak akan membungkus ke baris berikutnya, tidak
+                // meluber keluar container. Gaya mengikuti detail video.
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: categories
+                      .map(
+                        (cat) => GlobalsCardOutlined(
+                          text: cat,
+                          textStyle: AppTextStyles.lable3SemiBold(
+                            AppColors.primary1,
+                          ),
+                          backgroundColor: AppColors.base5,
+                          borderColor: AppColors.primary1,
+                          textColor: AppColors.primary1,
+                          height: 26,
+                        ),
+                      )
+                      .toList(),
+                ),
+                const SizedBox(height: 10),
+                // Judul + tombol favorit
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Kategori
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: categories
-                              .map((cat) => GlobalsCardOutlined(
-                                    text: cat,
-                                    textStyle: AppTextStyles.lable4SemiRegular(
-                                        AppColors.primary1),
-                                    backgroundColor: AppColors.base5,
-                                    borderColor: AppColors.primary1,
-                                    textColor: AppColors.primary1,
-                                    height: 16,
-                                  ))
-                              .toList(),
-                        ),
-                        // Views & Likes
-                        Row(
-                          children: [
-                            const Icon(Icons.remove_red_eye_outlined,
-                                size: 13, color: AppColors.base1),
-                            const SizedBox(width: 4),
-                            Text('${widget.views.toString()} views',
-                                style: AppTextStyles.list3Regular(
-                                    AppColors.base1)),
-                            const SizedBox(width: 5),
-                            const Icon(Icons.favorite,
-                                size: 13, color: AppColors.warn1),
-                            const SizedBox(width: 4),
-                            Text('${widget.likes.toString()} likes',
-                                style: AppTextStyles.list3Regular(
-                                    AppColors.base1)),
-                          ],
-                        ),
-                      ],
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.headList1Bold(),
+                      ),
                     ),
-                    // Judul
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 1.4,
-                          child: Text(
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            widget.title,
-                            style: AppTextStyles.headList1Bold(),
-                          ),
-                        ),
-                        IconButton(
-                            onPressed: () {
-                              setState(() {
-                                isFavorited = !isFavorited;
-                              });
-                            },
-                            icon: Icon(
-                              isFavorited
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: AppColors.warn1,
-                            ))
-                      ],
-                    ),
-                    // Subtitle
-                    Row(
-                      children: [
-                        // Gambar bulat dengan outline
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: AppColors.base5,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.base2, width: 1),
-                          ),
-                          child: ClipOval(child: _buildDoctorImage()),
-                        ),
-                        Text(
-                          doctorName,
-                          style: AppTextStyles.list1Regular(),
-                        ),
-                      ],
+                    IconButton(
+                      onPressed: _handleFavoriteTap,
+                      icon: Icon(
+                        _isFavorited ? Icons.favorite : Icons.favorite_border,
+                        color: AppColors.warn1,
+                      ),
                     ),
                   ],
                 ),
-              )),
-        )
+                // Penulis + views + likes (mengikuti detail video)
+                Row(
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: AppColors.base5,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.base2, width: 1),
+                      ),
+                      child: ClipOval(child: _buildDoctorImage()),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        doctorName,
+                        style: AppTextStyles.list1Regular(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.remove_red_eye_outlined,
+                      size: 14,
+                      color: AppColors.base1,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${widget.views} views',
+                      style: AppTextStyles.list1Regular(AppColors.base1),
+                    ),
+                    const SizedBox(width: 10),
+                    const Icon(
+                      Icons.favorite,
+                      size: 14,
+                      color: AppColors.warn1,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${widget.likes} likes',
+                      style: AppTextStyles.list1Regular(AppColors.base1),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

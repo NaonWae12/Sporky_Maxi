@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sporky_maxi/components/globals/colors/colors.dart';
+import 'package:sporky_maxi/components/globals/text/text_style.dart';
 
 import '../dialog/modal_bottom_sheet.dart';
 
@@ -55,11 +56,52 @@ class FilterContentButton extends StatelessWidget {
             color: AppColors.secondary2,
             borderRadius: BorderRadius.all(Radius.circular(15)),
           ),
-          child: const Icon(
-            Icons.tune,
-            color: Colors.white,
-            size: 18,
-          ),
+          child: const Icon(Icons.tune, color: Colors.white, size: 18),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tombol urutkan untuk daftar artikel/video. Toggle antara "Terbaru" (default)
+/// dan "Terpopuler" (sort by total likes dari backend).
+class SortContentButton extends StatelessWidget {
+  final bool sortByLikes;
+  final ValueChanged<bool> onChanged;
+
+  const SortContentButton({
+    super.key,
+    required this.sortByLikes,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = sortByLikes ? AppColors.secondary2 : AppColors.base4;
+    return GestureDetector(
+      onTap: () => onChanged(!sortByLikes),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: activeColor,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              sortByLikes ? Icons.favorite : Icons.schedule,
+              size: 15,
+              color: sortByLikes ? AppColors.base5 : AppColors.base1,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              sortByLikes ? 'Terpopuler' : 'Terbaru',
+              style: AppTextStyles.list1Bold(
+                sortByLikes ? AppColors.base5 : AppColors.base1,
+              ),
+            ),
+          ],
         ),
       ),
     );
