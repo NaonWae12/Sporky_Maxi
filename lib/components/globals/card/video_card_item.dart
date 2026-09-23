@@ -66,35 +66,57 @@ class VideoCardItem extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Kategori — maksimal 3 tag; sisanya diringkas jadi
+                      // chip "..." supaya tidak overflow keluar kartu.
                       Wrap(
                         spacing: 6,
                         runSpacing: 4,
-                        children: categories
-                            .map(
-                              (cat) => GlobalsCardOutlined(
-                                text: cat,
-                                textStyle: AppTextStyles.lable4SemiRegular(
-                                    AppColors.primary1),
-                                backgroundColor: AppColors.base5,
-                                borderColor: AppColors.primary1,
-                                textColor: AppColors.primary1,
-                                height: 16,
+                        children: [
+                          ...categories
+                              .take(3)
+                              .map(
+                                (cat) => GlobalsCardOutlined(
+                                  text: cat,
+                                  textStyle: AppTextStyles.lable4SemiRegular(
+                                    AppColors.primary1,
+                                  ),
+                                  backgroundColor: AppColors.base5,
+                                  borderColor: AppColors.primary1,
+                                  textColor: AppColors.primary1,
+                                  height: 16,
+                                ),
                               ),
-                            )
-                            .toList(),
+                          if (categories.length > 3)
+                            GlobalsCardOutlined(
+                              text: '...',
+                              textStyle: AppTextStyles.lable4SemiRegular(
+                                AppColors.primary1,
+                              ),
+                              backgroundColor: AppColors.base5,
+                              borderColor: AppColors.primary1,
+                              textColor: AppColors.primary1,
+                              height: 16,
+                            ),
+                        ],
                       ),
                       Row(
                         children: [
-                          Icon(Icons.remove_red_eye_outlined,
-                              size: 13, color: Colors.grey[600]),
+                          Icon(
+                            Icons.remove_red_eye_outlined,
+                            size: 13,
+                            color: Colors.grey[600],
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '$views views',
                             style: AppTextStyles.list3Regular(AppColors.base2),
                           ),
                           const SizedBox(width: 5),
-                          const Icon(Icons.favorite,
-                              size: 13, color: AppColors.warn1),
+                          const Icon(
+                            Icons.favorite,
+                            size: 13,
+                            color: AppColors.warn1,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '$likes likes',
@@ -173,11 +195,7 @@ class VideoCardItem extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           imageWidget,
-          const Icon(
-            Icons.play_circle_fill,
-            size: 50,
-            color: Colors.white,
-          ),
+          const Icon(Icons.play_circle_fill, size: 50, color: Colors.white),
         ],
       );
     }
@@ -191,11 +209,7 @@ class VideoCardItem extends StatelessWidget {
       height: 205,
       width: double.infinity,
       color: AppColors.base3,
-      child: const Icon(
-        Icons.broken_image,
-        size: 48,
-        color: AppColors.base2,
-      ),
+      child: const Icon(Icons.broken_image, size: 48, color: AppColors.base2),
     );
   }
 }

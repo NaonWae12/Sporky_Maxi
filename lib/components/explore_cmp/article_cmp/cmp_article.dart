@@ -92,25 +92,38 @@ class CmpArticle extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Kategori — lebar dibatasi Expanded sehingga saat tags
-                  // banyak akan membungkus, tidak meluber keluar kartu.
+                  // Kategori — maksimal 3 tag; sisanya diringkas jadi chip
+                  // "..." supaya tidak overflow keluar kartu.
                   Wrap(
                     spacing: 6,
                     runSpacing: 4,
-                    children: categories
-                        .map(
-                          (cat) => GlobalsCardOutlined(
-                            text: cat,
-                            textStyle: AppTextStyles.lable4SemiRegular(
-                              AppColors.primary1,
+                    children: [
+                      ...categories
+                          .take(3)
+                          .map(
+                            (cat) => GlobalsCardOutlined(
+                              text: cat,
+                              textStyle: AppTextStyles.lable4SemiRegular(
+                                AppColors.primary1,
+                              ),
+                              backgroundColor: AppColors.base5,
+                              borderColor: AppColors.primary1,
+                              textColor: AppColors.primary1,
+                              height: 16,
                             ),
-                            backgroundColor: AppColors.base5,
-                            borderColor: AppColors.primary1,
-                            textColor: AppColors.primary1,
-                            height: 16,
                           ),
-                        )
-                        .toList(),
+                      if (categories.length > 3)
+                        GlobalsCardOutlined(
+                          text: '...',
+                          textStyle: AppTextStyles.lable4SemiRegular(
+                            AppColors.primary1,
+                          ),
+                          backgroundColor: AppColors.base5,
+                          borderColor: AppColors.primary1,
+                          textColor: AppColors.primary1,
+                          height: 16,
+                        ),
+                    ],
                   ),
                   Text(
                     title,

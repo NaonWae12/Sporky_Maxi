@@ -140,7 +140,7 @@ class _ProfilSiKecilFlowTestState extends State<ProfilSiKecilFlowTest> {
                 MaterialPageRoute(builder: (context) => const Navbar()),
               );
             },
-            textNav: 'Akses Beranda',
+            textNav: 'Beranda',
           ),
         );
       } else {

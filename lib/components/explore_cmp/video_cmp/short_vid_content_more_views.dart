@@ -114,22 +114,21 @@ class _ShortVidContentMoreViewsState extends State<ShortVidContentMoreViews> {
                       },
               ),
             ),
-            if (videos.length > widget.limit)
-              Align(
-                alignment: Alignment.center,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            MyWidget(initialSearchQuery: widget.searchQuery),
-                      ),
-                    );
-                  },
-                  child: const Text('Lihat Video Lainnya'),
-                ),
+            Align(
+              alignment: Alignment.center,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          MyWidget(initialSearchQuery: widget.searchQuery),
+                    ),
+                  );
+                },
+                child: const Text('Lihat Video Lainnya'),
               ),
+            ),
           ],
         );
       },

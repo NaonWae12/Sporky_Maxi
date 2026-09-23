@@ -41,8 +41,15 @@
 	<string>$(GOOGLE_SERVER_CLIENT_ID)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>whatsapp</string>
+		<string>instagram</string>
+	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Aplikasi membutuhkan akses galeri untuk mengunggah foto sisa makanan.</string>
+	<string>Aplikasi membutuhkan akses galeri untuk memilih foto momen makan dan sisa makanan.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Aplikasi membutuhkan akses untuk menyimpan foto momen makan ke galeri.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Aplikasi membutuhkan akses kamera untuk mengambil foto sisa makanan.</string>
 	<key>NSMicrophoneUsageDescription</key>

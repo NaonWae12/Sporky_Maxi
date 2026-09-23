@@ -8,26 +8,72 @@ class CmsHtmlContent extends StatelessWidget {
 
   const CmsHtmlContent({super.key, required this.htmlData});
 
+  /// Heading: Baloo2 bold, ukuran menurun mengikuti skala CKEditor di Laravel
+  /// (heading 1 = 20px, heading 2 = 17px, heading 3 = 14px).
+  TextStyle _heading(double size) {
+    return AppTextStyles.heading2SemiBold().copyWith(
+      fontSize: size,
+      fontWeight: FontWeight.w700,
+    );
+  }
+
+  /// Body: Roboto 16px (fs-6 di Laravel) dengan line-height longgar mendekati
+  /// lh-lg agar nyaman dibaca.
+  TextStyle _body() {
+    return AppTextStyles.headList1Regular().copyWith(height: 1.6);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Html(
       data: htmlData,
       style: {
-        // Heading 1 dan 2 pakai heading3Regular, biar konsisten typography lu
-        "h1": Style.fromTextStyle(AppTextStyles.heading3Regular()),
-        "h2": Style.fromTextStyle(AppTextStyles.lable2Regular()),
+        'h1': Style.fromTextStyle(_heading(22)),
+        'h2': Style.fromTextStyle(_heading(20)),
+        'h3': Style.fromTextStyle(_heading(17)),
+        'h4': Style.fromTextStyle(_heading(14)),
+        'h5': Style.fromTextStyle(_heading(14)),
+        'h6': Style.fromTextStyle(_heading(13)),
 
-        // Paragraf dan list pakai list1Regular
-        "p": Style.fromTextStyle(AppTextStyles.list1Regular()),
-        "li": Style.fromTextStyle(AppTextStyles.list1Regular()),
+        'p': Style.fromTextStyle(_body()),
+        'li': Style.fromTextStyle(_body()),
 
-        // Bullet list indent (ul) biar njorok ke dalam
-        "ul":
-            Style(margin: Margins.only(left: 16), padding: HtmlPaddings.all(0)),
+        // Indentasi list bullet & angka.
+        'ul': Style(
+          margin: Margins.only(left: 16),
+          padding: HtmlPaddings.all(0),
+        ),
+        'ol': Style(
+          margin: Margins.only(left: 16),
+          padding: HtmlPaddings.all(0),
+        ),
 
-        // Bold text (strong/b) pakai Bold
-        "strong": Style(fontWeight: FontWeight.bold),
-        "b": Style(fontWeight: FontWeight.bold),
+        // Bold.
+        'strong': Style(fontWeight: FontWeight.w700),
+        'b': Style(fontWeight: FontWeight.w700),
+
+        // Italic.
+        'em': Style(fontStyle: FontStyle.italic),
+        'i': Style(fontStyle: FontStyle.italic),
+
+        // Underline.
+        'u': Style(textDecoration: TextDecoration.underline),
+        'ins': Style(textDecoration: TextDecoration.underline),
+
+        // Strikethrough.
+        's': Style(textDecoration: TextDecoration.lineThrough),
+        'strike': Style(textDecoration: TextDecoration.lineThrough),
+        'del': Style(textDecoration: TextDecoration.lineThrough),
+
+        // Blockquote: border kiri + italic, meniru tampilan CKEditor.
+        'blockquote': Style(
+          border: const Border(
+            left: BorderSide(color: Color(0xFFCCCCCC), width: 5),
+          ),
+          padding: HtmlPaddings.only(left: 24, top: 8, bottom: 8),
+          margin: Margins.only(top: 8, bottom: 8),
+          fontStyle: FontStyle.italic,
+        ),
       },
     );
   }

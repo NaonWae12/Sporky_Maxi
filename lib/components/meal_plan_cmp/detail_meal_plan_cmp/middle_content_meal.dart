@@ -195,7 +195,7 @@ class _MiddleContentMealState extends State<MiddleContentMeal> {
             ),
             const CmpTagCategory(
               textAndImageColor: AppColors.primary1,
-              text: 'takaran penyajian',
+              text: 'Takaran Penyajian',
               imageAsset: 'assets/svg/bento-box-rounded.svg',
             ),
             _IngredientsTable(

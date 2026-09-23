@@ -397,13 +397,17 @@ class _TopContentState extends State<TopContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: categories
-                      .map(
-                        (cat) => GlobalsCardOutlined(
-                          text: cat,
+                // Kategori — satu baris dan bisa di-scroll ke samping
+                // supaya semua tag tetap bisa diakses tanpa overflow.
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < categories.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 6),
+                        GlobalsCardOutlined(
+                          text: categories[i],
                           textStyle: AppTextStyles.lable3SemiBold(
                             AppColors.primary1,
                           ),
@@ -412,8 +416,9 @@ class _TopContentState extends State<TopContent> {
                           textColor: AppColors.primary1,
                           height: 26,
                         ),
-                      )
-                      .toList(),
+                      ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Row(
